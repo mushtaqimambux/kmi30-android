@@ -26,7 +26,24 @@
     position: sticky; top: 0; z-index: 10;
     background: var(--bg); padding: 16px 16px 12px; border-bottom: 1px solid var(--card-border);
   }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
   h1 { font-size: 19px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
+  .icon-btn {
+    background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 9px; width: 34px; height: 34px; font-size: 16px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .icon-btn:active { opacity: 0.7; }
+  .toolbar { display: flex; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--card-border); }
+  .toolbar-select {
+    flex: 1; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 9px; padding: 8px 10px; font-size: 13px;
+  }
+  .toolbar-btn {
+    flex-shrink: 0; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 9px; padding: 8px 12px; font-size: 13px; cursor: pointer;
+  }
+  .toolbar-btn:active { opacity: 0.7; }
   .sub { color: var(--dim); font-size: 12.5px; margin-top: 3px; }
   main { padding: 12px 12px 40px; max-width: 640px; margin: 0 auto; }
   .stock {
@@ -65,18 +82,126 @@
   .detail-section { margin-top: 10px; }
   .detail-label { color: var(--text); font-weight: 700; font-family: -apple-system, sans-serif; font-size: 11.5px; margin-bottom: 3px; }
   .err-text { color: var(--down); font-size: 11.5px; }
+
+  .overlay {
+    display: none; position: fixed; inset: 0; z-index: 50;
+    background: rgba(0,0,0,0.55); align-items: flex-end; justify-content: center;
+  }
+  .overlay.open { display: flex; }
+  .settings-card {
+    position: relative; width: 100%; max-width: 640px;
+    background: var(--card); border-top: 1px solid var(--card-border);
+    border-radius: 16px 16px 0 0; padding: 18px 18px 24px;
+  }
+  .settings-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+  .settings-row { margin-bottom: 14px; }
+  .settings-row label { display: block; font-size: 12.5px; color: var(--dim); margin-bottom: 6px; }
+  .settings-row select, .settings-row input {
+    width: 100%; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 9px; padding: 9px 10px; font-size: 14px;
+  }
+  .settings-row input { margin-top: 8px; }
+  .settings-actions { display: flex; gap: 10px; margin-top: 6px; }
+  .primary-btn, .secondary-btn {
+    flex: 1; border-radius: 9px; padding: 11px; font-size: 14px; text-align: center; cursor: pointer; border: 1px solid var(--card-border);
+  }
+  .primary-btn { background: var(--accent); color: #0a1510; font-weight: 700; border: none; }
+  .secondary-btn { background: #232935; color: var(--text); }
+  .close-btn {
+    position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer;
+  }
+  .history-nav { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .history-nav input[type="date"] {
+    flex: 1; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 9px; padding: 9px 10px; font-size: 14px;
+  }
+  .history-list { max-height: 58vh; overflow-y: auto; touch-action: pan-y; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>KMI-30</h1>
-  <div class="sub" id="subLine">Kisi bhi stock ke saamne "Load" dabayein — sab ek saath load nahi hote.</div>
+  <div class="header-top">
+    <h1>KMI-30</h1>
+    <div style="display:flex; gap:8px;">
+      <button class="icon-btn" id="historyBtn" aria-label="History">📅</button>
+      <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
+    </div>
+  </div>
+  <div class="sub" id="subLine">Auto-update shuru ho raha hai…</div>
 </header>
+
+<div class="toolbar">
+  <select id="sortSelect" class="toolbar-select">
+    <option value="symbol">Symbol (A-Z)</option>
+    <option value="price-desc">Price: High → Low</option>
+    <option value="price-asc">Price: Low → High</option>
+    <option value="change-desc">Profit %: High → Low</option>
+    <option value="change-asc">Profit %: Low → High</option>
+    <option value="volume-desc">Volume: High → Low</option>
+    <option value="volume-asc">Volume: Low → High</option>
+  </select>
+  <button class="toolbar-btn" id="expandAllBtn">Sab khol dein</button>
+</div>
 
 <main>
   <div id="list"></div>
 </main>
+
+<div class="overlay" id="settingsOverlay">
+  <div class="settings-card">
+    <button class="close-btn" id="closeSettingsBtn">✕</button>
+    <div class="settings-title">Settings</div>
+
+    <div class="settings-row">
+      <label>Auto-update har kitni der mein</label>
+      <select id="intervalSelect">
+        <option value="1">1 minute</option>
+        <option value="2">2 minute</option>
+        <option value="3">3 minute</option>
+        <option value="4">4 minute</option>
+        <option value="5">5 minute</option>
+        <option value="10">10 minute</option>
+        <option value="15">15 minute</option>
+        <option value="30">30 minute</option>
+        <option value="custom">Custom (direct minute likhein)</option>
+      </select>
+      <input type="number" id="customInterval" min="1" placeholder="Minutes mein likhein" style="display:none" />
+    </div>
+
+    <div class="settings-row">
+      <label>Market shuru (ghanta)</label>
+      <select id="startHourSelect"></select>
+    </div>
+    <div class="settings-row">
+      <label>Market band (ghanta)</label>
+      <select id="endHourSelect"></select>
+    </div>
+
+    <div class="settings-actions">
+      <div class="secondary-btn" id="exportNowBtn">Record abhi save karein</div>
+      <div class="primary-btn" id="saveSettingsBtn">Save</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="historyOverlay">
+  <div class="settings-card">
+    <button class="close-btn" id="closeHistoryBtn">✕</button>
+    <div class="settings-title">Purana Record</div>
+    <div class="history-nav">
+      <button class="toolbar-btn" id="prevDayBtn">‹</button>
+      <input type="date" id="historyDateInput" />
+      <button class="toolbar-btn" id="nextDayBtn">›</button>
+    </div>
+    <div class="history-nav">
+      <button class="toolbar-btn" id="shareRecordBtn" style="flex:1;">Share</button>
+      <button class="toolbar-btn" id="importRecordBtn" style="flex:1;">Import</button>
+      <input type="file" id="importFileInput" accept=".csv,text/csv" style="display:none" />
+    </div>
+    <div id="historyList" class="history-list"></div>
+  </div>
+</div>
 
 <script src="cordova.js"></script>
 <script>
@@ -240,20 +365,359 @@
   async function loadOne(symbol) {
     const card = document.querySelector(`.stock[data-symbol="${symbol}"]`);
     const btn = card.querySelector("[data-load]");
-    btn.classList.add("loading");
-    btn.textContent = btn.classList.contains("reload") ? "…" : "Loading…";
-    btn.disabled = true;
+    if (btn) {
+      btn.classList.add("loading");
+      btn.textContent = btn.classList.contains("reload") ? "…" : "Loading…";
+      btn.disabled = true;
+    }
 
     try {
       const data = await fetchSymbol(symbol);
       const s = processStock(symbol, data);
       if (!s) throw new Error("no data");
+      lastStockData[symbol] = s;
       card.innerHTML = loadedCardInner(s);
       attachCardListeners(card);
+      applySort();
     } catch (e) {
       card.innerHTML = errorCardInner(symbol);
       attachCardListeners(card);
     }
+  }
+
+  // ---------- Sorting ----------
+  function sortValue(symbol, mode) {
+    const s = lastStockData[symbol];
+    if (!s) return null;
+    switch (mode) {
+      case "price-desc": return -s.current[1];
+      case "price-asc": return s.current[1];
+      case "change-desc": return -s.pctChange;
+      case "change-asc": return s.pctChange;
+      case "volume-desc": return -s.maxVolEntry[2];
+      case "volume-asc": return s.maxVolEntry[2];
+      default: return null;
+    }
+  }
+
+  function applySort() {
+    const mode = document.getElementById("sortSelect").value;
+    const cards = Array.from(listEl.children);
+    if (mode === "symbol") {
+      cards.sort((a, b) => a.dataset.symbol.localeCompare(b.dataset.symbol));
+    } else {
+      cards.sort((a, b) => {
+        const va = sortValue(a.dataset.symbol, mode);
+        const vb = sortValue(b.dataset.symbol, mode);
+        if (va === null && vb === null) return 0;
+        if (va === null) return 1;
+        if (vb === null) return -1;
+        return va - vb;
+      });
+    }
+    cards.forEach(c => listEl.appendChild(c));
+  }
+
+  // ---------- Expand all / collapse all ----------
+  let allExpanded = false;
+  function toggleExpandAll() {
+    allExpanded = !allExpanded;
+    document.querySelectorAll(".stock-detail").forEach(el => el.classList.toggle("open", allExpanded));
+    document.getElementById("expandAllBtn").textContent = allExpanded ? "Sab band karein" : "Sab khol dein";
+  }
+
+  function wireToolbar() {
+    document.getElementById("sortSelect").addEventListener("change", applySort);
+    document.getElementById("expandAllBtn").addEventListener("click", toggleExpandAll);
+  }
+
+  // ---------- Settings (auto-update interval + market hours) ----------
+  const DEFAULT_SETTINGS = { intervalMinutes: 2, startHour: 9, endHour: 17 };
+  const lastStockData = {};
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem("kmi30_settings");
+      if (raw) return Object.assign({}, DEFAULT_SETTINGS, JSON.parse(raw));
+    } catch (e) {}
+    return Object.assign({}, DEFAULT_SETTINGS);
+  }
+  function saveSettingsToStorage(s) {
+    try { localStorage.setItem("kmi30_settings", JSON.stringify(s)); } catch (e) {}
+  }
+  let settings = loadSettings();
+  let lastAutoRefreshAt = 0;
+
+  function updateSubLine(text) {
+    document.getElementById("subLine").textContent = text;
+  }
+
+  function isMarketOpenNow() {
+    const hourStr = new Date().toLocaleString("en-US", { hour: "2-digit", hour12: false, timeZone: "Asia/Karachi" });
+    const hour = parseInt(hourStr, 10) % 24;
+    return hour >= settings.startHour && hour < settings.endHour;
+  }
+
+  async function loadAllStaggered() {
+    for (const symbol of SYMBOLS) {
+      await loadOne(symbol);
+      await new Promise(r => setTimeout(r, 250));
+    }
+  }
+
+  function todayKey() {
+    return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Karachi" }); // YYYY-MM-DD
+  }
+
+  function buildCsv(dateStr) {
+    const header = "Date,Symbol,Open,Close,Low,High,MinVolume,MaxVolume,Change,PctChange\n";
+    const rows = SYMBOLS.map(sym => {
+      const s = lastStockData[sym];
+      if (!s) return [dateStr, sym, "", "", "", "", "", "", "", ""].join(",");
+      return [
+        dateStr, sym,
+        s.openEntry[1].toFixed(2),
+        s.closeEntry[1].toFixed(2),
+        s.low.toFixed(2),
+        s.high.toFixed(2),
+        s.minVolEntry[2],
+        s.maxVolEntry[2],
+        s.change.toFixed(2),
+        s.pctChange.toFixed(2)
+      ].join(",");
+    });
+    return header + rows.join("\n") + "\n";
+  }
+
+  function writeCsvToRecordFile(dateStr, csvText) {
+    return new Promise((resolve, reject) => {
+      window.resolveLocalFileSystemURL(cordova.file.externalDataDirectory, (dir) => {
+        dir.getDirectory("KMI30-Records", { create: true }, (recordsDir) => {
+          recordsDir.getFile("KMI30_" + dateStr + ".csv", { create: true }, (fileEntry) => {
+            fileEntry.createWriter((writer) => {
+              writer.onwriteend = () => resolve();
+              writer.onerror = reject;
+              writer.write(csvText);
+            }, reject);
+          }, reject);
+        }, reject);
+      }, reject);
+    });
+  }
+
+  function exportDailyRecord(dateStr) {
+    return writeCsvToRecordFile(dateStr, buildCsv(dateStr));
+  }
+
+  function maybeExportEndOfDay() {
+    const hourStr = new Date().toLocaleString("en-US", { hour: "2-digit", hour12: false, timeZone: "Asia/Karachi" });
+    const hour = parseInt(hourStr, 10) % 24;
+    if (hour < settings.endHour) return;
+    const today = todayKey();
+    if (localStorage.getItem("kmi30_last_export") === today) return;
+    exportDailyRecord(today).then(() => {
+      localStorage.setItem("kmi30_last_export", today);
+    }).catch(() => {});
+  }
+
+  // ---------- History (previous days' records) ----------
+  let historyDate = null;
+
+  function parseCsv(text) {
+    const lines = text.trim().split("\n");
+    if (lines.length < 2) return [];
+    const header = lines[0].split(",");
+    return lines.slice(1).map(line => {
+      const cols = line.split(",");
+      const obj = {};
+      header.forEach((h, i) => obj[h] = cols[i]);
+      return obj;
+    }).filter(r => r.Open); // skip symbols that had no data that day
+  }
+
+  function readDailyRecord(dateStr) {
+    return new Promise((resolve, reject) => {
+      const path = cordova.file.externalDataDirectory + "KMI30-Records/KMI30_" + dateStr + ".csv";
+      window.resolveLocalFileSystemURL(path, (fileEntry) => {
+        fileEntry.file((file) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(parseCsv(reader.result));
+          reader.onerror = reject;
+          reader.readAsText(file);
+        }, reject);
+      }, reject);
+    });
+  }
+
+  function historyRowHtml(rec) {
+    const changeNum = parseFloat(rec.Change);
+    const dir = changeNum > 0.001 ? "up" : changeNum < -0.001 ? "down" : "flat";
+    const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "•";
+    return `
+      <div class="stock">
+        <div class="stock-head">
+          <div class="sym-block">
+            <div class="sym">${rec.Symbol}</div>
+            <div class="range">${rec.Low} - ${rec.High}</div>
+          </div>
+          <div class="price-block">
+            <div class="now-price">Rs${rec.Close}</div>
+            <div class="change ${dir}">${arrow} ${rec.Change} (${rec.PctChange}%)</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderHistory(records) {
+    const el = document.getElementById("historyList");
+    if (!records || records.length === 0) {
+      el.innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Is din ka record nahi mila</div>`;
+      return;
+    }
+    el.innerHTML = records.map(historyRowHtml).join("");
+  }
+
+  function loadHistoryDate(dateStr) {
+    historyDate = dateStr;
+    document.getElementById("historyDateInput").value = dateStr;
+    readDailyRecord(dateStr).then(renderHistory).catch(() => renderHistory([]));
+  }
+
+  function shiftHistoryDate(deltaDays) {
+    const d = new Date(historyDate + "T00:00:00");
+    d.setDate(d.getDate() + deltaDays);
+    loadHistoryDate(d.toISOString().slice(0, 10));
+  }
+
+  function shareRecord(dateStr) {
+    const path = cordova.file.externalDataDirectory + "KMI30-Records/KMI30_" + dateStr + ".csv";
+    if (window.plugins && window.plugins.socialsharing) {
+      window.plugins.socialsharing.shareWithOptions({
+        message: "KMI-30 record - " + dateStr,
+        files: [path]
+      }, () => {}, () => alert("Share nahi ho saka — is din ki file mojood nahi"));
+    } else {
+      alert("Share feature available nahi hai");
+    }
+  }
+
+  function wireImport() {
+    const fileInput = document.getElementById("importFileInput");
+    document.getElementById("importRecordBtn").addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        writeCsvToRecordFile(historyDate, reader.result).then(() => {
+          loadHistoryDate(historyDate);
+          alert(historyDate + " ka record import ho gaya");
+        }).catch(() => alert("Import nahi ho saka"));
+      };
+      reader.onerror = () => alert("File padhi nahi ja saki");
+      reader.readAsText(file);
+      fileInput.value = "";
+    });
+  }
+
+  function wireHistorySwipe() {
+    const el = document.getElementById("historyList");
+    let startX = 0;
+    el.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; }, { passive: true });
+    el.addEventListener("touchend", (e) => {
+      const deltaX = e.changedTouches[0].clientX - startX;
+      if (Math.abs(deltaX) < 50) return;
+      if (deltaX < 0) shiftHistoryDate(1);   // swipe left -> next day
+      else shiftHistoryDate(-1);             // swipe right -> previous day
+    }, { passive: true });
+  }
+
+  function wireHistoryPanel() {
+    const overlay = document.getElementById("historyOverlay");
+    document.getElementById("historyBtn").addEventListener("click", () => {
+      overlay.classList.add("open");
+      loadHistoryDate(historyDate || todayKey());
+    });
+    document.getElementById("closeHistoryBtn").addEventListener("click", () => overlay.classList.remove("open"));
+    document.getElementById("historyDateInput").addEventListener("change", (e) => loadHistoryDate(e.target.value));
+    document.getElementById("prevDayBtn").addEventListener("click", () => shiftHistoryDate(-1));
+    document.getElementById("nextDayBtn").addEventListener("click", () => shiftHistoryDate(1));
+    document.getElementById("shareRecordBtn").addEventListener("click", () => shareRecord(historyDate));
+    wireImport();
+    wireHistorySwipe();
+  }
+
+  function heartbeat() {
+    if (isMarketOpenNow()) {
+      const intervalMs = settings.intervalMinutes * 60000;
+      if (Date.now() - lastAutoRefreshAt >= intervalMs) {
+        lastAutoRefreshAt = Date.now();
+        loadAllStaggered();
+      }
+      updateSubLine(`Auto-update har ${settings.intervalMinutes} minute — market open hai (${settings.startHour}:00–${settings.endHour}:00)`);
+    } else {
+      updateSubLine(`Market band hai — auto-update sirf ${settings.startHour}:00–${settings.endHour}:00 ke doran hota hai`);
+    }
+    maybeExportEndOfDay();
+  }
+
+  function populateHourSelects() {
+    const startSel = document.getElementById("startHourSelect");
+    const endSel = document.getElementById("endHourSelect");
+    let opts = "";
+    for (let h = 0; h < 24; h++) {
+      const label = String(h).padStart(2, "0") + ":00";
+      opts += `<option value="${h}">${label}</option>`;
+    }
+    startSel.innerHTML = opts;
+    endSel.innerHTML = opts;
+    startSel.value = settings.startHour;
+    endSel.value = settings.endHour;
+  }
+
+  function populateIntervalSelect() {
+    const sel = document.getElementById("intervalSelect");
+    const customInput = document.getElementById("customInterval");
+    const presets = [1, 2, 3, 4, 5, 10, 15, 30];
+    if (presets.includes(settings.intervalMinutes)) {
+      sel.value = String(settings.intervalMinutes);
+      customInput.style.display = "none";
+    } else {
+      sel.value = "custom";
+      customInput.style.display = "block";
+      customInput.value = settings.intervalMinutes;
+    }
+  }
+
+  function wireSettingsPanel() {
+    const overlay = document.getElementById("settingsOverlay");
+    document.getElementById("settingsBtn").addEventListener("click", () => overlay.classList.add("open"));
+    document.getElementById("closeSettingsBtn").addEventListener("click", () => overlay.classList.remove("open"));
+    document.getElementById("intervalSelect").addEventListener("change", (e) => {
+      document.getElementById("customInterval").style.display = e.target.value === "custom" ? "block" : "none";
+    });
+    document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+      const sel = document.getElementById("intervalSelect");
+      let mins;
+      if (sel.value === "custom") {
+        mins = parseInt(document.getElementById("customInterval").value, 10);
+        if (!mins || mins < 1) mins = 1;
+      } else {
+        mins = parseInt(sel.value, 10);
+      }
+      settings.intervalMinutes = mins;
+      settings.startHour = parseInt(document.getElementById("startHourSelect").value, 10);
+      settings.endHour = parseInt(document.getElementById("endHourSelect").value, 10);
+      saveSettingsToStorage(settings);
+      lastAutoRefreshAt = 0; // apply new interval right away
+      overlay.classList.remove("open");
+      heartbeat();
+    });
+    document.getElementById("exportNowBtn").addEventListener("click", () => {
+      exportDailyRecord(todayKey())
+        .then(() => alert("Record save ho gaya:\nAndroid/data/com.mushtaq.kmi30live/files/KMI30-Records/"))
+        .catch(() => alert("Save nahi hua — dobara try karein"));
+    });
   }
 
   function attachCardListeners(card) {
@@ -270,6 +734,14 @@
   function init() {
     listEl.innerHTML = SYMBOLS.map(emptyCardHtml).join("");
     document.querySelectorAll(".stock").forEach(attachCardListeners);
+    populateHourSelects();
+    populateIntervalSelect();
+    wireSettingsPanel();
+    wireToolbar();
+    wireHistoryPanel();
+    loadAllStaggered();
+    heartbeat();
+    setInterval(heartbeat, 20000);
   }
 
   document.addEventListener("deviceready", init, false);
