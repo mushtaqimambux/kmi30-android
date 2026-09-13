@@ -14,7 +14,18 @@
     --dim: #7c8697;
     --accent: #3ecf8e;
     --down: #e5484d;
+    --btn-bg: #232935;
     --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  }
+  body.light-theme {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --card-border: #e1e5eb;
+    --text: #1b2027;
+    --dim: #6b7480;
+    --accent: #1e9e63;
+    --down: #d1373f;
+    --btn-bg: #eceff3;
   }
   * { box-sizing: border-box; }
   body {
@@ -29,18 +40,18 @@
   .header-top { display: flex; align-items: center; justify-content: space-between; }
   h1 { font-size: 19px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
   .icon-btn {
-    background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
     border-radius: 9px; width: 34px; height: 34px; font-size: 16px; line-height: 1;
     display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   .icon-btn:active { opacity: 0.7; }
   .toolbar { display: flex; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--card-border); }
   .toolbar-select {
-    flex: 1; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    flex: 1; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
     border-radius: 9px; padding: 8px 10px; font-size: 13px;
   }
   .toolbar-btn {
-    flex-shrink: 0; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    flex-shrink: 0; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
     border-radius: 9px; padding: 8px 12px; font-size: 13px; cursor: pointer;
   }
   .toolbar-btn:active { opacity: 0.7; }
@@ -56,6 +67,7 @@
   }
   .sym-block { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; cursor: pointer; }
   .sym { font-weight: 700; font-size: 14.5px; letter-spacing: 0.3px; }
+  .company-name { font-size: 10.5px; color: var(--dim); margin-top: 1px; }
   .range { font-family: var(--mono); font-size: 11px; color: var(--dim); }
   .placeholder-text { font-size: 11.5px; color: var(--dim); }
   .price-block { text-align: right; cursor: pointer; }
@@ -65,7 +77,7 @@
   .change.down { color: var(--down); }
   .change.flat { color: var(--dim); }
   .load-btn {
-    flex-shrink: 0; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    flex-shrink: 0; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
     border-radius: 9px; padding: 8px 14px; font-size: 13px; cursor: pointer;
   }
   .load-btn:active { opacity: 0.7; }
@@ -97,7 +109,7 @@
   .settings-row { margin-bottom: 14px; }
   .settings-row label { display: block; font-size: 12.5px; color: var(--dim); margin-bottom: 6px; }
   .settings-row select, .settings-row input {
-    width: 100%; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    width: 100%; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
     border-radius: 9px; padding: 9px 10px; font-size: 14px;
   }
   .settings-row input { margin-top: 8px; }
@@ -106,13 +118,13 @@
     flex: 1; border-radius: 9px; padding: 11px; font-size: 14px; text-align: center; cursor: pointer; border: 1px solid var(--card-border);
   }
   .primary-btn { background: var(--accent); color: #0a1510; font-weight: 700; border: none; }
-  .secondary-btn { background: #232935; color: var(--text); }
+  .secondary-btn { background: var(--btn-bg); color: var(--text); }
   .close-btn {
     position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer;
   }
   .history-nav { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
   .history-nav input[type="date"] {
-    flex: 1; background: #232935; border: 1px solid var(--card-border); color: var(--text);
+    flex: 1; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
     border-radius: 9px; padding: 9px 10px; font-size: 14px;
   }
   .history-list { max-height: 58vh; overflow-y: auto; touch-action: pan-y; }
@@ -178,10 +190,19 @@
       <select id="endHourSelect"></select>
     </div>
 
+    <div class="settings-row">
+      <label>Theme</label>
+      <select id="themeSelect">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
+    </div>
+
     <div class="settings-actions">
       <div class="secondary-btn" id="exportNowBtn">Record abhi save karein</div>
       <div class="primary-btn" id="saveSettingsBtn">Save</div>
     </div>
+    <div style="text-align:center; color:var(--dim); font-size:11px; margin-top:14px;">App version: v__VERSION__</div>
   </div>
 </div>
 
@@ -210,6 +231,39 @@
     "GAL", "GHNI", "HCAR", "HUBC", "LUCK", "MARI", "MEBL", "MLCF", "NML", "NRL",
     "OGDC", "PAEL", "PPL", "PRL", "PSO", "SAZEW", "SEARL", "SNGP", "SSGC", "SYS", "TREET"
   ];
+
+  const SYMBOL_NAMES = {
+    AIRLINK: "Air Link Communication Ltd.",
+    ATRL: "Attock Refinery Ltd.",
+    CPHL: "Citi Pharma Ltd.",
+    DGKC: "D.G. Khan Cement Co. Ltd.",
+    EFERT: "Engro Fertilizers Ltd.",
+    ENGROH: "Engro Holdings Ltd.",
+    FCCL: "Fauji Cement Co. Ltd.",
+    FFC: "Fauji Fertilizer Co. Ltd.",
+    FFL: "Fauji Foods Ltd.",
+    GAL: "Ghandhara Automobiles Ltd.",
+    GHNI: "Ghandhara Industries Ltd.",
+    HCAR: "Honda Atlas Cars (Pakistan) Ltd.",
+    HUBC: "Hub Power Co. Ltd.",
+    LUCK: "Lucky Cement Ltd.",
+    MARI: "Mari Energies Ltd.",
+    MEBL: "Meezan Bank Ltd.",
+    MLCF: "Maple Leaf Cement Factory Ltd.",
+    NML: "Nishat Mills Ltd.",
+    NRL: "National Refinery Ltd.",
+    OGDC: "Oil & Gas Development Co. Ltd.",
+    PAEL: "Pak Elektron Ltd.",
+    PPL: "Pakistan Petroleum Ltd.",
+    PRL: "Pakistan Refinery Ltd.",
+    PSO: "Pakistan State Oil Co. Ltd.",
+    SAZEW: "Sazgar Engineering Works Ltd.",
+    SEARL: "The Searle Company Ltd.",
+    SNGP: "Sui Northern Gas Pipelines Ltd.",
+    SSGC: "Sui Southern Gas Co. Ltd.",
+    SYS: "Systems Ltd.",
+    TREET: "Treet Corporation Ltd."
+  };
 
   const listEl = document.getElementById("list");
 
@@ -305,6 +359,7 @@
         <div class="stock-head">
           <div class="sym-block">
             <div class="sym">${symbol}</div>
+            <div class="company-name">${SYMBOL_NAMES[symbol] || ""}</div>
             <div class="placeholder-text">Not loaded yet</div>
           </div>
           <button class="load-btn" data-load="${symbol}">Load</button>
@@ -320,6 +375,7 @@
       <div class="stock-head">
         <div class="sym-block" data-toggle="${s.symbol}">
           <div class="sym">${s.symbol}</div>
+          <div class="company-name">${SYMBOL_NAMES[s.symbol] || ""}</div>
           <div class="range">${s.low.toFixed(2)} - ${s.high.toFixed(2)}</div>
         </div>
         <div class="price-block" data-toggle="${s.symbol}">
@@ -356,6 +412,7 @@
       <div class="stock-head">
         <div class="sym-block">
           <div class="sym">${symbol}</div>
+          <div class="company-name">${SYMBOL_NAMES[symbol] || ""}</div>
           <div class="err-text">Load nahi hua — dobara try karein</div>
         </div>
         <button class="load-btn" data-load="${symbol}">Retry</button>
@@ -432,7 +489,7 @@
   }
 
   // ---------- Settings (auto-update interval + market hours) ----------
-  const DEFAULT_SETTINGS = { intervalMinutes: 2, startHour: 9, endHour: 17 };
+  const DEFAULT_SETTINGS = { intervalMinutes: 2, startHour: 9, endHour: 17, theme: "dark" };
   const lastStockData = {};
 
   function loadSettings() {
@@ -689,6 +746,11 @@
     }
   }
 
+  function applyTheme() {
+    document.body.classList.toggle("light-theme", settings.theme === "light");
+    document.getElementById("themeSelect").value = settings.theme;
+  }
+
   function wireSettingsPanel() {
     const overlay = document.getElementById("settingsOverlay");
     document.getElementById("settingsBtn").addEventListener("click", () => overlay.classList.add("open"));
@@ -708,7 +770,9 @@
       settings.intervalMinutes = mins;
       settings.startHour = parseInt(document.getElementById("startHourSelect").value, 10);
       settings.endHour = parseInt(document.getElementById("endHourSelect").value, 10);
+      settings.theme = document.getElementById("themeSelect").value;
       saveSettingsToStorage(settings);
+      applyTheme();
       lastAutoRefreshAt = 0; // apply new interval right away
       overlay.classList.remove("open");
       heartbeat();
@@ -736,6 +800,7 @@
     document.querySelectorAll(".stock").forEach(attachCardListeners);
     populateHourSelects();
     populateIntervalSelect();
+    applyTheme();
     wireSettingsPanel();
     wireToolbar();
     wireHistoryPanel();
@@ -744,7 +809,16 @@
     setInterval(heartbeat, 20000);
   }
 
-  document.addEventListener("deviceready", init, false);
+  // In a real APK, Cordova fires "deviceready" once native plugins are ready.
+  // In a plain browser (no Cordova runtime), that event never comes — so we
+  // fall back to normal page-load, purely so the UI (settings, sort, theme,
+  // expand/collapse) can still be tested. Live data fetch still needs the
+  // actual APK, since it depends on the native HTTP plugin.
+  if (window.cordova) {
+    document.addEventListener("deviceready", init, false);
+  } else {
+    document.addEventListener("DOMContentLoaded", init);
+  }
 </script>
 </body>
 </html>
