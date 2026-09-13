@@ -361,7 +361,7 @@
             reject(e);
           }
         },
-        (response) => reject(new Error("HTTP " + (response && response.status)))
+        (response) => reject(new Error("HTTP " + (response && response.status) + ": " + (response && response.error ? String(response.error).slice(0, 200) : "no body")))
       );
     });
   }
@@ -385,11 +385,13 @@
   // ---------- 25-day EOD trend (separate PSX endpoint, daily candles) ----------
   async function fetchEodData(symbol) {
     const target = "https://dps.psx.com.pk/timeseries/eod/" + symbol;
+    let lastJson = null;
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         const json = await nativeGet(target, 20);
+        lastJson = json;
         if (json && Array.isArray(json.data) && json.data.length > 0) return json.data;
-        throw new Error("empty EOD payload");
+        throw new Error("Unexpected response shape: " + JSON.stringify(json).slice(0, 200));
       } catch (e) {
         if (attempt === 0) await new Promise(r => setTimeout(r, 700));
         else throw e;
@@ -501,7 +503,7 @@
         }
       };
     } catch (e) {
-      document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Load nahi hua — dobara try karein</div>`;
+      document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px; word-break:break-word;">Load nahi hua.<br>Wajah: ${(e && e.message) ? e.message : String(e)}</div>`;
     }
   }
 
@@ -534,14 +536,19 @@
     for (const t of nonZeroVol) if (t[2] < minVolEntry[2]) minVolEntry = t;
     for (const t of ticks) if (t[2] > maxVolEntry[2]) maxVolEntry = t;
 
-    let filtered = [];
+    const filtered = [];
     for (let i = 0; i < ticks.length; i++) {
       const nextPrice = ticks[i + 1] ? ticks[i + 1][1] : null;
       if (nextPrice === null || ticks[i][1] !== nextPrice) filtered.push(ticks[i]);
     }
     const recentTicks = filtered.slice(0, 6);
 
-    return { symbol, low, high, current, openEntry, closeEntry, change, pctChange, minEntry, maxEntry, minVolEntry, maxVolEntry, recentTicks, totalVolume: current[2] };
+    // Each tick's volume field is that individual trade's own size — not a
+    // running cumulative total — so today's total shares traded is the sum
+    // of every tick's volume, not just the latest one.
+    const totalVolume = ticks.reduce((sum, t) => sum + t[2], 0);
+
+    return { symbol, low, high, current, openEntry, closeEntry, change, pctChange, minEntry, maxEntry, minVolEntry, maxVolEntry, recentTicks, totalVolume };
   }
 
   // ---------- Render the static list immediately, no data yet ----------
