@@ -32,4 +32,8 @@
          here since GitHub Actions runs its own Cordova build, unlike
          VoltBuilder's Free plan. -->
     <plugin name="cordova-plugin-advanced-http" spec="^3.3.1" />
+    <!-- For saving the daily end-of-day CSV record to device storage. -->
+    <plugin name="cordova-plugin-file" spec="^8.1.3" />
+    <!-- For sharing a day's CSV record via WhatsApp, Gmail, Drive app, etc. -->
+    <plugin name="cordova-plugin-x-socialsharing" spec="^6.0.4" />
 </widget>
