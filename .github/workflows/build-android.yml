@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - '.github/version.txt'
+      - 'version.txt'
   workflow_dispatch:
 
 jobs:
@@ -21,20 +21,7 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" != "push" ]; then
             echo "Manual run — building regardless of version.txt"
-            echo "should_build=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          NEW_VERSION=$(cat .github/version.txt | tr -d '[:space:]')
-          OLD_VERSION=$(git show HEAD~1:.github/version.txt 2>/dev/null | tr -d '[:space:]' || echo 0)
-          echo "Old version: $OLD_VERSION -> New version: $NEW_VERSION"
-          if [ "$NEW_VERSION" -gt "$OLD_VERSION" ] 2>/dev/null; then
-            echo "Version increased — building."
-            echo "should_build=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Version not increased — skipping build."
-            echo "should_build=false" >> "$GITHUB_OUTPUT"
-          fi
-
+            echo "should_build=true" >>
       - name: Stamp version into app
         if: steps.checkversion.outputs.should_build == 'true'
         run: |
