@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.mushtaq.kmi30live" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>KMI-30 Live</name>
+    <description>Live intraday prices for all 30 KMI-30 index stocks, direct from PSX — no proxy.</description>
+    <author email="you@example.com" href="https://example.com">Mushtaq</author>
+
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-navigation href="*" />
+
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="Orientation" value="portrait" />
+    <preference name="android-minSdkVersion" value="22" />
+    <preference name="AndroidXEnabled" value="true" />
+    <preference name="BackupWebStorage" value="none" />
+
+    <icon src="www/icon-512.png" />
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <icon density="ldpi" src="www/icon-192.png" />
+        <icon density="mdpi" src="www/icon-192.png" />
+        <icon density="hdpi" src="www/icon-192.png" />
+        <icon density="xhdpi" src="www/icon-512.png" />
+        <icon density="xxhdpi" src="www/icon-512.png" />
+        <icon density="xxxhdpi" src="www/icon-512.png" />
+    </platform>
+
+    <!-- Native HTTP layer: runs outside the WebView, so PSX's API can be
+         called directly with no CORS restriction and no proxy. Free to use
+         here since GitHub Actions runs its own Cordova build, unlike
+         VoltBuilder's Free plan. -->
+    <plugin name="cordova-plugin-advanced-http" spec="^3.3.1" />
+</widget>
