@@ -488,20 +488,26 @@
     overlay.classList.add("open");
 
     try {
-      const rows = await getEodRows(symbol);
-      document.getElementById("trendChart").innerHTML = `<div class="trend-scroll">${buildTrendSvg(rows)}</div>`;
-      document.getElementById("trendDetailsBtn").onclick = () => {
-        trendDetailsOpen = !trendDetailsOpen;
-        const tableEl = document.getElementById("trendTable");
-        if (trendDetailsOpen) {
-          tableEl.innerHTML = buildTrendTable(rows);
-          tableEl.style.display = "block";
-          document.getElementById("trendDetailsBtn").textContent = "Details chhupayein";
-        } else {
-          tableEl.style.display = "none";
-          document.getElementById("trendDetailsBtn").textContent = "Details dekhein";
-        }
-      };
+      const raw = await fetchEodData(symbol);
+      try {
+        const rows = normalizeEodRows(raw, 25);
+        document.getElementById("trendChart").innerHTML = `<div class="trend-scroll">${buildTrendSvg(rows)}</div>`;
+        document.getElementById("trendDetailsBtn").onclick = () => {
+          trendDetailsOpen = !trendDetailsOpen;
+          const tableEl = document.getElementById("trendTable");
+          if (trendDetailsOpen) {
+            tableEl.innerHTML = buildTrendTable(rows);
+            tableEl.style.display = "block";
+            document.getElementById("trendDetailsBtn").textContent = "Details chhupayein";
+          } else {
+            tableEl.style.display = "none";
+            document.getElementById("trendDetailsBtn").textContent = "Details dekhein";
+          }
+        };
+      } catch (buildErr) {
+        const sample = JSON.stringify(raw.slice(0, 2));
+        document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px; word-break:break-word; font-size:11px;">Chart nahi bana — data ka format alag hai.<br><br>Pehli 2 rows (raw):<br>${sample}</div>`;
+      }
     } catch (e) {
       document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px; word-break:break-word;">Load nahi hua.<br>Wajah: ${(e && e.message) ? e.message : String(e)}</div>`;
     }
@@ -1104,11 +1110,6 @@
     }
   }
 
-  // Long-press anywhere on a card (except its buttons) pins it straight to
-  // the top of the list. Long-press it again to unpin. No submenu needed.
-  // Long-press (hold ~450ms without moving) picks a card up so you can drag
-  // it up/down with your finger to the exact spot you want. Releasing drops
-  // it there — no jumping to top automatically, no submenu needed.
   // Long-press (hold ~450ms without moving) picks a card up — it detaches
   // from the list and follows your finger exactly, while a placeholder
   // marks its slot. Move the placeholder past other pinned cards to swap;
