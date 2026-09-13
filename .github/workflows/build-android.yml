@@ -3,6 +3,8 @@ name: Build Android APK
 on:
   push:
     branches: [ main ]
+    paths:
+      - '.github/version.txt'
   workflow_dispatch:
 
 jobs:
@@ -11,30 +13,77 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check version increased
+        id: checkversion
+        run: |
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "Manual run — building regardless of version.txt"
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          NEW_VERSION=$(cat .github/version.txt | tr -d '[:space:]')
+          OLD_VERSION=$(git show HEAD~1:.github/version.txt 2>/dev/null | tr -d '[:space:]' || echo 0)
+          echo "Old version: $OLD_VERSION -> New version: $NEW_VERSION"
+          if [ "$NEW_VERSION" -gt "$OLD_VERSION" ] 2>/dev/null; then
+            echo "Version increased — building."
+            echo "should_build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Version not increased — skipping build."
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Stamp version into app
+        if: steps.checkversion.outputs.should_build == 'true'
+        run: |
+          VERSION=$(cat .github/version.txt | tr -d '[:space:]')
+          sed -i "s/__VERSION__/$VERSION/g" www/index.html
+          echo "Stamped version $VERSION into www/index.html"
 
       - name: Set up Node.js
+        if: steps.checkversion.outputs.should_build == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Set up Java
+        if: steps.checkversion.outputs.should_build == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
       - name: Set up Android SDK
+        if: steps.checkversion.outputs.should_build == 'true'
         uses: android-actions/setup-android@v3
 
       - name: Install Cordova
+        if: steps.checkversion.outputs.should_build == 'true'
         run: npm install -g cordova
 
       - name: Add Android platform
+        if: steps.checkversion.outputs.should_build == 'true'
         run: cordova platform add android
 
       - name: Add plugins
-        run: cordova plugin add cordova-plugin-advanced-http
+        if: steps.checkversion.outputs.should_build == 'true'
+        run: |
+          cordova plugin add cordova-plugin-advanced-http
+          cordova plugin add cordova-plugin-file
+          cordova plugin add cordova-plugin-x-socialsharing
 
+      - name: Build debug APK
+        if: steps.checkversion.outputs.should_build == 'true'
+        run: cordova build android --debug
+
+      - name: Upload APK
+        if: steps.checkversion.outputs.should_build == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kmi30-live-apk
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
       - name: Build debug APK
         run: cordova build android --debug
 
