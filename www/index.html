@@ -15,6 +15,7 @@
     --accent: #3ecf8e;
     --down: #e5484d;
     --btn-bg: #232935;
+    --pinned-bg: #16261f;
     --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
   }
   body.light-theme {
@@ -26,6 +27,7 @@
     --accent: #1e9e63;
     --down: #d1373f;
     --btn-bg: #eceff3;
+    --pinned-bg: #e6f5ee;
   }
   * { box-sizing: border-box; }
   body {
@@ -45,9 +47,9 @@
     display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   .icon-btn:active { opacity: 0.7; }
-  .toolbar { display: flex; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--card-border); }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--card-border); }
   .toolbar-select {
-    flex: 1; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
+    flex: 1; min-width: 140px; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
     border-radius: 9px; padding: 8px 10px; font-size: 13px;
   }
   .toolbar-btn {
@@ -55,6 +57,34 @@
     border-radius: 9px; padding: 8px 12px; font-size: 13px; cursor: pointer;
   }
   .toolbar-btn:active { opacity: 0.7; }
+  .toolbar-icon-btn {
+    flex-shrink: 0; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 9px; width: 34px; height: 34px; font-size: 15px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .toolbar-icon-btn:active { opacity: 0.7; }
+  .toolbar-icon-btn.active { color: var(--accent); border-color: var(--accent); }
+  .auto-sort-label {
+    display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--dim);
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .auto-sort-label input { accent-color: var(--accent); width: 15px; height: 15px; }
+  .pin-rank {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--accent);
+    color: #0a1510; font-size: 11px; font-weight: 700; display: flex; align-items: center;
+    justify-content: center; margin-right: 6px;
+  }
+  .pin-rank:empty { display: none; }
+  .stock.pinned-card { border-color: var(--accent); background: var(--pinned-bg); }
+  .pinned-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--btn-bg); border: 1px solid var(--card-border); border-radius: 9px;
+    padding: 9px 10px; margin-bottom: 8px;
+  }
+  .pinned-sym { font-weight: 700; font-size: 14px; }
+  .pinned-actions { display: flex; gap: 6px; }
+  .pinned-actions .toolbar-btn { padding: 5px 10px; font-size: 13px; }
+  .pinned-actions .toolbar-btn:disabled { opacity: 0.3; }
   .sub { color: var(--dim); font-size: 12.5px; margin-top: 3px; }
   main { padding: 12px 12px 40px; max-width: 640px; margin: 0 auto; }
   .stock {
@@ -153,7 +183,17 @@
     <option value="volume-desc">Volume: High → Low</option>
     <option value="volume-asc">Volume: Low → High</option>
   </select>
-  <button class="toolbar-btn" id="expandAllBtn">Sab khol dein</button>
+  <button class="toolbar-icon-btn" id="autoSortBtn" title="Auto-sort">⟳</button>
+  <button class="toolbar-icon-btn" id="pinnedBtn" title="Pinned">☆</button>
+  <button class="toolbar-icon-btn" id="expandAllBtn" title="Expand/collapse all">⤢</button>
+</div>
+
+<div class="overlay" id="pinnedOverlay">
+  <div class="settings-card">
+    <button class="close-btn" id="closePinnedBtn">✕</button>
+    <div class="settings-title">Pinned Stocks (Manual Order)</div>
+    <div id="pinnedList"></div>
+  </div>
 </div>
 
 <main>
@@ -357,6 +397,7 @@
     return `
       <div class="stock" data-symbol="${symbol}">
         <div class="stock-head">
+          <div class="pin-rank" data-pin-rank="${symbol}"></div>
           <div class="sym-block">
             <div class="sym">${symbol}</div>
             <div class="company-name">${SYMBOL_NAMES[symbol] || ""}</div>
@@ -373,6 +414,7 @@
     const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "•";
     return `
       <div class="stock-head">
+        <div class="pin-rank" data-pin-rank="${s.symbol}"></div>
         <div class="sym-block" data-toggle="${s.symbol}">
           <div class="sym">${s.symbol}</div>
           <div class="company-name">${SYMBOL_NAMES[s.symbol] || ""}</div>
@@ -410,6 +452,7 @@
   function errorCardInner(symbol) {
     return `
       <div class="stock-head">
+        <div class="pin-rank" data-pin-rank="${symbol}"></div>
         <div class="sym-block">
           <div class="sym">${symbol}</div>
           <div class="company-name">${SYMBOL_NAMES[symbol] || ""}</div>
@@ -435,7 +478,7 @@
       lastStockData[symbol] = s;
       card.innerHTML = loadedCardInner(s);
       attachCardListeners(card);
-      applySort();
+      if (settings.autoSort) applySort();
     } catch (e) {
       card.innerHTML = errorCardInner(symbol);
       attachCardListeners(card);
@@ -460,18 +503,22 @@
   function applySort() {
     const mode = document.getElementById("sortSelect").value;
     const cards = Array.from(listEl.children);
-    if (mode === "symbol") {
-      cards.sort((a, b) => a.dataset.symbol.localeCompare(b.dataset.symbol));
-    } else {
-      cards.sort((a, b) => {
-        const va = sortValue(a.dataset.symbol, mode);
-        const vb = sortValue(b.dataset.symbol, mode);
-        if (va === null && vb === null) return 0;
-        if (va === null) return 1;
-        if (vb === null) return -1;
-        return va - vb;
-      });
-    }
+    cards.sort((a, b) => {
+      const aSym = a.dataset.symbol, bSym = b.dataset.symbol;
+      const aPin = pinnedOrder.indexOf(aSym), bPin = pinnedOrder.indexOf(bSym);
+      if (aPin !== -1 || bPin !== -1) {
+        if (aPin === -1) return 1;
+        if (bPin === -1) return -1;
+        return aPin - bPin;
+      }
+      if (mode === "symbol") return aSym.localeCompare(bSym);
+      const va = sortValue(aSym, mode);
+      const vb = sortValue(bSym, mode);
+      if (va === null && vb === null) return 0;
+      if (va === null) return 1;
+      if (vb === null) return -1;
+      return va - vb;
+    });
     cards.forEach(c => listEl.appendChild(c));
   }
 
@@ -480,17 +527,111 @@
   function toggleExpandAll() {
     allExpanded = !allExpanded;
     document.querySelectorAll(".stock-detail").forEach(el => el.classList.toggle("open", allExpanded));
-    document.getElementById("expandAllBtn").textContent = allExpanded ? "Sab band karein" : "Sab khol dein";
+    const btn = document.getElementById("expandAllBtn");
+    btn.textContent = allExpanded ? "⤡" : "⤢";
+    btn.title = allExpanded ? "Sab band karein" : "Sab khol dein";
   }
 
   function wireToolbar() {
     document.getElementById("sortSelect").addEventListener("change", applySort);
     document.getElementById("expandAllBtn").addEventListener("click", toggleExpandAll);
+    const autoSortBtn = document.getElementById("autoSortBtn");
+    autoSortBtn.classList.toggle("active", settings.autoSort);
+    autoSortBtn.addEventListener("click", () => {
+      settings.autoSort = !settings.autoSort;
+      autoSortBtn.classList.toggle("active", settings.autoSort);
+      saveSettingsToStorage(settings);
+    });
   }
 
   // ---------- Settings (auto-update interval + market hours) ----------
-  const DEFAULT_SETTINGS = { intervalMinutes: 2, startHour: 9, endHour: 17, theme: "dark" };
+  const DEFAULT_SETTINGS = { intervalMinutes: 2, startHour: 9, endHour: 17, theme: "dark", autoSort: false };
   const lastStockData = {};
+
+  function loadPinned() {
+    try {
+      const raw = localStorage.getItem("kmi30_pinned");
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [];
+  }
+  function savePinned() {
+    try { localStorage.setItem("kmi30_pinned", JSON.stringify(pinnedOrder)); } catch (e) {}
+  }
+  let pinnedOrder = loadPinned();
+
+  function applyPinIndicator(card) {
+    const sym = card.dataset.symbol;
+    const idx = pinnedOrder.indexOf(sym);
+    card.classList.toggle("pinned-card", idx !== -1);
+    const rankEl = card.querySelector("[data-pin-rank]");
+    if (rankEl) rankEl.textContent = idx !== -1 ? String(idx + 1) : "";
+  }
+
+  function updatePinButtons() {
+    document.querySelectorAll(".stock").forEach(applyPinIndicator);
+    const pinnedBtn = document.getElementById("pinnedBtn");
+    pinnedBtn.textContent = pinnedOrder.length > 0 ? "★" : "☆";
+    pinnedBtn.classList.toggle("active", pinnedOrder.length > 0);
+    pinnedBtn.title = pinnedOrder.length > 0 ? `Pinned (${pinnedOrder.length})` : "Pinned";
+  }
+
+  function togglePinTop(symbol) {
+    const idx = pinnedOrder.indexOf(symbol);
+    if (idx !== -1) {
+      pinnedOrder.splice(idx, 1); // already pinned — long-press again unpins
+    } else {
+      pinnedOrder.unshift(symbol); // brand new pin always jumps to the very top
+    }
+    savePinned();
+    updatePinButtons();
+    renderPinnedList();
+    applySort();
+  }
+
+  function renderPinnedList() {
+    const el = document.getElementById("pinnedList");
+    if (pinnedOrder.length === 0) {
+      el.innerHTML = `<div class="placeholder-text" style="padding:12px 4px;">Koi stock pin nahi ki — kisi bhi card ko der tak dabayein (long-press)</div>`;
+      return;
+    }
+    el.innerHTML = pinnedOrder.map((sym, i) => `
+      <div class="pinned-row">
+        <div class="pinned-sym">${sym}</div>
+        <div class="pinned-actions">
+          <button class="toolbar-btn" data-pin-up="${i}" ${i === 0 ? "disabled" : ""}>▲</button>
+          <button class="toolbar-btn" data-pin-down="${i}" ${i === pinnedOrder.length - 1 ? "disabled" : ""}>▼</button>
+          <button class="toolbar-btn" data-pin-remove="${sym}">✕</button>
+        </div>
+      </div>`).join("");
+  }
+
+  function wirePinnedPanel() {
+    const overlay = document.getElementById("pinnedOverlay");
+    document.getElementById("pinnedBtn").addEventListener("click", () => {
+      renderPinnedList();
+      overlay.classList.add("open");
+    });
+    document.getElementById("closePinnedBtn").addEventListener("click", () => overlay.classList.remove("open"));
+    document.getElementById("pinnedList").addEventListener("click", (e) => {
+      const up = e.target.closest("[data-pin-up]");
+      const down = e.target.closest("[data-pin-down]");
+      const remove = e.target.closest("[data-pin-remove]");
+      if (up) {
+        const i = parseInt(up.getAttribute("data-pin-up"), 10);
+        [pinnedOrder[i - 1], pinnedOrder[i]] = [pinnedOrder[i], pinnedOrder[i - 1]];
+        savePinned(); renderPinnedList(); applySort();
+      } else if (down) {
+        const i = parseInt(down.getAttribute("data-pin-down"), 10);
+        [pinnedOrder[i + 1], pinnedOrder[i]] = [pinnedOrder[i], pinnedOrder[i + 1]];
+        savePinned(); renderPinnedList(); applySort();
+      } else if (remove) {
+        const sym = remove.getAttribute("data-pin-remove");
+        pinnedOrder = pinnedOrder.filter(s => s !== sym);
+        savePinned(); renderPinnedList(); applySort(); updatePinButtons();
+      }
+    });
+  }
 
   function loadSettings() {
     try {
@@ -509,17 +650,20 @@
     document.getElementById("subLine").textContent = text;
   }
 
+  function isWeekendKarachi() {
+    const weekday = new Date().toLocaleString("en-US", { timeZone: "Asia/Karachi", weekday: "short" });
+    return weekday === "Sat" || weekday === "Sun";
+  }
+
   function isMarketOpenNow() {
+    if (isWeekendKarachi()) return false;
     const hourStr = new Date().toLocaleString("en-US", { hour: "2-digit", hour12: false, timeZone: "Asia/Karachi" });
     const hour = parseInt(hourStr, 10) % 24;
     return hour >= settings.startHour && hour < settings.endHour;
   }
 
-  async function loadAllStaggered() {
-    for (const symbol of SYMBOLS) {
-      await loadOne(symbol);
-      await new Promise(r => setTimeout(r, 250));
-    }
+  async function loadAllParallel() {
+    await Promise.all(SYMBOLS.map(symbol => loadOne(symbol)));
   }
 
   function todayKey() {
@@ -567,6 +711,7 @@
   }
 
   function maybeExportEndOfDay() {
+    if (isWeekendKarachi()) return;
     const hourStr = new Date().toLocaleString("en-US", { hour: "2-digit", hour12: false, timeZone: "Asia/Karachi" });
     const hour = parseInt(hourStr, 10) % 24;
     if (hour < settings.endHour) return;
@@ -709,9 +854,11 @@
       const intervalMs = settings.intervalMinutes * 60000;
       if (Date.now() - lastAutoRefreshAt >= intervalMs) {
         lastAutoRefreshAt = Date.now();
-        loadAllStaggered();
+        loadAllParallel();
       }
       updateSubLine(`Auto-update har ${settings.intervalMinutes} minute — market open hai (${settings.startHour}:00–${settings.endHour}:00)`);
+    } else if (isWeekendKarachi()) {
+      updateSubLine("Market band hai — Saturday/Sunday ko auto-update nahi hota");
     } else {
       updateSubLine(`Market band hai — auto-update sirf ${settings.startHour}:00–${settings.endHour}:00 ke doran hota hai`);
     }
@@ -793,6 +940,54 @@
         document.getElementById("detail-" + sym).classList.toggle("open");
       });
     });
+    applyPinIndicator(card);
+    if (!card.dataset.longpressBound) {
+      card.dataset.longpressBound = "1";
+      attachLongPress(card);
+    }
+  }
+
+  // Long-press anywhere on a card (except its buttons) pins it straight to
+  // the top of the list. Long-press it again to unpin. No submenu needed.
+  function attachLongPress(card) {
+    const symbol = card.dataset.symbol;
+    let timer = null;
+    let fired = false;
+    let startX = 0, startY = 0;
+
+    card.addEventListener("touchstart", (e) => {
+      if (e.target.closest("button")) return;
+      fired = false;
+      const t = e.touches[0];
+      startX = t.clientX; startY = t.clientY;
+      timer = setTimeout(() => {
+        fired = true;
+        togglePinTop(symbol);
+        if (navigator.vibrate) navigator.vibrate(25);
+      }, 500);
+    }, { passive: true });
+
+    card.addEventListener("touchmove", (e) => {
+      if (!timer) return;
+      const t = e.touches[0];
+      if (Math.abs(t.clientX - startX) > 10 || Math.abs(t.clientY - startY) > 10) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    }, { passive: true });
+
+    const clearTimer = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    card.addEventListener("touchend", clearTimer, { passive: true });
+    card.addEventListener("touchcancel", clearTimer, { passive: true });
+
+    // Suppress the expand/collapse click that would otherwise also fire
+    // right after a long-press pin action.
+    card.addEventListener("click", (e) => {
+      if (fired) {
+        e.stopPropagation();
+        fired = false;
+      }
+    }, true);
   }
 
   function init() {
@@ -804,7 +999,10 @@
     wireSettingsPanel();
     wireToolbar();
     wireHistoryPanel();
-    loadAllStaggered();
+    wirePinnedPanel();
+    updatePinButtons();
+    applySort();
+    loadAllParallel();
     heartbeat();
     setInterval(heartbeat, 20000);
   }
