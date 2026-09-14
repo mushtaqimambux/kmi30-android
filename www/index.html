@@ -190,6 +190,13 @@
     border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
   }
   .period-tab.active { background: var(--accent); color: #0a1510; border-color: var(--accent); }
+  .trend-legend-item { display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 4px 2px; }
+  .trend-legend-item input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
+  .chart-tooltip {
+    position: absolute; top: 10px; background: var(--card); border: 1px solid var(--accent);
+    border-radius: 8px; padding: 6px 10px; font-size: 11px; line-height: 1.5; color: var(--text);
+    z-index: 20; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.35); white-space: nowrap;
+  }
 </style>
 </head>
 <body>
@@ -289,6 +296,11 @@
       </div>
     </div>
 
+    <div class="settings-row">
+      <label class="auto-sort-label" style="font-size:13px;"><input type="checkbox" id="autoUpdateCheck" checked /> Auto-check for updates on launch</label>
+      <div class="secondary-btn" id="checkUpdatesNowBtn" style="margin-top:8px;">Check for Updates Now</div>
+    </div>
+
     <div class="settings-actions">
       <div class="secondary-btn" id="exportNowBtn">Save record now</div>
       <div class="primary-btn" id="saveSettingsBtn">Save</div>
@@ -315,6 +327,19 @@
   </div>
 </div>
 
+<div class="overlay" id="updateOverlay">
+  <div class="settings-card">
+    <div class="settings-title">Update Available</div>
+    <div id="updateMessage" style="font-size:13.5px; color:var(--dim); margin-bottom:16px;"></div>
+    <div class="settings-actions">
+      <div class="secondary-btn" id="updateNotNowBtn">Not Now</div>
+      <div class="primary-btn" id="updateYesBtn">Update Now</div>
+    </div>
+    <div id="updateNeverAskBtn" style="text-align:center; margin-top:14px; color:var(--dim); font-size:12px; text-decoration:underline;">Never ask again</div>
+    <div id="updateProgress" style="display:none; text-align:center; margin-top:14px; font-size:12.5px; color:var(--dim);"></div>
+  </div>
+</div>
+
 <div class="overlay" id="trendOverlay">
   <div class="settings-card">
     <button class="close-btn" id="closeTrendBtn">✕</button>
@@ -329,8 +354,8 @@
       <button class="period-tab" data-period="5Y">5Y</button>
     </div>
     <div class="trend-legend">
-      <span id="trendLegendClose"><span class="dot" style="background:var(--accent);"></span> Close</span>
-      <span id="trendLegendOpen"><span class="dot" style="background:var(--accent2);"></span> Open</span>
+      <label class="trend-legend-item"><input type="checkbox" id="showCloseCheck" checked /><span class="dot" style="background:var(--accent);"></span><span id="closeLabelText">Close</span></label>
+      <label class="trend-legend-item" id="trendLegendOpen"><input type="checkbox" id="showOpenCheck" checked /><span class="dot" style="background:var(--accent2);"></span> Open</label>
       <select id="trendChartType" class="toolbar-select" style="flex:0 0 auto; width:auto;">
         <option value="line">Line</option>
         <option value="area">Area</option>
@@ -338,7 +363,8 @@
       </select>
       <label id="fitToScreenLabel" class="auto-sort-label"><input type="checkbox" id="fitToScreenCheck" checked /> Fit to screen</label>
     </div>
-    <div id="trendChart"></div>
+    <div id="trendChart" style="position:relative;"></div>
+    <div id="chartTooltip" class="chart-tooltip" style="display:none;"></div>
     <div class="toolbar-btn" id="trendDetailsBtn" style="text-align:center; margin-top:10px;">Show details</div>
     <div id="trendTable" class="trend-table" style="display:none;"></div>
   </div>
@@ -346,6 +372,11 @@
 
 <script src="cordova.js"></script>
 <script>
+  // Stamped by the build workflow (sed replaces __VERSION__ with the actual
+  // number). In a plain browser preview it stays literal text, so this
+  // safely falls back to 0 there.
+  const APP_VERSION = parseInt("__VERSION__", 10) || 0;
+
   const SYMBOLS = [
     "AIRLINK", "ATRL", "CPHL", "DGKC", "EFERT", "ENGROH", "FCCL", "FFC", "FFL",
     "GAL", "GHNI", "HCAR", "HUBC", "LUCK", "MARI", "MEBL", "MLCF", "NML", "NRL",
@@ -532,6 +563,7 @@
     const height = 210;
     const plotTop = padTop, plotBottom = height - padBottom;
     const plotHeight = plotBottom - plotTop;
+    lastChartGeom = { type: "EOD", padSide, scale: stepX, data: rows };
 
     // Google-Maps-style adaptive label density: the closer together the
     // points are on screen, the more of their labels we skip, so labels
@@ -622,25 +654,27 @@
         const up = r.close >= r.open;
         return `<rect x="${(xs[i] - barWidth / 2).toFixed(1)}" y="${top.toFixed(1)}" width="${barWidth}" height="${barH.toFixed(1)}" fill="${up ? "var(--accent)" : "var(--down)"}" rx="2" />`;
       }).join("");
-      seriesSvg = bars + labelsFor(closePoints, "var(--accent)", false) + labelsFor(openPoints, "var(--accent2)", true);
+      seriesSvg = bars
+        + (showCloseLine ? labelsFor(closePoints, "var(--accent)", false) : "")
+        + (showOpenLine ? labelsFor(openPoints, "var(--accent2)", true) : "");
     } else if (chartType === "area") {
       const areaPoints = closePoints.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
       const areaD = `M${padSide},${plotBottom} L${areaPoints} L${xs[xs.length - 1].toFixed(1)},${plotBottom} Z`;
       seriesSvg = `
-        <path d="${areaD}" fill="var(--accent)" opacity="0.18" stroke="none" />
-        <path d="${pathFor(closePoints)}" fill="none" stroke="var(--accent)" stroke-width="2" />
-        <path d="${pathFor(openPoints)}" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-dasharray="4,3" />
-        ${dotsFor(closePoints, "var(--accent)")}${dotsFor(openPoints, "var(--accent2)")}
-        ${labelsFor(closePoints, "var(--accent)", false)}
-        ${labelsFor(openPoints, "var(--accent2)", true)}
+        ${showCloseLine ? `<path d="${areaD}" fill="var(--accent)" opacity="0.18" stroke="none" />` : ""}
+        ${showCloseLine ? `<path d="${pathFor(closePoints)}" fill="none" stroke="var(--accent)" stroke-width="2" />` : ""}
+        ${showOpenLine ? `<path d="${pathFor(openPoints)}" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-dasharray="4,3" />` : ""}
+        ${showCloseLine ? dotsFor(closePoints, "var(--accent)") : ""}${showOpenLine ? dotsFor(openPoints, "var(--accent2)") : ""}
+        ${showCloseLine ? labelsFor(closePoints, "var(--accent)", false) : ""}
+        ${showOpenLine ? labelsFor(openPoints, "var(--accent2)", true) : ""}
       `;
     } else {
       seriesSvg = `
-        <path d="${pathFor(closePoints)}" fill="none" stroke="var(--accent)" stroke-width="2" />
-        <path d="${pathFor(openPoints)}" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-dasharray="4,3" />
-        ${dotsFor(closePoints, "var(--accent)")}${dotsFor(openPoints, "var(--accent2)")}
-        ${labelsFor(closePoints, "var(--accent)", false)}
-        ${labelsFor(openPoints, "var(--accent2)", true)}
+        ${showCloseLine ? `<path d="${pathFor(closePoints)}" fill="none" stroke="var(--accent)" stroke-width="2" />` : ""}
+        ${showOpenLine ? `<path d="${pathFor(openPoints)}" fill="none" stroke="var(--accent2)" stroke-width="2" stroke-dasharray="4,3" />` : ""}
+        ${showCloseLine ? dotsFor(closePoints, "var(--accent)") : ""}${showOpenLine ? dotsFor(openPoints, "var(--accent2)") : ""}
+        ${showCloseLine ? labelsFor(closePoints, "var(--accent)", false) : ""}
+        ${showOpenLine ? labelsFor(openPoints, "var(--accent2)", true) : ""}
       `;
     }
 
@@ -661,6 +695,24 @@
   };
   let trendSortCol = "date";
   let trendSortDir = "desc"; // most recent date first by default
+
+  function buildOneDTable(ticksChrono) {
+    const keyFn = { time: t => t[0], price: t => t[1], volume: t => t[2] }[oneDSortCol] || (t => t[0]);
+    const sorted = ticksChrono.slice().sort((a, b) => oneDSortDir === "asc" ? keyFn(a) - keyFn(b) : keyFn(b) - keyFn(a));
+    const arrow = (col) => oneDSortCol === col ? (oneDSortDir === "asc" ? " ▲" : " ▼") : "";
+    const header = `<div class="trend-row trend-row-head" style="grid-template-columns:1.3fr 1fr 1.3fr;">
+      <div data-sort1d="time">Time${arrow("time")}</div>
+      <div data-sort1d="price">Price${arrow("price")}</div>
+      <div data-sort1d="volume">Volume${arrow("volume")}</div>
+    </div>`;
+    const body = sorted.map(t => `
+      <div class="trend-row" style="grid-template-columns:1.3fr 1fr 1.3fr;">
+        <div>${fmtTime(t[0])}</div>
+        <div>Rs${t[1].toFixed(2)}</div>
+        <div>${t[2].toLocaleString("en-US")}</div>
+      </div>`).join("");
+    return header + body;
+  }
 
   function buildTrendTable(rows) {
     const keyFn = TREND_SORT_KEYS[trendSortCol] || TREND_SORT_KEYS.date;
@@ -700,6 +752,11 @@
   let oneDayZoom = 1;
   let eodStepX = 46;
   let fitToScreen = true;
+  let showCloseLine = true;
+  let showOpenLine = true;
+  let lastChartGeom = null; // shared info so a single tap can find the nearest point
+  let oneDSortCol = "time";
+  let oneDSortDir = "desc";
 
   const PERIOD_DAYS = { "1M": 30, "6M": 180, "1Y": 365, "3Y": 1095, "5Y": 1825 };
 
@@ -724,6 +781,7 @@
     const width = padSide * 2 + totalMinutes * pxPerMinute;
     const height = 200;
     const plotTop = padTop, plotBottom = height - padBottom;
+    lastChartGeom = { type: "1D", padSide, scale: pxPerMinute, data: ticksChrono, startTs };
     const plotHeight = plotBottom - plotTop;
 
     const prices = ticksChrono.map(t => t[1]);
@@ -801,13 +859,16 @@
     const lastPrice = prices[prices.length - 1];
     const lastLabelY = (lastPoint.y - 9 < plotTop - 4) ? lastPoint.y + 15 : lastPoint.y - 9;
     const lastPriceLabel = `<text x="${lastPoint.x.toFixed(1)}" y="${lastLabelY.toFixed(1)}" font-size="9" font-weight="bold" fill="var(--accent)" text-anchor="middle">${lastPrice.toFixed(2)}</text>`;
-
-    return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
-      ${hLines}${vLines}
+    const seriesSvg1D = showCloseLine ? `
       <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2" />
       <circle cx="${lastPoint.x.toFixed(1)}" cy="${lastPoint.y.toFixed(1)}" r="3.2" fill="var(--accent)" />
       ${priceLabels}
       ${lastPriceLabel}
+    ` : "";
+
+    return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+      ${hLines}${vLines}
+      ${seriesSvg1D}
       ${timeLabels}
     </svg>`;
   }
@@ -816,69 +877,19 @@
     return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
   }
 
-  function wire1DPinchZoom(container) {
-    let startDist = 0, startZoom = 1;
-    container.addEventListener("touchstart", (e) => {
-      if (e.touches.length === 2) {
-        startDist = touchDist(e.touches[0], e.touches[1]);
-        startZoom = oneDayZoom;
-      }
-    }, { passive: true });
-    container.addEventListener("touchmove", (e) => {
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        const dist = touchDist(e.touches[0], e.touches[1]);
-        if (startDist > 0) {
-          const newZoom = Math.min(40, Math.max(0.4, startZoom * (dist / startDist)));
-          if (Math.abs(newZoom - oneDayZoom) > oneDayZoom * 0.01 + 0.01) {
-            oneDayZoom = newZoom;
-            render1DChart();
-          }
-        }
-      }
-    }, { passive: false });
-  }
-
   function render1DChart() {
     const s = lastStockData[trendSymbol];
     if (!s || !s.ticksChrono || s.ticksChrono.length < 2) {
       document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Load this stock first to see today's chart</div>`;
       return;
     }
-    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="oneDScroll">${build1DSvg(s.ticksChrono, oneDayZoom)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • swipe to scroll</div>`;
-    wire1DPinchZoom(document.getElementById("oneDScroll"));
+    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="chartScroll">${build1DSvg(s.ticksChrono, oneDayZoom)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • tap for price • swipe to scroll</div>`;
+    if (trendDetailsOpen) {
+      document.getElementById("trendTable").innerHTML = buildOneDTable(s.ticksChrono);
+    }
   }
 
   // ---------- EOD chart (1M / 6M / YTD / 1Y / 3Y / 5Y — both Open & Close) ----------
-  // Pinch-zoom that works directly in real on-screen pixels-per-point,
-  // instead of an abstract multiplier — this is what keeps zooming smooth
-  // and continuous no matter how tiny or huge the starting scale is (a
-  // fixed multiplier range caused a jarring snap on periods with hundreds
-  // of points, where the natural "fit" scale was far outside that range).
-  function wirePixelPinchZoom(container, getStepX, setStepX, onChange, minStepX, maxStepX) {
-    let startDist = 0, startStepX = 1;
-    container.addEventListener("touchstart", (e) => {
-      if (e.touches.length === 2) {
-        startDist = touchDist(e.touches[0], e.touches[1]);
-        startStepX = getStepX();
-      }
-    }, { passive: true });
-    container.addEventListener("touchmove", (e) => {
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        const dist = touchDist(e.touches[0], e.touches[1]);
-        if (startDist > 0) {
-          const newStepX = Math.min(maxStepX, Math.max(minStepX, startStepX * (dist / startDist)));
-          const current = getStepX();
-          if (Math.abs(newStepX - current) > current * 0.01 + 0.02) {
-            setStepX(newStepX);
-            onChange();
-          }
-        }
-      }
-    }, { passive: false });
-  }
-
   function renderEodChart(days) {
     if (!trendRawData) return;
     const rows = normalizeEodRows(trendRawData, days);
@@ -895,24 +906,153 @@
       stepX = eodStepX;
     }
 
-    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="eodScroll">${buildTrendSvg(rows, chartType, stepX)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • swipe to scroll</div>`;
-    wirePixelPinchZoom(
-      document.getElementById("eodScroll"),
-      () => eodStepX,
-      (newStepX) => {
-        if (fitToScreen) {
-          fitToScreen = false;
-          document.getElementById("fitToScreenCheck").checked = false;
-        }
-        eodStepX = newStepX;
-      },
-      () => renderEodChart(days),
-      0.2, 400
-    );
+    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="chartScroll">${buildTrendSvg(rows, chartType, stepX)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • tap for price • swipe to scroll</div>`;
     if (trendDetailsOpen) {
       document.getElementById("trendTable").innerHTML = buildTrendTable(rows);
     }
   }
+
+  function currentScale() { return trendPeriod === "1D" ? oneDayZoom : eodStepX; }
+  function setCurrentScale(v) {
+    if (trendPeriod === "1D") {
+      oneDayZoom = v;
+    } else {
+      if (fitToScreen) {
+        fitToScreen = false;
+        document.getElementById("fitToScreenCheck").checked = false;
+      }
+      eodStepX = v;
+    }
+  }
+  function rerenderCurrentChart() {
+    if (trendPeriod === "1D") render1DChart();
+    else renderEodChart(periodToDays(trendPeriod));
+  }
+  function currentPadSide() { return trendPeriod === "1D" ? 16 : 20; }
+  function currentZoomRange() { return trendPeriod === "1D" ? [0.4, 40] : [0.2, 400]; }
+
+  // A pinch that zooms around whatever point is between your fingers (like
+  // a map) instead of always growing rightward from a fixed left edge —
+  // the spot you're zooming into stays under your fingers as you move them.
+  // Wired once to a stable ancestor via delegation, since the actual scroll
+  // element gets recreated on every chart re-render.
+  function wireAnchoredPinchZoom(stableParent, containerId) {
+    let startDist = 0, startScale = 1, focalContentX = 0, focalClientX = 0, active = false;
+    let pendingScale = null, rafScheduled = false;
+
+    function getContainer() { return document.getElementById(containerId); }
+
+    // Only one re-render per animation frame, always using the very latest
+    // finger position/scale — this is what keeps zooming smooth on a real
+    // phone instead of rebuilding the whole chart on every raw touch event
+    // (which is slow enough that the target point visibly lags behind and
+    // drifts away from your fingers).
+    function applyPendingZoom() {
+      rafScheduled = false;
+      if (pendingScale === null) return;
+      const newScale = pendingScale;
+      pendingScale = null;
+      setCurrentScale(newScale);
+      rerenderCurrentChart();
+      const freshContainer = getContainer();
+      if (!freshContainer) return;
+      const rect2 = freshContainer.getBoundingClientRect();
+      const padSide = currentPadSide();
+      const newContentX = padSide + (focalContentX - padSide) * (newScale / startScale);
+      freshContainer.scrollLeft = newContentX - (focalClientX - rect2.left);
+    }
+
+    stableParent.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 2 && e.target.closest("#" + containerId)) {
+        const container = getContainer();
+        if (!container) return;
+        active = true;
+        startDist = touchDist(e.touches[0], e.touches[1]);
+        startScale = currentScale();
+        const rect = container.getBoundingClientRect();
+        focalClientX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        focalContentX = container.scrollLeft + (focalClientX - rect.left);
+      }
+    }, { passive: true });
+
+    stableParent.addEventListener("touchmove", (e) => {
+      if (!active || e.touches.length !== 2) return;
+      e.preventDefault();
+      focalClientX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const dist = touchDist(e.touches[0], e.touches[1]);
+      if (startDist > 0) {
+        const [minScale, maxScale] = currentZoomRange();
+        pendingScale = Math.min(maxScale, Math.max(minScale, startScale * (dist / startDist)));
+        if (!rafScheduled) {
+          rafScheduled = true;
+          requestAnimationFrame(applyPendingZoom);
+        }
+      }
+    }, { passive: false });
+
+    stableParent.addEventListener("touchend", () => { active = false; pendingScale = null; }, { passive: true });
+    stableParent.addEventListener("touchcancel", () => { active = false; pendingScale = null; }, { passive: true });
+  }
+
+  // A quick single tap on the chart shows the exact price (and time/date)
+  // at that spot in a small popup.
+  function wireChartTapTooltip(stableParent, containerId) {
+    let sx = 0, sy = 0, st = 0, tapping = false;
+    stableParent.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 1 && e.target.closest("#" + containerId)) {
+        tapping = true;
+        sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+      } else {
+        tapping = false;
+      }
+    }, { passive: true });
+    stableParent.addEventListener("touchmove", (e) => {
+      if (!tapping || e.touches.length !== 1) return;
+      if (Math.abs(e.touches[0].clientX - sx) > 8 || Math.abs(e.touches[0].clientY - sy) > 8) tapping = false;
+    }, { passive: true });
+    stableParent.addEventListener("touchend", (e) => {
+      if (!tapping) return;
+      tapping = false;
+      if (Date.now() - st > 500) return;
+      const container = document.getElementById(containerId);
+      if (!container || !lastChartGeom) return;
+      showChartTooltip(e.changedTouches[0].clientX, container);
+    }, { passive: true });
+  }
+
+  function showChartTooltip(clientX, container) {
+    const g = lastChartGeom;
+    const rect = container.getBoundingClientRect();
+    const contentX = container.scrollLeft + (clientX - rect.left);
+    let html;
+    if (g.type === "1D") {
+      const minutesFromStart = (contentX - g.padSide) / g.scale;
+      const ts = g.startTs + minutesFromStart * 60;
+      let best = g.data[0], bestDiff = Math.abs(g.data[0][0] - ts);
+      for (const t of g.data) {
+        const diff = Math.abs(t[0] - ts);
+        if (diff < bestDiff) { bestDiff = diff; best = t; }
+      }
+      html = `${fmtTime(best[0])}<br><b>Rs${best[1].toFixed(2)}</b>`;
+    } else {
+      const idx = Math.round((contentX - g.padSide) / g.scale);
+      const clamped = Math.max(0, Math.min(g.data.length - 1, idx));
+      const r = g.data[clamped];
+      const dateStr = r.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+      html = `${dateStr}`;
+      if (showCloseLine) html += `<br>Close: <b>${r.close.toFixed(2)}</b>`;
+      if (showOpenLine) html += `<br>Open: <b>${r.open.toFixed(2)}</b>`;
+    }
+    const tip = document.getElementById("chartTooltip");
+    const card = document.querySelector("#trendOverlay .settings-card");
+    const cardRect = card.getBoundingClientRect();
+    tip.innerHTML = html;
+    tip.style.display = "block";
+    tip.style.left = Math.min(cardRect.width - 110, Math.max(10, clientX - cardRect.left - 50)) + "px";
+    clearTimeout(tip._hideTimer);
+    tip._hideTimer = setTimeout(() => { tip.style.display = "none"; }, 2500);
+  }
+
 
   async function selectPeriod(period) {
     trendPeriod = period;
@@ -921,12 +1061,9 @@
     });
     const isOneDay = period === "1D";
     document.getElementById("trendLegendOpen").style.display = isOneDay ? "none" : "";
-    document.getElementById("trendLegendClose").innerHTML = isOneDay
-      ? `<span class="dot" style="background:var(--accent);"></span> Price`
-      : `<span class="dot" style="background:var(--accent);"></span> Close`;
+    document.getElementById("closeLabelText").textContent = isOneDay ? "Price" : "Close";
     document.getElementById("trendChartType").style.display = isOneDay ? "none" : "";
     document.getElementById("fitToScreenLabel").style.display = isOneDay ? "none" : "";
-    document.getElementById("trendDetailsBtn").style.display = isOneDay ? "none" : "";
     document.getElementById("trendTable").style.display = "none";
     trendDetailsOpen = false;
     document.getElementById("trendDetailsBtn").textContent = "Show details";
@@ -952,6 +1089,10 @@
     const overlay = document.getElementById("trendOverlay");
     trendSymbol = symbol;
     trendRawData = null;
+    showCloseLine = true;
+    showOpenLine = true;
+    document.getElementById("showCloseCheck").checked = true;
+    document.getElementById("showOpenCheck").checked = true;
     document.getElementById("trendTitle").textContent = symbol + " — Trend";
     overlay.classList.add("open");
     await selectPeriod("1D");
@@ -972,11 +1113,21 @@
       fitToScreen = e.target.checked;
       if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
     });
+    document.getElementById("showCloseCheck").addEventListener("change", (e) => {
+      showCloseLine = e.target.checked;
+      rerenderCurrentChart();
+    });
+    document.getElementById("showOpenCheck").addEventListener("change", (e) => {
+      showOpenLine = e.target.checked;
+      if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
+    });
     document.getElementById("trendDetailsBtn").addEventListener("click", () => {
       trendDetailsOpen = !trendDetailsOpen;
       const tableEl = document.getElementById("trendTable");
       if (trendDetailsOpen) {
-        tableEl.innerHTML = buildTrendTable(trendCurrentRows);
+        tableEl.innerHTML = trendPeriod === "1D"
+          ? buildOneDTable(lastStockData[trendSymbol].ticksChrono)
+          : buildTrendTable(trendCurrentRows);
         tableEl.style.display = "block";
         document.getElementById("trendDetailsBtn").textContent = "Hide details";
       } else {
@@ -985,6 +1136,14 @@
       }
     });
     document.getElementById("trendTable").addEventListener("click", (e) => {
+      const sort1d = e.target.closest("[data-sort1d]");
+      if (sort1d) {
+        const col = sort1d.getAttribute("data-sort1d");
+        if (oneDSortCol === col) oneDSortDir = oneDSortDir === "asc" ? "desc" : "asc";
+        else { oneDSortCol = col; oneDSortDir = "desc"; }
+        document.getElementById("trendTable").innerHTML = buildOneDTable(lastStockData[trendSymbol].ticksChrono);
+        return;
+      }
       const headerCell = e.target.closest("[data-sort-col]");
       if (!headerCell || !trendCurrentRows) return;
       const col = headerCell.getAttribute("data-sort-col");
@@ -996,6 +1155,10 @@
       }
       document.getElementById("trendTable").innerHTML = buildTrendTable(trendCurrentRows);
     });
+
+    const cardEl = document.querySelector("#trendOverlay .settings-card");
+    wireAnchoredPinchZoom(cardEl, "chartScroll");
+    wireChartTapTooltip(cardEl, "chartScroll");
   }
 
   function processStock(symbol, data) {
@@ -1216,7 +1379,7 @@
   }
 
   // ---------- Settings (auto-update interval + market hours) ----------
-  const DEFAULT_SETTINGS = { intervalSeconds: 120, startHour: 9, endHour: 17, theme: "dark", autoSort: false, hijriOffsetDays: -2 };
+  const DEFAULT_SETTINGS = { intervalSeconds: 120, startHour: 9, endHour: 17, theme: "dark", autoSort: false, hijriOffsetDays: -2, autoUpdateCheck: true };
   const lastStockData = {};
 
   function loadPinned() {
@@ -1626,6 +1789,87 @@
     document.getElementById("themeSelect").value = settings.theme;
   }
 
+  // ---------- In-app update check ----------
+  const UPDATE_CHECK_URL = "https://raw.githubusercontent.com/mushtaqimambux/kmi30-android/main/version.txt";
+  const UPDATE_APK_URL = "https://github.com/mushtaqimambux/kmi30-android/releases/download/release/kmi30-live.apk";
+
+  async function fetchLatestVersion() {
+    if (!window.cordova) return null;
+    try {
+      const json = await new Promise((resolve, reject) => {
+        cordova.plugin.http.get(UPDATE_CHECK_URL, {}, {}, (r) => resolve(r), (e) => reject(e));
+      });
+      const num = parseInt(String(json.data).trim(), 10);
+      return isNaN(num) ? null : num;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function openUpdateOverlay(latestVersion) {
+    document.getElementById("updateMessage").textContent =
+      `A new version (v${latestVersion}) is available. You're on v${APP_VERSION}.`;
+    document.getElementById("updateProgress").style.display = "none";
+    document.getElementById("updateProgress").textContent = "";
+    document.getElementById("updateYesBtn").style.display = "";
+    document.getElementById("updateNotNowBtn").style.display = "";
+    document.getElementById("updateNeverAskBtn").style.display = "";
+    document.getElementById("updateOverlay").classList.add("open");
+  }
+
+  function downloadAndInstallUpdate() {
+    const yesBtn = document.getElementById("updateYesBtn");
+    const notNowBtn = document.getElementById("updateNotNowBtn");
+    const neverBtn = document.getElementById("updateNeverAskBtn");
+    const progress = document.getElementById("updateProgress");
+    yesBtn.style.display = "none";
+    notNowBtn.style.display = "none";
+    neverBtn.style.display = "none";
+    progress.style.display = "block";
+    progress.textContent = "Downloading update…";
+
+    const filePath = cordova.file.externalDataDirectory + "kmi30-update.apk";
+    cordova.plugin.http.downloadFile(UPDATE_APK_URL, {}, {}, filePath, () => {
+      progress.textContent = "Opening installer…";
+      cordova.plugins.fileOpener2.open(
+        filePath,
+        "application/vnd.android.package-archive",
+        {
+          success: () => { document.getElementById("updateOverlay").classList.remove("open"); },
+          error: () => { progress.textContent = "Couldn't open installer — please try again."; }
+        }
+      );
+    }, () => {
+      progress.textContent = "Download failed — please try again.";
+    });
+  }
+
+  async function checkForUpdate(manual) {
+    const latest = await fetchLatestVersion();
+    if (latest === null) {
+      if (manual) alert("Couldn't check for updates — check your internet connection.");
+      return;
+    }
+    if (latest > APP_VERSION) {
+      openUpdateOverlay(latest);
+    } else if (manual) {
+      alert(`You're up to date (v${APP_VERSION}).`);
+    }
+  }
+
+  function wireUpdateOverlay() {
+    document.getElementById("updateYesBtn").addEventListener("click", downloadAndInstallUpdate);
+    document.getElementById("updateNotNowBtn").addEventListener("click", () => {
+      document.getElementById("updateOverlay").classList.remove("open");
+    });
+    document.getElementById("updateNeverAskBtn").addEventListener("click", () => {
+      settings.autoUpdateCheck = false;
+      saveSettingsToStorage(settings);
+      document.getElementById("autoUpdateCheck").checked = false;
+      document.getElementById("updateOverlay").classList.remove("open");
+    });
+  }
+
   function updateHijriOffsetUI() {
     document.getElementById("hijriOffsetValue").textContent = (settings.hijriOffsetDays > 0 ? "+" : "") + settings.hijriOffsetDays;
     document.getElementById("hijriPreview").textContent = formatHijriDate(new Date());
@@ -1635,9 +1879,15 @@
     const overlay = document.getElementById("settingsOverlay");
     document.getElementById("settingsBtn").addEventListener("click", () => {
       updateHijriOffsetUI();
+      document.getElementById("autoUpdateCheck").checked = settings.autoUpdateCheck;
       overlay.classList.add("open");
     });
     document.getElementById("closeSettingsBtn").addEventListener("click", () => overlay.classList.remove("open"));
+    document.getElementById("autoUpdateCheck").addEventListener("change", (e) => {
+      settings.autoUpdateCheck = e.target.checked;
+      saveSettingsToStorage(settings);
+    });
+    document.getElementById("checkUpdatesNowBtn").addEventListener("click", () => checkForUpdate(true));
     document.getElementById("hijriMinusBtn").addEventListener("click", () => {
       settings.hijriOffsetDays -= 1;
       saveSettingsToStorage(settings);
@@ -1844,6 +2094,7 @@
     wireHistoryPanel();
     wireTrendPanel();
     wirePinnedPanel();
+    wireUpdateOverlay();
     updatePinButtons();
     applySort();
     loadAllParallel();
@@ -1851,6 +2102,7 @@
     updateLiveClock();
     setInterval(heartbeat, 3000);
     setInterval(updateLiveClock, 1000);
+    if (settings.autoUpdateCheck) checkForUpdate(false);
   }
 
   // In a real APK, Cordova fires "deviceready" once native plugins are ready.
