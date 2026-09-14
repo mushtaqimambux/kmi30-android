@@ -66,6 +66,8 @@
   }
   .toolbar-icon-btn:active { opacity: 0.7; }
   .toolbar-icon-btn.active { color: var(--accent); border-color: var(--accent); }
+  .toolbar-icon-btn.loading { animation: spin 0.8s linear infinite; color: var(--accent); }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .auto-sort-label {
     display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--dim);
     white-space: nowrap; flex-shrink: 0;
@@ -93,6 +95,7 @@
   .pinned-actions .toolbar-btn { padding: 5px 10px; font-size: 13px; }
   .pinned-actions .toolbar-btn:disabled { opacity: 0.3; }
   .sub { color: var(--dim); font-size: 12.5px; margin-top: 3px; }
+  .live-clock { color: var(--text); font-size: 12.5px; font-weight: 600; margin-top: 2px; }
   main { padding: 12px 12px 40px; max-width: 640px; margin: 0 auto; }
   .stock {
     background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
@@ -181,6 +184,12 @@
   .trend-legend { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 12px; color: var(--dim); flex-wrap: wrap; }
   .trend-legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
   .trend-legend select { background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text); border-radius: 8px; padding: 5px 8px; font-size: 12px; }
+  .period-tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; }
+  .period-tab {
+    flex-shrink: 0; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .period-tab.active { background: var(--accent); color: #0a1510; border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -193,7 +202,8 @@
       <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
     </div>
   </div>
-  <div class="sub" id="subLine">Auto-update shuru ho raha hai…</div>
+  <div class="live-clock" id="liveClock"></div>
+  <div class="sub" id="subLine">Auto-update starting…</div>
 </header>
 
 <div class="toolbar">
@@ -209,6 +219,7 @@
   <button class="toolbar-icon-btn" id="autoSortBtn" title="Auto-sort">⟳</button>
   <button class="toolbar-icon-btn" id="pinnedBtn" title="Pinned">☆</button>
   <button class="toolbar-icon-btn" id="expandAllBtn" title="Expand/collapse all">⤢</button>
+  <button class="toolbar-icon-btn" id="reloadAllBtn" title="Reload all">↻</button>
 </div>
 
 <div class="overlay" id="pinnedOverlay">
@@ -231,25 +242,32 @@
     <div class="settings-row">
       <label>Auto-update har kitni der mein</label>
       <select id="intervalSelect">
-        <option value="1">1 minute</option>
-        <option value="2">2 minute</option>
-        <option value="3">3 minute</option>
-        <option value="4">4 minute</option>
-        <option value="5">5 minute</option>
-        <option value="10">10 minute</option>
-        <option value="15">15 minute</option>
-        <option value="30">30 minute</option>
-        <option value="custom">Custom (direct minute likhein)</option>
+        <option value="5">5 second</option>
+        <option value="10">10 second</option>
+        <option value="15">15 second</option>
+        <option value="30">30 second</option>
+        <option value="60">1 minute</option>
+        <option value="120">2 minute</option>
+        <option value="180">3 minute</option>
+        <option value="240">4 minute</option>
+        <option value="300">5 minute</option>
+        <option value="600">10 minute</option>
+        <option value="900">15 minute</option>
+        <option value="1800">30 minute</option>
+        <option value="custom">Custom (enter minute + second)</option>
       </select>
-      <input type="number" id="customInterval" min="1" placeholder="Minutes mein likhein" style="display:none" />
+      <div id="customIntervalBoxes" style="display:none; gap:8px; margin-top:8px;">
+        <input type="number" id="customIntervalMin" min="0" placeholder="Minute" style="flex:1;" />
+        <input type="number" id="customIntervalSec" min="0" max="59" placeholder="Second" style="flex:1;" />
+      </div>
     </div>
 
     <div class="settings-row">
-      <label>Market shuru (ghanta)</label>
+      <label>Market opens (hour)</label>
       <select id="startHourSelect"></select>
     </div>
     <div class="settings-row">
-      <label>Market band (ghanta)</label>
+      <label>Market closes (hour)</label>
       <select id="endHourSelect"></select>
     </div>
 
@@ -261,8 +279,18 @@
       </select>
     </div>
 
+    <div class="settings-row">
+      <label>Hijri date adjustment (+/- days)</label>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button type="button" class="toolbar-icon-btn" id="hijriMinusBtn">−</button>
+        <div id="hijriOffsetValue" style="min-width:34px; text-align:center; font-weight:700; font-size:15px;">0</div>
+        <button type="button" class="toolbar-icon-btn" id="hijriPlusBtn">+</button>
+        <div id="hijriPreview" style="flex:1; text-align:right; font-size:11.5px; color:var(--dim);"></div>
+      </div>
+    </div>
+
     <div class="settings-actions">
-      <div class="secondary-btn" id="exportNowBtn">Record abhi save karein</div>
+      <div class="secondary-btn" id="exportNowBtn">Save record now</div>
       <div class="primary-btn" id="saveSettingsBtn">Save</div>
     </div>
     <div style="text-align:center; color:var(--dim); font-size:11px; margin-top:14px;">App version: v__VERSION__</div>
@@ -272,7 +300,7 @@
 <div class="overlay" id="historyOverlay">
   <div class="settings-card">
     <button class="close-btn" id="closeHistoryBtn">✕</button>
-    <div class="settings-title">Purana Record</div>
+    <div class="settings-title">Past Records</div>
     <div class="history-nav">
       <button class="toolbar-btn" id="prevDayBtn">‹</button>
       <input type="date" id="historyDateInput" />
@@ -290,7 +318,16 @@
 <div class="overlay" id="trendOverlay">
   <div class="settings-card">
     <button class="close-btn" id="closeTrendBtn">✕</button>
-    <div class="settings-title" id="trendTitle">25 Din Trend</div>
+    <div class="settings-title" id="trendTitle">Trend</div>
+    <div class="period-tabs" id="periodTabs">
+      <button class="period-tab" data-period="1D">1D</button>
+      <button class="period-tab" data-period="1M">1M</button>
+      <button class="period-tab" data-period="6M">6M</button>
+      <button class="period-tab" data-period="YTD">YTD</button>
+      <button class="period-tab" data-period="1Y">1Y</button>
+      <button class="period-tab" data-period="3Y">3Y</button>
+      <button class="period-tab" data-period="5Y">5Y</button>
+    </div>
     <div class="trend-legend">
       <span id="trendLegendClose"><span class="dot" style="background:var(--accent);"></span> Close</span>
       <span id="trendLegendOpen"><span class="dot" style="background:var(--accent2);"></span> Open</span>
@@ -299,21 +336,10 @@
         <option value="area">Area</option>
         <option value="bar">Bar (Open-Close)</option>
       </select>
-      <select id="trendDaysSelect" class="toolbar-select" style="flex:0 0 auto; width:auto;">
-        <option value="7">7 din</option>
-        <option value="15">15 din</option>
-        <option value="25" selected>25 din</option>
-        <option value="30">1 mahina</option>
-        <option value="60">2 mahine</option>
-        <option value="90">3 mahine</option>
-        <option value="180">6 mahine</option>
-        <option value="365">1 saal</option>
-        <option value="custom">Custom (din likhein)</option>
-      </select>
-      <input type="number" id="trendCustomDays" min="1" placeholder="Din likhein" style="display:none; width:90px;" />
+      <label id="fitToScreenLabel" class="auto-sort-label"><input type="checkbox" id="fitToScreenCheck" checked /> Fit to screen</label>
     </div>
     <div id="trendChart"></div>
-    <div class="toolbar-btn" id="trendDetailsBtn" style="text-align:center; margin-top:10px;">Details dekhein</div>
+    <div class="toolbar-btn" id="trendDetailsBtn" style="text-align:center; margin-top:10px;">Show details</div>
     <div id="trendTable" class="trend-table" style="display:none;"></div>
   </div>
 </div>
@@ -397,7 +423,46 @@
     });
   }
 
+  // ---------- Browser-preview mock data (never used in the real APK) ----------
+  // window.cordova only exists inside the built app, so this path only runs
+  // when previewing index.html in a plain browser — it lets every screen
+  // (card detail, trend chart) be visually tested without a real device.
+  function generateMockIntraday(symbol) {
+    const now = Math.floor(Date.now() / 1000);
+    const base = 20 + (symbol.charCodeAt(0) % 15) * 10;
+    const chrono = [];
+    let price = base;
+    for (let i = 39; i >= 0; i--) {
+      price += (Math.random() - 0.48) * (base * 0.01);
+      chrono.push([now - i * 300, Math.round(price * 100) / 100, Math.floor(Math.random() * 8000) + 50]);
+    }
+    return { data: chrono.slice().reverse() }; // index 0 = latest, matching the real API
+  }
+
+  function generateMockEod(symbol) {
+    const base = 20 + (symbol.charCodeAt(0) % 15) * 10;
+    const rows = [];
+    let close = base;
+    // Walk back day by day but only keep weekdays — PSX doesn't trade on
+    // Saturday/Sunday, so a realistic preview shouldn't invent prices for them.
+    let cursorTs = Math.floor(Date.now() / 1000);
+    let collected = 0;
+    while (collected < 1900) {
+      const weekday = new Date(cursorTs * 1000).toLocaleString("en-US", { timeZone: "Asia/Karachi", weekday: "short" });
+      if (weekday !== "Sat" && weekday !== "Sun") {
+        const open = close + (Math.random() - 0.5) * (base * 0.02);
+        close = open + (Math.random() - 0.5) * (base * 0.03);
+        const volume = Math.floor(Math.random() * 2000000) + 100000;
+        rows.push([cursorTs, Math.round(close * 100) / 100, volume, Math.round(open * 100) / 100]);
+        collected++;
+      }
+      cursorTs -= 86400;
+    }
+    return rows; // index 0 = most recent day, matching the real API
+  }
+
   async function fetchSymbol(symbol) {
+    if (!window.cordova) return generateMockIntraday(symbol);
     const target = "https://dps.psx.com.pk/timeseries/int/" + symbol;
     // MEBL and other high-volume stocks return a much larger payload, so allow
     // a longer timeout, with one retry.
@@ -415,6 +480,7 @@
 
   // ---------- 25-day EOD trend (separate PSX endpoint, daily candles) ----------
   async function fetchEodData(symbol) {
+    if (!window.cordova) return generateMockEod(symbol);
     const target = "https://dps.psx.com.pk/timeseries/eod/" + symbol;
     let lastJson = null;
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -460,12 +526,22 @@
     return raw;
   }
 
-  function buildTrendSvg(rows, chartType) {
-    const stepX = 46, padTop = 30, padBottom = 34, padSide = 20;
+  function buildTrendSvg(rows, chartType, stepX) {
+    const padTop = 30, padBottom = 34, padSide = 20;
     const width = padSide * 2 + (rows.length - 1) * stepX;
     const height = 210;
     const plotTop = padTop, plotBottom = height - padBottom;
     const plotHeight = plotBottom - plotTop;
+
+    // Google-Maps-style adaptive label density: the closer together the
+    // points are on screen, the more of their labels we skip, so labels
+    // never overlap however far zoomed out — and zooming in reveals more.
+    const labelStep = Math.max(1, Math.ceil(36 / stepX));
+    // Only force the very last date to show if it isn't already too close
+    // to the last regularly-spaced label — otherwise the two overlap/merge.
+    const lastRegularIdx = Math.floor((rows.length - 1) / labelStep) * labelStep;
+    const forceLast = (rows.length - 1 - lastRegularIdx) * stepX > 28;
+    const showAt = (i) => i % labelStep === 0 || (i === rows.length - 1 && forceLast);
 
     const allVals = rows.flatMap(r => [r.close, r.open]);
     const minP = Math.min(...allVals), maxP = Math.max(...allVals);
@@ -487,14 +563,16 @@
       const gy = plotTop + (plotHeight / gridCount) * g;
       hLines += `<line x1="${padSide}" y1="${gy.toFixed(1)}" x2="${(width - padSide).toFixed(1)}" y2="${gy.toFixed(1)}" stroke="var(--card-border)" stroke-width="1" stroke-dasharray="2,3" />`;
     }
-    // Vertical gridlines, one per day, so it's clear which date a dot belongs to
+    // Vertical gridlines only where a date label will actually appear
     let vLines = "";
-    for (const x of xs) {
+    xs.forEach((x, i) => {
+      if (!showAt(i)) return;
       vLines += `<line x1="${x.toFixed(1)}" y1="${plotTop}" x2="${x.toFixed(1)}" y2="${plotBottom}" stroke="var(--card-border)" stroke-width="1" stroke-dasharray="2,3" />`;
-    }
+    });
 
     function labelsFor(points, colorVar, defaultBelow) {
-      return points.map((p) => {
+      return points.map((p, i) => {
+        if (!showAt(i)) return "";
         let labelY;
         if (defaultBelow) {
           const belowY = p.y + 15;
@@ -507,9 +585,21 @@
       }).join("");
     }
 
-    // Two-line date labels (day number + short month) under every point,
-    // so it's always clear exactly which date a dot/bar belongs to.
+    // Two-line date labels (day number + short month), shown only where
+    // there's room — thins out automatically as points get closer together.
+    // Once the chart spans more than a year, "17 Jul" alone is ambiguous
+    // (which year's July?) — switch to a single "Jul '25" style label so
+    // every date stays unambiguous, matching how far zoomed out we are.
+    const spanDays = (rows[rows.length - 1].date - rows[0].date) / 86400000;
+    const showYear = spanDays > 400;
+
     const dateLabels = rows.map((r, i) => {
+      if (!showAt(i)) return "";
+      if (showYear) {
+        const mon = r.date.toLocaleDateString("en-GB", { month: "short" });
+        const yr = String(r.date.getFullYear()).slice(-2);
+        return `<text x="${xs[i].toFixed(1)}" y="${height - 8}" font-size="9" fill="var(--dim)" text-anchor="middle">${mon} '${yr}</text>`;
+      }
       const day = r.date.getDate();
       const mon = r.date.toLocaleDateString("en-GB", { month: "short" });
       return `
@@ -605,75 +695,294 @@
   let trendDetailsOpen = false;
   let trendRawData = null;
   let trendCurrentRows = null;
+  let trendSymbol = null;
+  let trendPeriod = "1D";
+  let oneDayZoom = 1;
+  let eodStepX = 46;
+  let fitToScreen = true;
 
-  function renderTrendChartAndTable(days) {
+  const PERIOD_DAYS = { "1M": 30, "6M": 180, "1Y": 365, "3Y": 1095, "5Y": 1825 };
+
+  function ytdDays() {
+    const now = new Date();
+    const jan1 = new Date(now.getFullYear(), 0, 1);
+    return Math.ceil((now - jan1) / 86400000) + 1;
+  }
+
+  function periodToDays(period) {
+    if (period === "YTD") return ytdDays();
+    return PERIOD_DAYS[period] || 30;
+  }
+
+  // ---------- 1D intraday chart (single Close line, real time-stamps, pinch-zoom) ----------
+  function build1DSvg(ticksChrono, zoom) {
+    const pxPerMinute = Math.max(0.8, 3 * zoom);
+    const padTop = 24, padBottom = 30, padSide = 16;
+    const startTs = ticksChrono[0][0];
+    const endTs = ticksChrono[ticksChrono.length - 1][0];
+    const totalMinutes = Math.max(1, (endTs - startTs) / 60);
+    const width = padSide * 2 + totalMinutes * pxPerMinute;
+    const height = 200;
+    const plotTop = padTop, plotBottom = height - padBottom;
+    const plotHeight = plotBottom - plotTop;
+
+    const prices = ticksChrono.map(t => t[1]);
+    const minP = Math.min(...prices), maxP = Math.max(...prices);
+    const rangeP = (maxP - minP) || 1;
+
+    function xFor(ts) { return padSide + ((ts - startTs) / 60) * pxPerMinute; }
+    function yFor(price) { return plotTop + (1 - (price - minP) / rangeP) * plotHeight; }
+
+    const points = ticksChrono.map(t => ({ x: xFor(t[0]), y: yFor(t[1]) }));
+    const pathD = points.map((p, i) => (i === 0 ? "M" : "L") + p.x.toFixed(1) + "," + p.y.toFixed(1)).join(" ");
+
+    // Time marks: multi-level, Google-Maps style — the more you zoom in
+    // (higher pxPerMinute), the finer the step gets, all the way down to
+    // individual seconds.
+    const pxPerSecond = pxPerMinute / 60;
+    const LEVELS = [
+      { minPxPerSec: 0,     stepSec: 3600 }, // hourly
+      { minPxPerSec: 0.033, stepSec: 1800 }, // 30 min
+      { minPxPerSec: 0.10,  stepSec: 900 },  // 15 min
+      { minPxPerSec: 0.25,  stepSec: 300 },  // 5 min
+      { minPxPerSec: 0.7,   stepSec: 60 },   // 1 min
+      { minPxPerSec: 2.5,   stepSec: 30 },   // 30 sec
+      { minPxPerSec: 6.5,   stepSec: 10 },   // 10 sec
+      { minPxPerSec: 16,    stepSec: 5 },    // 5 sec
+      { minPxPerSec: 40,    stepSec: 1 }     // 1 sec
+    ];
+    let stepSeconds = LEVELS[0].stepSec;
+    for (const lvl of LEVELS) if (pxPerSecond >= lvl.minPxPerSec) stepSeconds = lvl.stepSec;
+
+    const showSeconds = stepSeconds < 60;
+    const showMinutes = stepSeconds < 3600;
+    const marks = [];
+    const firstMarkTs = Math.ceil(startTs / stepSeconds) * stepSeconds;
+    for (let ts = firstMarkTs; ts <= endTs; ts += stepSeconds) {
+      marks.push(ts);
+    }
+
+    function priceNear(ts) {
+      let best = ticksChrono[0], bestDiff = Math.abs(ticksChrono[0][0] - ts);
+      for (const t of ticksChrono) {
+        const diff = Math.abs(t[0] - ts);
+        if (diff < bestDiff) { bestDiff = diff; best = t; }
+      }
+      return best[1];
+    }
+
+    let vLines = "", timeLabels = "", priceLabels = "";
+    for (const ts of marks) {
+      const x = xFor(ts);
+      const d = new Date(ts * 1000);
+      const label = d.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: showMinutes ? "2-digit" : undefined,
+        second: showSeconds ? "2-digit" : undefined,
+        hour12: true, timeZone: "Asia/Karachi"
+      });
+      vLines += `<line x1="${x.toFixed(1)}" y1="${plotTop}" x2="${x.toFixed(1)}" y2="${plotBottom}" stroke="var(--card-border)" stroke-width="1" stroke-dasharray="2,3" />`;
+      timeLabels += `<text x="${x.toFixed(1)}" y="${height - 8}" font-size="9" fill="var(--dim)" text-anchor="middle">${label}</text>`;
+
+      const price = priceNear(ts);
+      const py = yFor(price);
+      const labelY = (py - 9 < plotTop - 4) ? py + 15 : py - 9;
+      priceLabels += `<text x="${x.toFixed(1)}" y="${labelY.toFixed(1)}" font-size="9" fill="var(--accent)" text-anchor="middle">${price.toFixed(2)}</text>`;
+    }
+
+    const gridCount = 4;
+    let hLines = "";
+    for (let g = 0; g <= gridCount; g++) {
+      const gy = plotTop + (plotHeight / gridCount) * g;
+      hLines += `<line x1="${padSide}" y1="${gy.toFixed(1)}" x2="${(width - padSide).toFixed(1)}" y2="${gy.toFixed(1)}" stroke="var(--card-border)" stroke-width="1" stroke-dasharray="2,3" />`;
+    }
+
+    const lastPoint = points[points.length - 1];
+    const lastPrice = prices[prices.length - 1];
+    const lastLabelY = (lastPoint.y - 9 < plotTop - 4) ? lastPoint.y + 15 : lastPoint.y - 9;
+    const lastPriceLabel = `<text x="${lastPoint.x.toFixed(1)}" y="${lastLabelY.toFixed(1)}" font-size="9" font-weight="bold" fill="var(--accent)" text-anchor="middle">${lastPrice.toFixed(2)}</text>`;
+
+    return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+      ${hLines}${vLines}
+      <path d="${pathD}" fill="none" stroke="var(--accent)" stroke-width="2" />
+      <circle cx="${lastPoint.x.toFixed(1)}" cy="${lastPoint.y.toFixed(1)}" r="3.2" fill="var(--accent)" />
+      ${priceLabels}
+      ${lastPriceLabel}
+      ${timeLabels}
+    </svg>`;
+  }
+
+  function touchDist(t1, t2) {
+    return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+  }
+
+  function wire1DPinchZoom(container) {
+    let startDist = 0, startZoom = 1;
+    container.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 2) {
+        startDist = touchDist(e.touches[0], e.touches[1]);
+        startZoom = oneDayZoom;
+      }
+    }, { passive: true });
+    container.addEventListener("touchmove", (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dist = touchDist(e.touches[0], e.touches[1]);
+        if (startDist > 0) {
+          const newZoom = Math.min(40, Math.max(0.4, startZoom * (dist / startDist)));
+          if (Math.abs(newZoom - oneDayZoom) > oneDayZoom * 0.01 + 0.01) {
+            oneDayZoom = newZoom;
+            render1DChart();
+          }
+        }
+      }
+    }, { passive: false });
+  }
+
+  function render1DChart() {
+    const s = lastStockData[trendSymbol];
+    if (!s || !s.ticksChrono || s.ticksChrono.length < 2) {
+      document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Load this stock first to see today's chart</div>`;
+      return;
+    }
+    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="oneDScroll">${build1DSvg(s.ticksChrono, oneDayZoom)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • swipe to scroll</div>`;
+    wire1DPinchZoom(document.getElementById("oneDScroll"));
+  }
+
+  // ---------- EOD chart (1M / 6M / YTD / 1Y / 3Y / 5Y — both Open & Close) ----------
+  // Pinch-zoom that works directly in real on-screen pixels-per-point,
+  // instead of an abstract multiplier — this is what keeps zooming smooth
+  // and continuous no matter how tiny or huge the starting scale is (a
+  // fixed multiplier range caused a jarring snap on periods with hundreds
+  // of points, where the natural "fit" scale was far outside that range).
+  function wirePixelPinchZoom(container, getStepX, setStepX, onChange, minStepX, maxStepX) {
+    let startDist = 0, startStepX = 1;
+    container.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 2) {
+        startDist = touchDist(e.touches[0], e.touches[1]);
+        startStepX = getStepX();
+      }
+    }, { passive: true });
+    container.addEventListener("touchmove", (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dist = touchDist(e.touches[0], e.touches[1]);
+        if (startDist > 0) {
+          const newStepX = Math.min(maxStepX, Math.max(minStepX, startStepX * (dist / startDist)));
+          const current = getStepX();
+          if (Math.abs(newStepX - current) > current * 0.01 + 0.02) {
+            setStepX(newStepX);
+            onChange();
+          }
+        }
+      }
+    }, { passive: false });
+  }
+
+  function renderEodChart(days) {
     if (!trendRawData) return;
     const rows = normalizeEodRows(trendRawData, days);
     trendCurrentRows = rows;
     const chartType = document.getElementById("trendChartType").value;
-    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll">${buildTrendSvg(rows, chartType)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">← Poori chart dekhne ke liye left/right swipe karein →</div>`;
+
+    let stepX;
+    if (fitToScreen) {
+      const cardEl = document.querySelector("#trendOverlay .settings-card");
+      const available = Math.max(200, (cardEl ? cardEl.clientWidth : 340) - 36 - 40);
+      stepX = available / Math.max(1, rows.length - 1);
+      eodStepX = stepX; // stays in sync so a pinch can continue smoothly from here
+    } else {
+      stepX = eodStepX;
+    }
+
+    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="eodScroll">${buildTrendSvg(rows, chartType, stepX)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • swipe to scroll</div>`;
+    wirePixelPinchZoom(
+      document.getElementById("eodScroll"),
+      () => eodStepX,
+      (newStepX) => {
+        if (fitToScreen) {
+          fitToScreen = false;
+          document.getElementById("fitToScreenCheck").checked = false;
+        }
+        eodStepX = newStepX;
+      },
+      () => renderEodChart(days),
+      0.2, 400
+    );
     if (trendDetailsOpen) {
       document.getElementById("trendTable").innerHTML = buildTrendTable(rows);
     }
   }
 
-  async function openTrendFor(symbol) {
-    const overlay = document.getElementById("trendOverlay");
-    document.getElementById("trendTitle").textContent = symbol + " — Trend";
-    document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Load ho raha hai…</div>`;
-    document.getElementById("trendTable").innerHTML = "";
+  async function selectPeriod(period) {
+    trendPeriod = period;
+    document.querySelectorAll(".period-tab").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-period") === period);
+    });
+    const isOneDay = period === "1D";
+    document.getElementById("trendLegendOpen").style.display = isOneDay ? "none" : "";
+    document.getElementById("trendLegendClose").innerHTML = isOneDay
+      ? `<span class="dot" style="background:var(--accent);"></span> Price`
+      : `<span class="dot" style="background:var(--accent);"></span> Close`;
+    document.getElementById("trendChartType").style.display = isOneDay ? "none" : "";
+    document.getElementById("fitToScreenLabel").style.display = isOneDay ? "none" : "";
+    document.getElementById("trendDetailsBtn").style.display = isOneDay ? "none" : "";
     document.getElementById("trendTable").style.display = "none";
     trendDetailsOpen = false;
-    document.getElementById("trendDetailsBtn").textContent = "Details dekhein";
-    document.getElementById("trendDaysSelect").value = "25";
-    document.getElementById("trendCustomDays").style.display = "none";
-    overlay.classList.add("open");
+    document.getElementById("trendDetailsBtn").textContent = "Show details";
 
-    try {
-      trendRawData = await getEodRawRows(symbol);
-      renderTrendChartAndTable(25);
-      document.getElementById("trendDetailsBtn").onclick = () => {
-        trendDetailsOpen = !trendDetailsOpen;
-        const tableEl = document.getElementById("trendTable");
-        if (trendDetailsOpen) {
-          tableEl.innerHTML = buildTrendTable(trendCurrentRows);
-          tableEl.style.display = "block";
-          document.getElementById("trendDetailsBtn").textContent = "Details chhupayein";
-        } else {
-          tableEl.style.display = "none";
-          document.getElementById("trendDetailsBtn").textContent = "Details dekhein";
-        }
-      };
-    } catch (e) {
-      document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px; word-break:break-word;">Load nahi hua.<br>Wajah: ${(e && e.message) ? e.message : String(e)}</div>`;
+    if (isOneDay) {
+      oneDayZoom = 1;
+      render1DChart();
+      return;
     }
+    fitToScreen = true;
+    document.getElementById("fitToScreenCheck").checked = true;
+
+    document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Loading…</div>`;
+    try {
+      if (!trendRawData) trendRawData = await getEodRawRows(trendSymbol);
+      renderEodChart(periodToDays(period));
+    } catch (e) {
+      document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px; word-break:break-word;">Failed to load.<br>Reason: ${(e && e.message) ? e.message : String(e)}</div>`;
+    }
+  }
+
+  async function openTrendFor(symbol) {
+    const overlay = document.getElementById("trendOverlay");
+    trendSymbol = symbol;
+    trendRawData = null;
+    document.getElementById("trendTitle").textContent = symbol + " — Trend";
+    overlay.classList.add("open");
+    await selectPeriod("1D");
   }
 
   function wireTrendPanel() {
     document.getElementById("closeTrendBtn").addEventListener("click", () => {
       document.getElementById("trendOverlay").classList.remove("open");
     });
-    document.getElementById("trendDaysSelect").addEventListener("change", (e) => {
-      const customInput = document.getElementById("trendCustomDays");
-      if (e.target.value === "custom") {
-        customInput.style.display = "inline-block";
-        customInput.focus();
-      } else {
-        customInput.style.display = "none";
-        renderTrendChartAndTable(parseInt(e.target.value, 10));
-      }
-    });
-    document.getElementById("trendCustomDays").addEventListener("change", (e) => {
-      let days = parseInt(e.target.value, 10);
-      if (!days || days < 1) days = 1;
-      renderTrendChartAndTable(days);
+    document.getElementById("periodTabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-period]");
+      if (btn) selectPeriod(btn.getAttribute("data-period"));
     });
     document.getElementById("trendChartType").addEventListener("change", () => {
-      const daysVal = document.getElementById("trendDaysSelect").value;
-      const days = daysVal === "custom"
-        ? (parseInt(document.getElementById("trendCustomDays").value, 10) || 25)
-        : parseInt(daysVal, 10);
-      renderTrendChartAndTable(days);
+      if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
+    });
+    document.getElementById("fitToScreenCheck").addEventListener("change", (e) => {
+      fitToScreen = e.target.checked;
+      if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
+    });
+    document.getElementById("trendDetailsBtn").addEventListener("click", () => {
+      trendDetailsOpen = !trendDetailsOpen;
+      const tableEl = document.getElementById("trendTable");
+      if (trendDetailsOpen) {
+        tableEl.innerHTML = buildTrendTable(trendCurrentRows);
+        tableEl.style.display = "block";
+        document.getElementById("trendDetailsBtn").textContent = "Hide details";
+      } else {
+        tableEl.style.display = "none";
+        document.getElementById("trendDetailsBtn").textContent = "Show details";
+      }
     });
     document.getElementById("trendTable").addEventListener("click", (e) => {
       const headerCell = e.target.closest("[data-sort-col]");
@@ -724,7 +1033,9 @@
     // of every tick's volume, not just the latest one.
     const totalVolume = ticks.reduce((sum, t) => sum + t[2], 0);
 
-    return { symbol, low, high, current, openEntry, closeEntry, change, pctChange, minEntry, maxEntry, minVolEntry, maxVolEntry, recentTicks, totalVolume };
+    const ticksChrono = ticks.slice().reverse(); // oldest first, for the 1D intraday chart
+
+    return { symbol, low, high, current, openEntry, closeEntry, change, pctChange, minEntry, maxEntry, minVolEntry, maxVolEntry, recentTicks, totalVolume, ticksChrono };
   }
 
   // ---------- Render the static list immediately, no data yet ----------
@@ -763,27 +1074,20 @@
       </div>
       <div class="stock-detail" id="detail-${s.symbol}">
         <div class="detail-section">
-          <div class="detail-label">Recent ticks</div>
-          ${s.recentTicks.map(t => fmtEntry(t)).join("<br>")}
-        </div>
-        <div class="detail-section">
           <div class="detail-label">Price</div>
-          Now: ${fmtEntry(s.current)}<br>
           Min: ${fmtEntry(s.minEntry)}<br>
           Max: ${fmtEntry(s.maxEntry)}
         </div>
         <div class="detail-section">
-          O: ${fmtEntry(s.openEntry)}<br>
-          C: ${fmtEntry(s.closeEntry)}
+          O: ${fmtEntry(s.openEntry)}
         </div>
         <div class="detail-section">
           <div class="detail-label">Volume</div>
           Today's Total V: ${s.totalVolume.toLocaleString("en-US")}<br>
-          Min-V ${String(s.minVolEntry[2]).padStart(4, "0")} - Rs${s.minVolEntry[1].toFixed(2)} - ${fmtTime(s.minVolEntry[0])}<br>
           Max-V ${String(s.maxVolEntry[2]).padStart(4, "0")} - Rs${s.maxVolEntry[1].toFixed(2)} - ${fmtTime(s.maxVolEntry[0])}
         </div>
         <div class="detail-section">
-          <button class="toolbar-btn" data-trend="${s.symbol}" style="width:100%;">📈 25-Din Trend</button>
+          <button class="toolbar-btn" data-trend="${s.symbol}" style="width:100%;">📈 Show Chart</button>
         </div>
       </div>`;
   }
@@ -795,7 +1099,7 @@
         <div class="sym-block">
           <div class="sym">${symbol}</div>
           <div class="company-name">${SYMBOL_NAMES[symbol] || ""}</div>
-          <div class="err-text">Load nahi hua — dobara try karein</div>
+          <div class="err-text">Failed to load — try again</div>
         </div>
         <button class="load-btn" data-load="${symbol}">Retry</button>
       </div>`;
@@ -832,6 +1136,12 @@
       card.innerHTML = loadedCardInner(s);
       attachCardListeners(card);
       if (settings.autoSort) applySort();
+      // Keep an open 1D trend chart live too, so it reflects new ticks as
+      // they arrive instead of staying frozen at whatever it showed when
+      // opened.
+      if (trendSymbol === symbol && trendPeriod === "1D" && document.getElementById("trendOverlay").classList.contains("open")) {
+        render1DChart();
+      }
     } catch (e) {
       card.innerHTML = errorCardInner(symbol);
       attachCardListeners(card);
@@ -882,12 +1192,20 @@
     document.querySelectorAll(".stock-detail").forEach(el => el.classList.toggle("open", allExpanded));
     const btn = document.getElementById("expandAllBtn");
     btn.textContent = allExpanded ? "⤡" : "⤢";
-    btn.title = allExpanded ? "Sab band karein" : "Sab khol dein";
+    btn.title = allExpanded ? "Collapse all" : "Expand all";
   }
 
   function wireToolbar() {
     document.getElementById("sortSelect").addEventListener("change", applySort);
     document.getElementById("expandAllBtn").addEventListener("click", toggleExpandAll);
+    const reloadAllBtn = document.getElementById("reloadAllBtn");
+    reloadAllBtn.addEventListener("click", async () => {
+      if (reloadAllBtn.classList.contains("loading")) return; // already reloading
+      reloadAllBtn.classList.add("loading");
+      lastAutoRefreshAt = Date.now();
+      await loadAllParallel();
+      reloadAllBtn.classList.remove("loading");
+    });
     const autoSortBtn = document.getElementById("autoSortBtn");
     autoSortBtn.classList.toggle("active", settings.autoSort);
     autoSortBtn.addEventListener("click", () => {
@@ -898,7 +1216,7 @@
   }
 
   // ---------- Settings (auto-update interval + market hours) ----------
-  const DEFAULT_SETTINGS = { intervalMinutes: 2, startHour: 9, endHour: 17, theme: "dark", autoSort: false };
+  const DEFAULT_SETTINGS = { intervalSeconds: 120, startHour: 9, endHour: 17, theme: "dark", autoSort: false, hijriOffsetDays: -2 };
   const lastStockData = {};
 
   function loadPinned() {
@@ -932,7 +1250,7 @@
   function renderPinnedList() {
     const el = document.getElementById("pinnedList");
     if (pinnedOrder.length === 0) {
-      el.innerHTML = `<div class="placeholder-text" style="padding:12px 4px;">Koi stock pin nahi ki — kisi bhi card ko der tak dabayein, phir ungli se upar/neeche khiskayein</div>`;
+      el.innerHTML = `<div class="placeholder-text" style="padding:12px 4px;">No stocks pinned — long-press any card, then drag it up or down with your finger</div>`;
       return;
     }
     el.innerHTML = pinnedOrder.map((sym, i) => `
@@ -988,6 +1306,65 @@
 
   function updateSubLine(text) {
     document.getElementById("subLine").textContent = text;
+  }
+
+  // Live header clock: Gregorian date/time (Asia/Karachi) plus the Hijri
+  // (Islamic) date, using the browser's built-in calendar support — no
+  // external library or lookup table needed.
+  // Device WebView calendar support for Hijri dates via Intl is unreliable
+  // (some silently fall back to Gregorian instead of erroring), so this
+  // computes the Hijri date directly with the standard tabular Islamic
+  // calendar algorithm — works the same on every device, no ICU needed.
+  const HIJRI_MONTHS = [
+    "Muharram", "Safar", "Rabi' al-Awwal", "Rabi' al-Thani", "Jumada al-Awwal", "Jumada al-Thani",
+    "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu al-Qi'dah", "Dhu al-Hijjah"
+  ];
+
+  // Calibration: pure calculation (tabular Islamic calendar) can land 1-2
+  // days off from Pakistan's officially announced (moon-sighting-based)
+  // date. Adjustable from Settings ("Hijri date adjustment") instead of
+  // needing a code change whenever the next month's sighting shifts it.
+
+  function gregorianToHijri(date) {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+
+    const jd = Math.floor((1461 * (year + 4800 + Math.floor((month - 14) / 12))) / 4)
+      + Math.floor((367 * (month - 2 - 12 * Math.floor((month - 14) / 12))) / 12)
+      - Math.floor((3 * Math.floor((year + 4900 + Math.floor((month - 14) / 12)) / 100)) / 4)
+      + day - 32075 + settings.hijriOffsetDays;
+
+    let l = jd - 1948440 + 10632;
+    const n = Math.floor((l - 1) / 10631);
+    l = l - 10631 * n + 354;
+    const j = Math.floor((10985 - l) / 5316) * Math.floor((50 * l) / 17719)
+      + Math.floor(l / 5670) * Math.floor((43 * l) / 15238);
+    l = l - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50)
+      - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
+    const hMonth = Math.floor((24 * l) / 709);
+    const hDay = l - Math.floor((709 * hMonth) / 24);
+    const hYear = 30 * n + j - 30;
+
+    return { year: hYear, month: hMonth, day: hDay };
+  }
+
+  function formatHijriDate(date) {
+    const h = gregorianToHijri(date);
+    return `${h.day} ${HIJRI_MONTHS[h.month - 1]} ${h.year} AH`;
+  }
+
+  function updateLiveClock() {
+    const el = document.getElementById("liveClock");
+    if (!el) return;
+    const now = new Date();
+    const greg = now.toLocaleString("en-GB", {
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true,
+      timeZone: "Asia/Karachi"
+    });
+    const hijri = formatHijriDate(now);
+    el.textContent = hijri ? `${greg}  •  ${hijri}` : greg;
   }
 
   function isWeekendKarachi() {
@@ -1115,7 +1492,7 @@
   function renderHistory(records) {
     const el = document.getElementById("historyList");
     if (!records || records.length === 0) {
-      el.innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Is din ka record nahi mila</div>`;
+      el.innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">No record found for this date</div>`;
       return;
     }
     el.innerHTML = records.map(historyRowHtml).join("");
@@ -1139,9 +1516,9 @@
       window.plugins.socialsharing.shareWithOptions({
         message: "KMI-30 record - " + dateStr,
         files: [path]
-      }, () => {}, () => alert("Share nahi ho saka — is din ki file mojood nahi"));
+      }, () => {}, () => alert("Couldn't share — no file exists for this date"));
     } else {
-      alert("Share feature available nahi hai");
+      alert("Share feature not available");
     }
   }
 
@@ -1155,10 +1532,10 @@
       reader.onload = () => {
         writeCsvToRecordFile(historyDate, reader.result).then(() => {
           loadHistoryDate(historyDate);
-          alert(historyDate + " ka record import ho gaya");
-        }).catch(() => alert("Import nahi ho saka"));
+          alert("Record for " + historyDate + " imported");
+        }).catch(() => alert("Import failed"));
       };
-      reader.onerror = () => alert("File padhi nahi ja saki");
+      reader.onerror = () => alert("Couldn't read the file");
       reader.readAsText(file);
       fileInput.value = "";
     });
@@ -1193,16 +1570,16 @@
 
   function heartbeat() {
     if (isMarketOpenNow()) {
-      const intervalMs = settings.intervalMinutes * 60000;
+      const intervalMs = settings.intervalSeconds * 1000;
       if (Date.now() - lastAutoRefreshAt >= intervalMs) {
         lastAutoRefreshAt = Date.now();
         loadAllParallel();
       }
-      updateSubLine(`Auto-update har ${settings.intervalMinutes} minute — market open hai (${settings.startHour}:00–${settings.endHour}:00)`);
+      updateSubLine(`Auto-updating every ${formatIntervalLabel(settings.intervalSeconds)} — market is open (${settings.startHour}:00–${settings.endHour}:00)`);
     } else if (isWeekendKarachi()) {
-      updateSubLine("Market band hai — Saturday/Sunday ko auto-update nahi hota");
+      updateSubLine("Market is closed — no auto-update on Saturday/Sunday");
     } else {
-      updateSubLine(`Market band hai — auto-update sirf ${settings.startHour}:00–${settings.endHour}:00 ke doran hota hai`);
+      updateSubLine(`Market is closed — auto-update only runs between ${settings.startHour}:00–${settings.endHour}:00`);
     }
     maybeExportEndOfDay();
   }
@@ -1221,17 +1598,26 @@
     endSel.value = settings.endHour;
   }
 
+  function formatIntervalLabel(totalSeconds) {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    if (mins > 0 && secs > 0) return `${mins} minute ${secs} second`;
+    if (mins > 0) return `${mins} minute`;
+    return `${secs} second`;
+  }
+
   function populateIntervalSelect() {
     const sel = document.getElementById("intervalSelect");
-    const customInput = document.getElementById("customInterval");
-    const presets = [1, 2, 3, 4, 5, 10, 15, 30];
-    if (presets.includes(settings.intervalMinutes)) {
-      sel.value = String(settings.intervalMinutes);
-      customInput.style.display = "none";
+    const customBoxes = document.getElementById("customIntervalBoxes");
+    const presets = [5, 10, 15, 30, 60, 120, 180, 240, 300, 600, 900, 1800];
+    if (presets.includes(settings.intervalSeconds)) {
+      sel.value = String(settings.intervalSeconds);
+      customBoxes.style.display = "none";
     } else {
       sel.value = "custom";
-      customInput.style.display = "block";
-      customInput.value = settings.intervalMinutes;
+      customBoxes.style.display = "flex";
+      document.getElementById("customIntervalMin").value = Math.floor(settings.intervalSeconds / 60);
+      document.getElementById("customIntervalSec").value = settings.intervalSeconds % 60;
     }
   }
 
@@ -1240,23 +1626,45 @@
     document.getElementById("themeSelect").value = settings.theme;
   }
 
+  function updateHijriOffsetUI() {
+    document.getElementById("hijriOffsetValue").textContent = (settings.hijriOffsetDays > 0 ? "+" : "") + settings.hijriOffsetDays;
+    document.getElementById("hijriPreview").textContent = formatHijriDate(new Date());
+  }
+
   function wireSettingsPanel() {
     const overlay = document.getElementById("settingsOverlay");
-    document.getElementById("settingsBtn").addEventListener("click", () => overlay.classList.add("open"));
+    document.getElementById("settingsBtn").addEventListener("click", () => {
+      updateHijriOffsetUI();
+      overlay.classList.add("open");
+    });
     document.getElementById("closeSettingsBtn").addEventListener("click", () => overlay.classList.remove("open"));
+    document.getElementById("hijriMinusBtn").addEventListener("click", () => {
+      settings.hijriOffsetDays -= 1;
+      saveSettingsToStorage(settings);
+      updateHijriOffsetUI();
+      updateLiveClock();
+    });
+    document.getElementById("hijriPlusBtn").addEventListener("click", () => {
+      settings.hijriOffsetDays += 1;
+      saveSettingsToStorage(settings);
+      updateHijriOffsetUI();
+      updateLiveClock();
+    });
     document.getElementById("intervalSelect").addEventListener("change", (e) => {
-      document.getElementById("customInterval").style.display = e.target.value === "custom" ? "block" : "none";
+      document.getElementById("customIntervalBoxes").style.display = e.target.value === "custom" ? "flex" : "none";
     });
     document.getElementById("saveSettingsBtn").addEventListener("click", () => {
       const sel = document.getElementById("intervalSelect");
-      let mins;
+      let totalSeconds;
       if (sel.value === "custom") {
-        mins = parseInt(document.getElementById("customInterval").value, 10);
-        if (!mins || mins < 1) mins = 1;
+        const m = parseInt(document.getElementById("customIntervalMin").value, 10) || 0;
+        const s = parseInt(document.getElementById("customIntervalSec").value, 10) || 0;
+        totalSeconds = m * 60 + s;
+        if (totalSeconds < 1) totalSeconds = 1;
       } else {
-        mins = parseInt(sel.value, 10);
+        totalSeconds = parseInt(sel.value, 10);
       }
-      settings.intervalMinutes = mins;
+      settings.intervalSeconds = totalSeconds;
       settings.startHour = parseInt(document.getElementById("startHourSelect").value, 10);
       settings.endHour = parseInt(document.getElementById("endHourSelect").value, 10);
       settings.theme = document.getElementById("themeSelect").value;
@@ -1268,8 +1676,8 @@
     });
     document.getElementById("exportNowBtn").addEventListener("click", () => {
       exportDailyRecord(todayKey())
-        .then(() => alert("Record save ho gaya:\nAndroid/data/com.mushtaq.kmi30live/files/KMI30-Records/"))
-        .catch(() => alert("Save nahi hua — dobara try karein"));
+        .then(() => alert("Record saved:\nAndroid/data/com.mushtaq.kmi30live/files/KMI30-Records/"))
+        .catch(() => alert("Save failed — try again"));
     });
   }
 
@@ -1440,7 +1848,9 @@
     applySort();
     loadAllParallel();
     heartbeat();
-    setInterval(heartbeat, 20000);
+    updateLiveClock();
+    setInterval(heartbeat, 3000);
+    setInterval(updateLiveClock, 1000);
   }
 
   // In a real APK, Cordova fires "deviceready" once native plugins are ready.
