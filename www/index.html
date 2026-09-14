@@ -167,7 +167,7 @@
   .trend-scroll svg { display: block; }
   .trend-table { max-height: 40vh; overflow-y: auto; margin-top: 10px; font-size: 11.5px; }
   .trend-row {
-    display: grid; grid-template-columns: 0.6fr 1fr 1fr 1fr 1fr 1fr 1.3fr 0.8fr;
+    display: grid; grid-template-columns: 0.6fr 1.1fr 1fr 1fr 1.3fr 0.8fr;
     gap: 4px; padding: 6px 2px; border-bottom: 1px solid var(--card-border); text-align: center;
   }
   .trend-row-head { color: var(--dim); font-weight: 700; border-bottom: 1px solid var(--card-border); }
@@ -399,14 +399,12 @@
     }
   }
 
-  // Best-guess row shape, matching PSX's usual daily-candle order:
-  // [timestamp, open, high, low, close, volume]. index 0 = most recent day,
-  // same newest-first convention as the intraday endpoint. If real device
-  // testing shows a different column order, only this function needs fixing.
+  // Confirmed from a real device response: [timestamp, close, volume, open].
+  // No high/low field exists on this endpoint — only open/close/volume per day.
   function normalizeEodRows(rawRows, daysWanted) {
     const rows = rawRows.slice(0, daysWanted).map(r => ({
       date: new Date(r[0] * 1000),
-      open: r[1], high: r[2], low: r[3], close: r[4], volume: r[5]
+      close: r[1], volume: r[2], open: r[3]
     }));
     rows.reverse(); // oldest first, so the chart reads left-to-right
     for (let i = 0; i < rows.length; i++) {
@@ -458,7 +456,7 @@
 
   function buildTrendTable(rows) {
     const header = `<div class="trend-row trend-row-head">
-      <div>Din</div><div>Date</div><div>Open</div><div>High</div><div>Low</div><div>Close</div><div>Volume</div><div>Chg%</div>
+      <div>Din</div><div>Date</div><div>Open</div><div>Close</div><div>Volume</div><div>Chg%</div>
     </div>`;
     const body = rows.map((r, i) => {
       const dir = r.change > 0.001 ? "up" : r.change < -0.001 ? "down" : "flat";
@@ -466,8 +464,6 @@
         <div>${i + 1}</div>
         <div>${r.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}</div>
         <div>${r.open.toFixed(2)}</div>
-        <div>${r.high.toFixed(2)}</div>
-        <div>${r.low.toFixed(2)}</div>
         <div>${r.close.toFixed(2)}</div>
         <div>${r.volume.toLocaleString("en-US")}</div>
         <div class="change ${dir}">${r.pctChange.toFixed(2)}%</div>
@@ -488,26 +484,20 @@
     overlay.classList.add("open");
 
     try {
-      const raw = await fetchEodData(symbol);
-      try {
-        const rows = normalizeEodRows(raw, 25);
-        document.getElementById("trendChart").innerHTML = `<div class="trend-scroll">${buildTrendSvg(rows)}</div>`;
-        document.getElementById("trendDetailsBtn").onclick = () => {
-          trendDetailsOpen = !trendDetailsOpen;
-          const tableEl = document.getElementById("trendTable");
-          if (trendDetailsOpen) {
-            tableEl.innerHTML = buildTrendTable(rows);
-            tableEl.style.display = "block";
-            document.getElementById("trendDetailsBtn").textContent = "Details chhupayein";
-          } else {
-            tableEl.style.display = "none";
-            document.getElementById("trendDetailsBtn").textContent = "Details dekhein";
-          }
-        };
-      } catch (buildErr) {
-        const sample = JSON.stringify(raw.slice(0, 2));
-        document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px; word-break:break-word; font-size:11px;">Chart nahi bana — data ka format alag hai.<br><br>Pehli 2 rows (raw):<br>${sample}</div>`;
-      }
+      const rows = await getEodRows(symbol);
+      document.getElementById("trendChart").innerHTML = `<div class="trend-scroll">${buildTrendSvg(rows)}</div>`;
+      document.getElementById("trendDetailsBtn").onclick = () => {
+        trendDetailsOpen = !trendDetailsOpen;
+        const tableEl = document.getElementById("trendTable");
+        if (trendDetailsOpen) {
+          tableEl.innerHTML = buildTrendTable(rows);
+          tableEl.style.display = "block";
+          document.getElementById("trendDetailsBtn").textContent = "Details chhupayein";
+        } else {
+          tableEl.style.display = "none";
+          document.getElementById("trendDetailsBtn").textContent = "Details dekhein";
+        }
+      };
     } catch (e) {
       document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px; word-break:break-word;">Load nahi hua.<br>Wajah: ${(e && e.message) ? e.message : String(e)}</div>`;
     }
