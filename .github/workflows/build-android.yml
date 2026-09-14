@@ -7,6 +7,9 @@ on:
       - 'version.txt'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,7 +21,7 @@ jobs:
 
       - name: Check version increased
         id: checkversion
-        run: NEW_VERSION=$(cat version.txt | tr -d '[:space:]'); OLD_VERSION=$(git show HEAD~1:version.txt 2>/dev/null | tr -d '[:space:]' || echo 0); echo "Old=$OLD_VERSION New=$NEW_VERSION"; IS_MANUAL="${{ github.event_name != 'push' }}"; if [ "$IS_MANUAL" = "true" ] || [ "$NEW_VERSION" -gt "$OLD_VERSION" ] 2>/dev/null; then echo "should_build=true" >> "$GITHUB_OUTPUT"; else echo "should_build=false" >> "$GITHUB_OUTPUT"; fi
+        run: NEW_VERSION=$(cat version.txt | tr -d '[:space:]'); OLD_VERSION=$(git show HEAD~1:version.txt 2>/dev/null | tr -d '[:space:]' || echo 0); echo "Old=$OLD_VERSION New=$NEW_VERSION"; IS_MANUAL="${{ github.event_name != 'push' }}"; if [ "$IS_MANUAL" = "true" ] || [ "$NEW_VERSION" -gt "$OLD_VERSION" ] 2>/dev/null; then echo "should_build=true" >> "$GITHUB_OUTPUT"; else echo "should_build=false" >> "$GITHUB_OUTPUT"; fi; echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Stamp version into app
         if: steps.checkversion.outputs.should_build == 'true'
@@ -61,9 +64,19 @@ jobs:
         if: steps.checkversion.outputs.should_build == 'true'
         run: cp platforms/android/app/build/outputs/apk/debug/app-debug.apk "KMI 30 Live.apk"
 
-      - name: Upload APK
+      - name: Upload APK (build artifact)
         if: steps.checkversion.outputs.should_build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: kmi30-live-apk
           path: KMI 30 Live.apk
+
+      - name: Publish APK to a permanent Release link
+        if: steps.checkversion.outputs.should_build == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.checkversion.outputs.version }}
+          name: Version ${{ steps.checkversion.outputs.version }}
+          files: KMI 30 Live.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
