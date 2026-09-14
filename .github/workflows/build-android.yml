@@ -62,21 +62,31 @@ jobs:
 
       - name: Rename APK
         if: steps.checkversion.outputs.should_build == 'true'
-        run: cp platforms/android/app/build/outputs/apk/debug/app-debug.apk "KMI30-Live.apk"
+        run: cp platforms/android/app/build/outputs/apk/debug/app-debug.apk "KMI 30 Live.apk"
 
       - name: Upload APK (build artifact)
         if: steps.checkversion.outputs.should_build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: kmi30-live-apk
-          path: KMI30-Live.apk
+          path: KMI 30 Live.apk
 
       - name: Publish APK to a permanent Release link
         if: steps.checkversion.outputs.should_build == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.checkversion.outputs.version }}
-          name: Version ${{ steps.checkversion.outputs.version }}
-          files: KMI30-Live.apk
+          tag_name: release
+          name: KMI-30 Live APK
+          files: KMI 30 Live.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Keep a numbered backup of this version too
+        if: steps.checkversion.outputs.should_build == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: backup-v${{ steps.checkversion.outputs.version }}
+          name: Backup — Version ${{ steps.checkversion.outputs.version }}
+          files: KMI 30 Live.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
