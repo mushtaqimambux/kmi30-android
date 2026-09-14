@@ -57,9 +57,13 @@ jobs:
         if: steps.checkversion.outputs.should_build == 'true'
         run: cordova build android --debug --buildConfig=build.json
 
+      - name: Rename APK
+        if: steps.checkversion.outputs.should_build == 'true'
+        run: cp platforms/android/app/build/outputs/apk/debug/app-debug.apk "KMI 30 Live.apk"
+
       - name: Upload APK
         if: steps.checkversion.outputs.should_build == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: kmi30-live-apk
-          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          path: KMI 30 Live.apk
