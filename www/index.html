@@ -598,7 +598,7 @@
         </div>
         <div class="detail-section">
           <div class="detail-label">Volume</div>
-          Total shares (aaj tak): ${s.totalVolume.toLocaleString("en-US")}<br>
+          Today's Total V: ${s.totalVolume.toLocaleString("en-US")}<br>
           Min-V ${String(s.minVolEntry[2]).padStart(4, "0")} - Rs${s.minVolEntry[1].toFixed(2)} - ${fmtTime(s.minVolEntry[0])}<br>
           Max-V ${String(s.maxVolEntry[2]).padStart(4, "0")} - Rs${s.maxVolEntry[1].toFixed(2)} - ${fmtTime(s.maxVolEntry[0])}
         </div>
@@ -653,8 +653,8 @@
       case "price-asc": return s.current[1];
       case "change-desc": return -s.pctChange;
       case "change-asc": return s.pctChange;
-      case "volume-desc": return -s.maxVolEntry[2];
-      case "volume-asc": return s.maxVolEntry[2];
+      case "volume-desc": return -s.totalVolume;
+      case "volume-asc": return s.totalVolume;
       default: return null;
     }
   }
@@ -908,7 +908,7 @@
           <div class="sym-block">
             <div class="sym">${rec.Symbol}</div>
             <div class="range">${rec.Low} - ${rec.High}</div>
-            ${rec.TotalVolume ? `<div class="company-name">Total shares: ${Number(rec.TotalVolume).toLocaleString("en-US")}</div>` : ""}
+            ${rec.TotalVolume ? `<div class="company-name">Total V: ${Number(rec.TotalVolume).toLocaleString("en-US")}</div>` : ""}
           </div>
           <div class="price-block">
             <div class="now-price">Rs${rec.Close}</div>
