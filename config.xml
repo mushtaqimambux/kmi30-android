@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="com.mushtaq.kmi30live" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>KMI-30 Live</name>
+    <name>KMI 30 Live</name>
     <description>Live intraday prices for all 30 KMI-30 index stocks, direct from PSX — no proxy.</description>
     <author email="you@example.com" href="https://example.com">Mushtaq</author>
 
