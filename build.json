@@ -1,0 +1,11 @@
+{
+  "android": {
+    "debug": {
+      "keystore": "kmi30-debug.keystore",
+      "storePassword": "kmi30pass",
+      "alias": "kmi30debug",
+      "password": "kmi30pass",
+      "keystoreType": ""
+    }
+  }
+}
