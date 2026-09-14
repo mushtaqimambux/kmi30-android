@@ -297,7 +297,10 @@
     </div>
 
     <div class="settings-row">
-      <label class="auto-sort-label" style="font-size:13px;"><input type="checkbox" id="autoUpdateCheck" checked /> Auto-check for updates on launch</label>
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="autoUpdateCheck" checked style="width:18px; height:18px; accent-color:var(--accent); margin:0; flex-shrink:0;" />
+        <span style="font-size:13px; color:var(--text);">Auto-check for updates on launch</span>
+      </label>
       <div class="secondary-btn" id="checkUpdatesNowBtn" style="margin-top:8px;">Check for Updates Now</div>
     </div>
 
@@ -1828,19 +1831,28 @@
     progress.style.display = "block";
     progress.textContent = "Downloading update…";
 
+    if (!cordova.plugins || !cordova.plugins.fileOpener2) {
+      progress.textContent = "Installer plugin missing — this build needs to be rebuilt with cordova-plugin-file-opener2.";
+      return;
+    }
+
     const filePath = cordova.file.externalDataDirectory + "kmi30-update.apk";
     cordova.plugin.http.downloadFile(UPDATE_APK_URL, {}, {}, filePath, () => {
-      progress.textContent = "Opening installer…";
+      progress.textContent = "Download done. Opening installer…";
       cordova.plugins.fileOpener2.open(
         filePath,
         "application/vnd.android.package-archive",
         {
-          success: () => { document.getElementById("updateOverlay").classList.remove("open"); },
-          error: () => { progress.textContent = "Couldn't open installer — please try again."; }
+          success: () => {
+            progress.textContent = "Installer opened — follow the on-screen prompt.";
+          },
+          error: (e) => {
+            progress.textContent = "Couldn't open installer. " + (e && (e.message || JSON.stringify(e)));
+          }
         }
       );
-    }, () => {
-      progress.textContent = "Download failed — please try again.";
+    }, (err) => {
+      progress.textContent = "Download failed: " + (err && (err.status ? ("HTTP " + err.status) : JSON.stringify(err)));
     });
   }
 
