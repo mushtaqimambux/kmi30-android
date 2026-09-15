@@ -56,7 +56,7 @@ jobs:
 
       - name: Add plugins
         if: steps.checkversion.outputs.should_build == 'true'
-        run: (cordova plugin add cordova-plugin-advanced-http || true) && (cordova plugin add cordova-plugin-file || true) && (cordova plugin add cordova-plugin-x-socialsharing || true) && (cordova plugin add cordova-plugin-file-opener2 || true)
+        run: (cordova plugin add cordova-plugin-advanced-http || true) && (cordova plugin add cordova-plugin-file || true) && (cordova plugin add cordova-plugin-x-socialsharing || true) && (cordova plugin add cordova-plugin-file-opener2 || true) && (cordova plugin add cordova-plugin-inappbrowser || true)
 
       - name: Build debug APK
         if: steps.checkversion.outputs.should_build == 'true'
@@ -73,13 +73,19 @@ jobs:
           name: kmi30-live-apk
           path: kmi30-live.apk
 
+      - name: Write a version file alongside the APK
+        if: steps.checkversion.outputs.should_build == 'true'
+        run: echo -n "${{ steps.checkversion.outputs.version }}" > released-version.txt
+
       - name: Publish APK to a permanent Release link
         if: steps.checkversion.outputs.should_build == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: release
           name: KMI-30 Live APK
-          files: kmi30-live.apk
+          files: |
+            kmi30-live.apk
+            released-version.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
