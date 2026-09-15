@@ -19,13 +19,6 @@
     <icon src="www/icon-512.png" />
     <platform name="android">
         <allow-intent href="market:*" />
-
-        <!-- Required so Android shows an "Install unknown apps" permission slot
-             for this app; without it the in-app APK installer silently fails. -->
-        <config-file parent="/manifest" target="AndroidManifest.xml" xmlns:android="http://schemas.android.com/apk/res/android">
-            <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-        </config-file>
-
         <icon density="ldpi" src="www/icon-192.png" />
         <icon density="mdpi" src="www/icon-192.png" />
         <icon density="hdpi" src="www/icon-192.png" />
@@ -45,4 +38,8 @@
     <plugin name="cordova-plugin-x-socialsharing" spec="^6.0.4" />
     <!-- Opens the downloaded APK with Android's installer, for in-app updates. -->
     <plugin name="cordova-plugin-file-opener2" spec="^4.0.0" />
+    <!-- window.open(url, "_system") needs this plugin to hand off to the
+         device's own browser — without it, in-app update downloads silently
+         do nothing. -->
+    <plugin name="cordova-plugin-inappbrowser" spec="^6.0.0" />
 </widget>
