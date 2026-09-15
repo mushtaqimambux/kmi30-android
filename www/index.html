@@ -193,7 +193,7 @@
   .trend-legend-item { display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 4px 2px; }
   .trend-legend-item input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
   .chart-tooltip {
-    position: absolute; top: 10px; background: var(--card); border: 1px solid var(--accent);
+    position: absolute; background: var(--card); border: 1px solid var(--accent);
     border-radius: 8px; padding: 6px 10px; font-size: 11px; line-height: 1.5; color: var(--text);
     z-index: 20; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.35); white-space: nowrap;
   }
@@ -214,19 +214,19 @@
 </header>
 
 <div class="toolbar">
-  <select id="sortSelect" class="toolbar-select">
-    <option value="symbol">Symbol (A-Z)</option>
-    <option value="price-desc">Price: High → Low</option>
-    <option value="price-asc">Price: Low → High</option>
-    <option value="change-desc">Profit %: High → Low</option>
-    <option value="change-asc">Profit %: Low → High</option>
-    <option value="volume-desc">Volume: High → Low</option>
-    <option value="volume-asc">Volume: Low → High</option>
-  </select>
-  <button class="toolbar-icon-btn" id="autoSortBtn" title="Auto-sort">⟳</button>
+  <input type="text" id="symbolSearchInput" class="toolbar-select" placeholder="Search symbol or company…" style="flex:1;" />
+  <button class="toolbar-icon-btn" id="sortMenuBtn" title="Sort">⇅</button>
   <button class="toolbar-icon-btn" id="pinnedBtn" title="Pinned">☆</button>
   <button class="toolbar-icon-btn" id="expandAllBtn" title="Expand/collapse all">⤢</button>
   <button class="toolbar-icon-btn" id="reloadAllBtn" title="Reload all">↻</button>
+</div>
+
+<div class="overlay" id="sortMenuOverlay">
+  <div class="settings-card">
+    <button class="close-btn" id="closeSortMenuBtn">✕</button>
+    <div class="settings-title">Sort By</div>
+    <div id="sortMenuList"></div>
+  </div>
 </div>
 
 <div class="overlay" id="pinnedOverlay">
@@ -248,51 +248,36 @@
 
     <div class="settings-row">
       <label>Auto-update har kitni der mein</label>
-      <select id="intervalSelect">
-        <option value="5">5 second</option>
-        <option value="10">10 second</option>
-        <option value="15">15 second</option>
-        <option value="30">30 second</option>
-        <option value="60">1 minute</option>
-        <option value="120">2 minute</option>
-        <option value="180">3 minute</option>
-        <option value="240">4 minute</option>
-        <option value="300">5 minute</option>
-        <option value="600">10 minute</option>
-        <option value="900">15 minute</option>
-        <option value="1800">30 minute</option>
-        <option value="custom">Custom (enter minute + second)</option>
-      </select>
-      <div id="customIntervalBoxes" style="display:none; gap:8px; margin-top:8px;">
-        <input type="number" id="customIntervalMin" min="0" placeholder="Minute" style="flex:1;" />
-        <input type="number" id="customIntervalSec" min="0" max="59" placeholder="Second" style="flex:1;" />
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button type="button" class="toolbar-icon-btn" id="intervalMinusBtn">−</button>
+        <div id="intervalValueDisplay" style="flex:1; text-align:center; font-weight:700; font-size:15px;"></div>
+        <button type="button" class="toolbar-icon-btn" id="intervalPlusBtn">+</button>
       </div>
     </div>
 
     <div class="settings-row">
-      <label>Market opens (hour)</label>
-      <select id="startHourSelect"></select>
-    </div>
-    <div class="settings-row">
-      <label>Market closes (hour)</label>
-      <select id="endHourSelect"></select>
+      <label>Market hours (open — close)</label>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <select id="startHourSelect" style="flex:1;"></select>
+        <span style="color:var(--dim);">—</span>
+        <select id="endHourSelect" style="flex:1;"></select>
+      </div>
     </div>
 
     <div class="settings-row">
       <label>Theme</label>
-      <select id="themeSelect">
-        <option value="dark">Dark</option>
-        <option value="light">Light</option>
-      </select>
+      <div class="period-tabs" id="themeTabs">
+        <button class="period-tab" data-theme="dark" style="flex:1;">Dark</button>
+        <button class="period-tab" data-theme="light" style="flex:1;">Light</button>
+      </div>
     </div>
 
     <div class="settings-row">
       <label>Hijri date adjustment (+/- days)</label>
       <div style="display:flex; align-items:center; gap:12px;">
         <button type="button" class="toolbar-icon-btn" id="hijriMinusBtn">−</button>
-        <div id="hijriOffsetValue" style="min-width:34px; text-align:center; font-weight:700; font-size:15px;">0</div>
+        <div id="hijriPreview" style="flex:1; text-align:center; font-weight:700; font-size:15px;"></div>
         <button type="button" class="toolbar-icon-btn" id="hijriPlusBtn">+</button>
-        <div id="hijriPreview" style="flex:1; text-align:right; font-size:11.5px; color:var(--dim);"></div>
       </div>
     </div>
 
@@ -304,8 +289,17 @@
       <div class="secondary-btn" id="checkUpdatesNowBtn" style="margin-top:8px;">Check for Updates Now</div>
     </div>
 
+    <div class="settings-row">
+      <label>Add a custom stock symbol</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="customSymbolInput" placeholder="e.g. PIOC" style="flex:1; text-transform:uppercase;" />
+        <div class="secondary-btn" id="addCustomSymbolBtn" style="flex:0 0 auto; padding:9px 16px;">Add</div>
+      </div>
+      <div id="customSymbolsList" style="margin-top:10px;"></div>
+    </div>
+
     <div class="settings-actions">
-      <div class="secondary-btn" id="exportNowBtn">Save record now</div>
+      <div class="secondary-btn" id="exportNowBtn">Export Data in CSV</div>
       <div class="primary-btn" id="saveSettingsBtn">Save</div>
     </div>
     <div style="text-align:center; color:var(--dim); font-size:11px; margin-top:14px;">App version: v__VERSION__</div>
@@ -380,6 +374,11 @@
   // safely falls back to 0 there.
   const APP_VERSION = parseInt("__VERSION__", 10) || 0;
 
+  // KMI-30's official 30 symbols — but this list isn't limited to exactly
+  // 30. To track an extra stock, just add its PSX ticker symbol here (and
+  // its full company name in SYMBOL_NAMES just below). Everything else —
+  // loading, sorting, pinning, the daily CSV record, 1D/EOD trend charts —
+  // automatically includes whatever is listed here, no other changes needed.
   const SYMBOLS = [
     "AIRLINK", "ATRL", "CPHL", "DGKC", "EFERT", "ENGROH", "FCCL", "FFC", "FFL",
     "GAL", "GHNI", "HCAR", "HUBC", "LUCK", "MARI", "MEBL", "MLCF", "NML", "NRL",
@@ -420,6 +419,24 @@
   };
 
   const listEl = document.getElementById("list");
+
+  // ---------- Custom (user-added) symbols ----------
+  function loadCustomSymbols() {
+    try {
+      const raw = localStorage.getItem("kmi30_custom_symbols");
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return [];
+  }
+  function saveCustomSymbols() {
+    try { localStorage.setItem("kmi30_custom_symbols", JSON.stringify(customSymbols)); } catch (e) {}
+  }
+  let customSymbols = loadCustomSymbols();
+
+  function getAllSymbols() {
+    const extra = customSymbols.filter(s => !SYMBOLS.includes(s));
+    return SYMBOLS.concat(extra);
+  }
 
   function fmtTime(ts) {
     return new Date(ts * 1000).toLocaleTimeString("en-PK", {
@@ -939,17 +956,20 @@
   // the spot you're zooming into stays under your fingers as you move them.
   // Wired once to a stable ancestor via delegation, since the actual scroll
   // element gets recreated on every chart re-render.
+  // Pointer Events instead of raw touch events — Android WebView handles
+  // these more consistently across devices for multi-finger gestures, which
+  // is what was causing pinch-zoom to not register at all on real phones.
   function wireAnchoredPinchZoom(stableParent, containerId) {
-    let startDist = 0, startScale = 1, focalContentX = 0, focalClientX = 0, active = false;
+    const activePointers = new Map();
+    let startDist = 0, startScale = 1, focalContentX = 0, focalClientX = 0;
     let pendingScale = null, rafScheduled = false;
 
     function getContainer() { return document.getElementById(containerId); }
+    function isInContainer(target) {
+      const c = getContainer();
+      return !!(c && c.contains(target));
+    }
 
-    // Only one re-render per animation frame, always using the very latest
-    // finger position/scale — this is what keeps zooming smooth on a real
-    // phone instead of rebuilding the whole chart on every raw touch event
-    // (which is slow enough that the target point visibly lags behind and
-    // drifts away from your fingers).
     function applyPendingZoom() {
       rafScheduled = false;
       if (pendingScale === null) return;
@@ -965,24 +985,30 @@
       freshContainer.scrollLeft = newContentX - (focalClientX - rect2.left);
     }
 
-    stableParent.addEventListener("touchstart", (e) => {
-      if (e.touches.length === 2 && e.target.closest("#" + containerId)) {
+    stableParent.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "touch") return;
+      if (!isInContainer(e.target)) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (activePointers.size === 2) {
         const container = getContainer();
         if (!container) return;
-        active = true;
-        startDist = touchDist(e.touches[0], e.touches[1]);
+        const pts = Array.from(activePointers.values());
+        startDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
         startScale = currentScale();
         const rect = container.getBoundingClientRect();
-        focalClientX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        focalClientX = (pts[0].x + pts[1].x) / 2;
         focalContentX = container.scrollLeft + (focalClientX - rect.left);
       }
-    }, { passive: true });
+    });
 
-    stableParent.addEventListener("touchmove", (e) => {
-      if (!active || e.touches.length !== 2) return;
+    stableParent.addEventListener("pointermove", (e) => {
+      if (!activePointers.has(e.pointerId)) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (activePointers.size !== 2) return;
       e.preventDefault();
-      focalClientX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const dist = touchDist(e.touches[0], e.touches[1]);
+      const pts = Array.from(activePointers.values());
+      const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      focalClientX = (pts[0].x + pts[1].x) / 2;
       if (startDist > 0) {
         const [minScale, maxScale] = currentZoomRange();
         pendingScale = Math.min(maxScale, Math.max(minScale, startScale * (dist / startDist)));
@@ -993,34 +1019,48 @@
       }
     }, { passive: false });
 
-    stableParent.addEventListener("touchend", () => { active = false; pendingScale = null; }, { passive: true });
-    stableParent.addEventListener("touchcancel", () => { active = false; pendingScale = null; }, { passive: true });
+    function releasePointer(e) {
+      activePointers.delete(e.pointerId);
+      if (activePointers.size < 2) { startDist = 0; pendingScale = null; }
+    }
+    stableParent.addEventListener("pointerup", releasePointer);
+    stableParent.addEventListener("pointercancel", releasePointer);
   }
 
   // A quick single tap on the chart shows the exact price (and time/date)
   // at that spot in a small popup.
   function wireChartTapTooltip(stableParent, containerId) {
-    let sx = 0, sy = 0, st = 0, tapping = false;
-    stableParent.addEventListener("touchstart", (e) => {
-      if (e.touches.length === 1 && e.target.closest("#" + containerId)) {
+    let sx = 0, sy = 0, st = 0, tapping = false, activeCount = 0;
+    function isInContainer(target) {
+      const c = document.getElementById(containerId);
+      return !!(c && c.contains(target));
+    }
+    stableParent.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "touch") return;
+      activeCount++;
+      if (activeCount > 1) { tapping = false; return; }
+      if (isInContainer(e.target)) {
         tapping = true;
-        sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+        sx = e.clientX; sy = e.clientY; st = Date.now();
       } else {
         tapping = false;
       }
-    }, { passive: true });
-    stableParent.addEventListener("touchmove", (e) => {
-      if (!tapping || e.touches.length !== 1) return;
-      if (Math.abs(e.touches[0].clientX - sx) > 8 || Math.abs(e.touches[0].clientY - sy) > 8) tapping = false;
-    }, { passive: true });
-    stableParent.addEventListener("touchend", (e) => {
+    });
+    stableParent.addEventListener("pointermove", (e) => {
+      if (!tapping) return;
+      if (Math.abs(e.clientX - sx) > 8 || Math.abs(e.clientY - sy) > 8) tapping = false;
+    });
+    function onUp(e) {
+      if (e.pointerType === "touch") activeCount = Math.max(0, activeCount - 1);
       if (!tapping) return;
       tapping = false;
       if (Date.now() - st > 500) return;
       const container = document.getElementById(containerId);
       if (!container || !lastChartGeom) return;
-      showChartTooltip(e.changedTouches[0].clientX, container);
-    }, { passive: true });
+      showChartTooltip(e.clientX, container);
+    }
+    stableParent.addEventListener("pointerup", onUp);
+    stableParent.addEventListener("pointercancel", () => { tapping = false; activeCount = Math.max(0, activeCount - 1); });
   }
 
   function showChartTooltip(clientX, container) {
@@ -1049,9 +1089,11 @@
     const tip = document.getElementById("chartTooltip");
     const card = document.querySelector("#trendOverlay .settings-card");
     const cardRect = card.getBoundingClientRect();
+    const chartRect = document.getElementById("trendChart").getBoundingClientRect();
     tip.innerHTML = html;
     tip.style.display = "block";
     tip.style.left = Math.min(cardRect.width - 110, Math.max(10, clientX - cardRect.left - 50)) + "px";
+    tip.style.top = Math.max(4, chartRect.top - cardRect.top + 6) + "px";
     clearTimeout(tip._hideTimer);
     tip._hideTimer = setTimeout(() => { tip.style.display = "none"; }, 2500);
   }
@@ -1301,7 +1343,7 @@
       lastStockData[symbol] = s;
       card.innerHTML = loadedCardInner(s);
       attachCardListeners(card);
-      if (settings.autoSort) applySort();
+      applySort();
       // Keep an open 1D trend chart live too, so it reflects new ticks as
       // they arrive instead of staying frozen at whatever it showed when
       // opened.
@@ -1329,8 +1371,20 @@
     }
   }
 
+  let currentSortMode = "symbol";
+
+  const SORT_OPTIONS = [
+    { value: "symbol", label: "Reset (Symbol A-Z)" },
+    { value: "price-desc", label: "Price: High → Low" },
+    { value: "price-asc", label: "Price: Low → High" },
+    { value: "change-desc", label: "Profit %: High → Low" },
+    { value: "change-asc", label: "Profit %: Low → High" },
+    { value: "volume-desc", label: "Volume: High → Low" },
+    { value: "volume-asc", label: "Volume: Low → High" }
+  ];
+
   function applySort() {
-    const mode = document.getElementById("sortSelect").value;
+    const mode = currentSortMode;
     const cards = Array.from(listEl.children);
     cards.sort((a, b) => {
       const aSym = a.dataset.symbol, bSym = b.dataset.symbol;
@@ -1361,8 +1415,53 @@
     btn.title = allExpanded ? "Collapse all" : "Expand all";
   }
 
+  // ---------- Live search filter ----------
+  function applySearchFilter() {
+    const qRaw = document.getElementById("symbolSearchInput").value.trim().toLowerCase();
+    const cards = Array.from(listEl.children);
+    if (!qRaw) {
+      cards.forEach(c => { c.style.display = ""; });
+      applySort();
+      return;
+    }
+    // Collapse repeated letters ("meezan" -> "mezan") before matching, so a
+    // spelling like "Mez" still finds "Meezan" even though the double-e
+    // means it isn't a literal substring — a common gap with transliterated
+    // company names that get spelled a couple of different ways.
+    function normalize(s) { return s.replace(/(.)\1+/g, "$1"); }
+    const q = normalize(qRaw);
+    // Relevance ranking: matching at the start of the (full) company name
+    // ranks highest, then the start of any word in it, then the symbol,
+    // then anywhere else in the name — so searching "Me" or "Mez" puts
+    // Meezan Bank above cement companies that just happen to contain "me".
+    function scoreFor(card) {
+      const sym = normalize(card.dataset.symbol.toLowerCase());
+      const name = normalize((SYMBOL_NAMES[card.dataset.symbol] || "").toLowerCase());
+      if (name.startsWith(q)) return 0;
+      if (name.split(/[\s.]+/).some(w => w.startsWith(q))) return 1;
+      if (sym.startsWith(q)) return 2;
+      if (sym.includes(q)) return 3;
+      if (name.includes(q)) return 4;
+      return null;
+    }
+    const scored = cards.map(card => ({ card, score: scoreFor(card) }));
+    scored.forEach(({ card, score }) => { card.style.display = score === null ? "none" : ""; });
+    const visible = scored.filter(s => s.score !== null);
+    visible.sort((a, b) => a.score !== b.score ? a.score - b.score : a.card.dataset.symbol.localeCompare(b.card.dataset.symbol));
+    visible.forEach(({ card }) => listEl.appendChild(card));
+  }
+
+  function renderSortMenu() {
+    document.getElementById("sortMenuList").innerHTML = SORT_OPTIONS.map(opt => `
+      <div class="pinned-row" data-sort-choice="${opt.value}" style="cursor:pointer;">
+        <div class="pinned-sym" style="font-weight:${opt.value === currentSortMode ? "700" : "400"}; color:${opt.value === currentSortMode ? "var(--accent)" : "var(--text)"};">
+          ${opt.value === currentSortMode ? "✓ " : ""}${opt.label}
+        </div>
+      </div>`).join("");
+  }
+
   function wireToolbar() {
-    document.getElementById("sortSelect").addEventListener("change", applySort);
+    document.getElementById("symbolSearchInput").addEventListener("input", applySearchFilter);
     document.getElementById("expandAllBtn").addEventListener("click", toggleExpandAll);
     const reloadAllBtn = document.getElementById("reloadAllBtn");
     reloadAllBtn.addEventListener("click", async () => {
@@ -1372,17 +1471,24 @@
       await loadAllParallel();
       reloadAllBtn.classList.remove("loading");
     });
-    const autoSortBtn = document.getElementById("autoSortBtn");
-    autoSortBtn.classList.toggle("active", settings.autoSort);
-    autoSortBtn.addEventListener("click", () => {
-      settings.autoSort = !settings.autoSort;
-      autoSortBtn.classList.toggle("active", settings.autoSort);
-      saveSettingsToStorage(settings);
+    document.getElementById("sortMenuBtn").addEventListener("click", () => {
+      renderSortMenu();
+      document.getElementById("sortMenuOverlay").classList.add("open");
+    });
+    document.getElementById("closeSortMenuBtn").addEventListener("click", () => {
+      document.getElementById("sortMenuOverlay").classList.remove("open");
+    });
+    document.getElementById("sortMenuList").addEventListener("click", (e) => {
+      const row = e.target.closest("[data-sort-choice]");
+      if (!row) return;
+      currentSortMode = row.getAttribute("data-sort-choice");
+      applySort();
+      document.getElementById("sortMenuOverlay").classList.remove("open");
     });
   }
 
   // ---------- Settings (auto-update interval + market hours) ----------
-  const DEFAULT_SETTINGS = { intervalSeconds: 120, startHour: 9, endHour: 17, theme: "dark", autoSort: false, hijriOffsetDays: -2, autoUpdateCheck: true };
+  const DEFAULT_SETTINGS = { intervalSeconds: 120, startHour: 9, endHour: 17, theme: "dark", hijriOffsetDays: -2, autoUpdateCheck: true };
   const lastStockData = {};
 
   function loadPinned() {
@@ -1546,7 +1652,7 @@
   }
 
   async function loadAllParallel() {
-    await Promise.all(SYMBOLS.map(symbol => loadOne(symbol)));
+    await Promise.all(getAllSymbols().map(symbol => loadOne(symbol)));
   }
 
   function todayKey() {
@@ -1555,7 +1661,7 @@
 
   function buildCsv(dateStr) {
     const header = "Date,Symbol,Open,Close,Low,High,TotalVolume,MinVolume,MaxVolume,Change,PctChange\n";
-    const rows = SYMBOLS.map(sym => {
+    const rows = getAllSymbols().map(sym => {
       const s = lastStockData[sym];
       if (!s) return [dateStr, sym, "", "", "", "", "", "", "", "", ""].join(",");
       return [
@@ -1772,24 +1878,33 @@
     return `${secs} second`;
   }
 
+  const INTERVAL_PRESETS = [5, 10, 15, 30, 60, 120, 180, 240, 300, 600, 900, 1800];
+  let intervalPresetIndex = 4; // 60s default
+
+  function nearestIntervalIndex(seconds) {
+    let bestIdx = 0, bestDiff = Infinity;
+    INTERVAL_PRESETS.forEach((v, i) => {
+      const diff = Math.abs(v - seconds);
+      if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+    });
+    return bestIdx;
+  }
+
+  function updateIntervalDisplay() {
+    document.getElementById("intervalValueDisplay").textContent =
+      formatIntervalLabel(INTERVAL_PRESETS[intervalPresetIndex]);
+  }
+
   function populateIntervalSelect() {
-    const sel = document.getElementById("intervalSelect");
-    const customBoxes = document.getElementById("customIntervalBoxes");
-    const presets = [5, 10, 15, 30, 60, 120, 180, 240, 300, 600, 900, 1800];
-    if (presets.includes(settings.intervalSeconds)) {
-      sel.value = String(settings.intervalSeconds);
-      customBoxes.style.display = "none";
-    } else {
-      sel.value = "custom";
-      customBoxes.style.display = "flex";
-      document.getElementById("customIntervalMin").value = Math.floor(settings.intervalSeconds / 60);
-      document.getElementById("customIntervalSec").value = settings.intervalSeconds % 60;
-    }
+    intervalPresetIndex = nearestIntervalIndex(settings.intervalSeconds);
+    updateIntervalDisplay();
   }
 
   function applyTheme() {
     document.body.classList.toggle("light-theme", settings.theme === "light");
-    document.getElementById("themeSelect").value = settings.theme;
+    document.querySelectorAll("#themeTabs .period-tab").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-theme") === settings.theme);
+    });
   }
 
   // ---------- In-app update check ----------
@@ -1883,8 +1998,65 @@
   }
 
   function updateHijriOffsetUI() {
-    document.getElementById("hijriOffsetValue").textContent = (settings.hijriOffsetDays > 0 ? "+" : "") + settings.hijriOffsetDays;
     document.getElementById("hijriPreview").textContent = formatHijriDate(new Date());
+  }
+
+  function renderCustomSymbolsList() {
+    const el = document.getElementById("customSymbolsList");
+    if (customSymbols.length === 0) {
+      el.innerHTML = `<div class="placeholder-text">No custom symbols added yet.</div>`;
+      return;
+    }
+    el.innerHTML = customSymbols.map(sym => `
+      <div class="pinned-row">
+        <div class="pinned-sym">${sym}</div>
+        <div class="pinned-actions">
+          <button class="toolbar-btn" data-remove-symbol="${sym}">✕ Remove</button>
+        </div>
+      </div>`).join("");
+  }
+
+  function addSymbolCardToList(symbol) {
+    if (document.querySelector(`.stock[data-symbol="${symbol}"]`)) return; // already present
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = emptyCardHtml(symbol);
+    const card = wrapper.firstElementChild;
+    listEl.appendChild(card);
+    attachCardListeners(card);
+    loadOne(symbol);
+  }
+
+  function removeSymbolCardFromList(symbol) {
+    const card = document.querySelector(`.stock[data-symbol="${symbol}"]`);
+    if (card) card.remove();
+    delete lastStockData[symbol];
+  }
+
+  function wireCustomSymbols() {
+    document.getElementById("addCustomSymbolBtn").addEventListener("click", () => {
+      const input = document.getElementById("customSymbolInput");
+      const sym = input.value.trim().toUpperCase();
+      if (!sym) return;
+      if (getAllSymbols().includes(sym)) {
+        alert(sym + " is already in the list.");
+        return;
+      }
+      customSymbols.push(sym);
+      saveCustomSymbols();
+      input.value = "";
+      renderCustomSymbolsList();
+      addSymbolCardToList(sym);
+      applySort();
+    });
+    document.getElementById("customSymbolsList").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-remove-symbol]");
+      if (!btn) return;
+      const sym = btn.getAttribute("data-remove-symbol");
+      customSymbols = customSymbols.filter(s => s !== sym);
+      saveCustomSymbols();
+      renderCustomSymbolsList();
+      removeSymbolCardFromList(sym);
+    });
   }
 
   function wireSettingsPanel() {
@@ -1892,6 +2064,7 @@
     document.getElementById("settingsBtn").addEventListener("click", () => {
       updateHijriOffsetUI();
       document.getElementById("autoUpdateCheck").checked = settings.autoUpdateCheck;
+      renderCustomSymbolsList();
       overlay.classList.add("open");
     });
     document.getElementById("closeSettingsBtn").addEventListener("click", () => overlay.classList.remove("open"));
@@ -1912,24 +2085,26 @@
       updateHijriOffsetUI();
       updateLiveClock();
     });
-    document.getElementById("intervalSelect").addEventListener("change", (e) => {
-      document.getElementById("customIntervalBoxes").style.display = e.target.value === "custom" ? "flex" : "none";
+    document.getElementById("intervalMinusBtn").addEventListener("click", () => {
+      intervalPresetIndex = Math.max(0, intervalPresetIndex - 1);
+      updateIntervalDisplay();
+    });
+    document.getElementById("intervalPlusBtn").addEventListener("click", () => {
+      intervalPresetIndex = Math.min(INTERVAL_PRESETS.length - 1, intervalPresetIndex + 1);
+      updateIntervalDisplay();
+    });
+    document.getElementById("themeTabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-theme]");
+      if (!btn) return;
+      document.querySelectorAll("#themeTabs .period-tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
     });
     document.getElementById("saveSettingsBtn").addEventListener("click", () => {
-      const sel = document.getElementById("intervalSelect");
-      let totalSeconds;
-      if (sel.value === "custom") {
-        const m = parseInt(document.getElementById("customIntervalMin").value, 10) || 0;
-        const s = parseInt(document.getElementById("customIntervalSec").value, 10) || 0;
-        totalSeconds = m * 60 + s;
-        if (totalSeconds < 1) totalSeconds = 1;
-      } else {
-        totalSeconds = parseInt(sel.value, 10);
-      }
-      settings.intervalSeconds = totalSeconds;
+      settings.intervalSeconds = INTERVAL_PRESETS[intervalPresetIndex];
       settings.startHour = parseInt(document.getElementById("startHourSelect").value, 10);
       settings.endHour = parseInt(document.getElementById("endHourSelect").value, 10);
-      settings.theme = document.getElementById("themeSelect").value;
+      const activeThemeBtn = document.querySelector("#themeTabs .period-tab.active");
+      settings.theme = activeThemeBtn ? activeThemeBtn.getAttribute("data-theme") : settings.theme;
       saveSettingsToStorage(settings);
       applyTheme();
       lastAutoRefreshAt = 0; // apply new interval right away
@@ -2096,12 +2271,13 @@
   }
 
   function init() {
-    listEl.innerHTML = SYMBOLS.map(emptyCardHtml).join("");
+    listEl.innerHTML = getAllSymbols().map(emptyCardHtml).join("");
     document.querySelectorAll(".stock").forEach(attachCardListeners);
     populateHourSelects();
     populateIntervalSelect();
     applyTheme();
     wireSettingsPanel();
+    wireCustomSymbols();
     wireToolbar();
     wireHistoryPanel();
     wireTrendPanel();
