@@ -326,6 +326,7 @@
 
 <div class="overlay" id="updateOverlay">
   <div class="settings-card">
+    <button class="close-btn" id="closeUpdateBtn">✕</button>
     <div class="settings-title">Update Available</div>
     <div id="updateMessage" style="font-size:13.5px; color:var(--dim); margin-bottom:16px;"></div>
     <div class="settings-actions">
@@ -1341,8 +1342,15 @@
       const s = processStock(symbol, data);
       if (!s) throw new Error("no data");
       lastStockData[symbol] = s;
+      // Remember whether the detail panel was open before this refresh
+      // rebuilds the card's HTML, and restore it afterwards — an auto
+      // refresh should only update the numbers, never close what you had
+      // open.
+      const wasOpen = !!document.getElementById("detail-" + symbol) &&
+        document.getElementById("detail-" + symbol).classList.contains("open");
       card.innerHTML = loadedCardInner(s);
       attachCardListeners(card);
+      if (wasOpen) document.getElementById("detail-" + symbol).classList.add("open");
       applySort();
       // Keep an open 1D trend chart live too, so it reflects new ticks as
       // they arrive instead of staying frozen at whatever it showed when
@@ -1936,39 +1944,14 @@
   }
 
   function downloadAndInstallUpdate() {
-    const yesBtn = document.getElementById("updateYesBtn");
-    const notNowBtn = document.getElementById("updateNotNowBtn");
-    const neverBtn = document.getElementById("updateNeverAskBtn");
     const progress = document.getElementById("updateProgress");
-    yesBtn.style.display = "none";
-    notNowBtn.style.display = "none";
-    neverBtn.style.display = "none";
     progress.style.display = "block";
-    progress.textContent = "Downloading update…";
-
-    if (!cordova.plugins || !cordova.plugins.fileOpener2) {
-      progress.textContent = "Installer plugin missing — this build needs to be rebuilt with cordova-plugin-file-opener2.";
-      return;
-    }
-
-    const filePath = cordova.file.externalDataDirectory + "kmi30-update.apk";
-    cordova.plugin.http.downloadFile(UPDATE_APK_URL, {}, {}, filePath, () => {
-      progress.textContent = "Download done. Opening installer…";
-      cordova.plugins.fileOpener2.open(
-        filePath,
-        "application/vnd.android.package-archive",
-        {
-          success: () => {
-            progress.textContent = "Installer opened — follow the on-screen prompt.";
-          },
-          error: (e) => {
-            progress.textContent = "Couldn't open installer. " + (e && (e.message || JSON.stringify(e)));
-          }
-        }
-      );
-    }, (err) => {
-      progress.textContent = "Download failed: " + (err && (err.status ? ("HTTP " + err.status) : JSON.stringify(err)));
-    });
+    progress.textContent = "Opening in browser to download — tap the downloaded file when it's done to install.";
+    // Handing off to the system browser is far more reliable than our own
+    // download+installer-plugin flow: Chrome's own download manager fetches
+    // the APK and Android's own "tap to install" notification takes over —
+    // the exact same well-tested path as tapping the GitHub link manually.
+    window.open(UPDATE_APK_URL, "_system");
   }
 
   async function checkForUpdate(manual) {
@@ -1985,6 +1968,9 @@
   }
 
   function wireUpdateOverlay() {
+    document.getElementById("closeUpdateBtn").addEventListener("click", () => {
+      document.getElementById("updateOverlay").classList.remove("open");
+    });
     document.getElementById("updateYesBtn").addEventListener("click", downloadAndInstallUpdate);
     document.getElementById("updateNotNowBtn").addEventListener("click", () => {
       document.getElementById("updateOverlay").classList.remove("open");
