@@ -1242,7 +1242,7 @@
       cardEl.style.height = ""; cardEl.style.overflowY = ""; cardEl.style.display = ""; cardEl.style.flexDirection = "";
       cardEl.style.position = ""; cardEl.style.top = ""; cardEl.style.left = ""; cardEl.style.right = ""; cardEl.style.bottom = ""; cardEl.style.borderRadius = "";
       const tableEl2 = document.getElementById("trendTable");
-      tableEl2.style.flex = ""; tableEl2.style.overflowY = ""; tableEl2.style.minHeight = "";
+      tableEl2.style.flex = ""; tableEl2.style.overflowY = ""; tableEl2.style.minHeight = ""; tableEl2.style.maxHeight = "";
     }
     trendDetailsOpen = false;
     document.getElementById("trendDetailsBtn").textContent = "Show details";
@@ -1348,16 +1348,12 @@
         periodTabsEl.style.display = "none";
         legendEl.style.display = "none";
         chartEl.style.display = "none";
-        cardEl.style.height = "";
-        cardEl.style.position = "fixed";
-        cardEl.style.top = "0";
-        cardEl.style.left = "0";
-        cardEl.style.right = "0";
-        cardEl.style.bottom = "0";
-        cardEl.style.borderRadius = "0";
+        cardEl.style.height = "100%";
         cardEl.style.display = "flex";
         cardEl.style.flexDirection = "column";
+        cardEl.style.borderRadius = "0";
         tableEl.style.flex = "1 1 auto";
+        tableEl.style.maxHeight = "none";
         tableEl.style.overflowY = "auto";
         tableEl.style.minHeight = "0";
       } else {
@@ -1368,15 +1364,11 @@
         legendEl.style.display = "";
         chartEl.style.display = "";
         cardEl.style.height = "";
-        cardEl.style.position = "";
-        cardEl.style.top = "";
-        cardEl.style.left = "";
-        cardEl.style.right = "";
-        cardEl.style.bottom = "";
-        cardEl.style.borderRadius = "";
         cardEl.style.display = "";
         cardEl.style.flexDirection = "";
+        cardEl.style.borderRadius = "";
         tableEl.style.flex = "";
+        tableEl.style.maxHeight = "";
         tableEl.style.overflowY = "";
         tableEl.style.minHeight = "";
       }
