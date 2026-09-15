@@ -107,8 +107,8 @@
   }
   .sym-block { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; cursor: pointer; }
   .sym { font-weight: 700; font-size: 14.5px; letter-spacing: 0.3px; }
-  .company-name { font-size: 10.5px; color: var(--dim); margin-top: 1px; }
-  .range { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+  .company-name { font-size: 12.5px; color: var(--dim); margin-top: 2px; }
+  .range { font-family: var(--mono); font-size: 13px; color: var(--dim); }
   .placeholder-text { font-size: 11.5px; color: var(--dim); }
   .price-block { text-align: right; cursor: pointer; }
   .now-price { font-family: var(--mono); font-weight: 700; font-size: 16px; }
@@ -214,7 +214,10 @@
 </header>
 
 <div class="toolbar">
-  <input type="text" id="symbolSearchInput" class="toolbar-select" placeholder="Search symbol or company…" style="flex:1;" />
+  <div style="position:relative; flex:1;">
+    <input type="text" id="symbolSearchInput" class="toolbar-select" placeholder="Search symbol or company…" style="width:100%; padding-right:30px;" />
+    <button id="clearSearchBtn" style="display:none; position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--dim); font-size:16px; line-height:1; padding:4px; cursor:pointer;">✕</button>
+  </div>
   <button class="toolbar-icon-btn" id="sortMenuBtn" title="Sort">⇅</button>
   <button class="toolbar-icon-btn" id="pinnedBtn" title="Pinned">☆</button>
   <button class="toolbar-icon-btn" id="expandAllBtn" title="Expand/collapse all">⤢</button>
@@ -295,6 +298,7 @@
         <input type="text" id="customSymbolInput" placeholder="e.g. PIOC" style="flex:1; text-transform:uppercase;" />
         <div class="secondary-btn" id="addCustomSymbolBtn" style="flex:0 0 auto; padding:9px 16px;">Add</div>
       </div>
+      <input type="text" id="customSymbolNameInput" placeholder="Company name (leave blank to auto-detect)" style="margin-top:8px; width:100%;" />
       <div id="customSymbolsList" style="margin-top:10px;"></div>
     </div>
 
@@ -350,6 +354,13 @@
       <button class="period-tab" data-period="1Y">1Y</button>
       <button class="period-tab" data-period="3Y">3Y</button>
       <button class="period-tab" data-period="5Y">5Y</button>
+      <button class="period-tab" data-period="custom">Custom</button>
+    </div>
+    <div id="customDateRangeRow" style="display:none; gap:8px; margin-bottom:10px; align-items:center;">
+      <input type="date" id="customFromDateInput" style="flex:1;" />
+      <span style="color:var(--dim);">to</span>
+      <input type="date" id="customToDateInput" style="flex:1;" />
+      <div class="secondary-btn" id="applyCustomRangeBtn" style="flex:0 0 auto; padding:8px 14px;">Go</div>
     </div>
     <div class="trend-legend">
       <label class="trend-legend-item"><input type="checkbox" id="showCloseCheck" checked /><span class="dot" style="background:var(--accent);"></span><span id="closeLabelText">Close</span></label>
@@ -364,6 +375,7 @@
     <div id="trendChart" style="position:relative;"></div>
     <div id="chartTooltip" class="chart-tooltip" style="display:none;"></div>
     <div class="toolbar-btn" id="trendDetailsBtn" style="text-align:center; margin-top:10px;">Show details</div>
+    <div class="secondary-btn" id="exportTrendCsvBtn" style="display:none; text-align:center; margin-top:8px;">Export this table to CSV</div>
     <div id="trendTable" class="trend-table" style="display:none;"></div>
   </div>
 </div>
@@ -433,6 +445,45 @@
     try { localStorage.setItem("kmi30_custom_symbols", JSON.stringify(customSymbols)); } catch (e) {}
   }
   let customSymbols = loadCustomSymbols();
+
+  function loadCustomSymbolNames() {
+    try {
+      const raw = localStorage.getItem("kmi30_custom_symbol_names");
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {};
+  }
+  function saveCustomSymbolNames() {
+    try { localStorage.setItem("kmi30_custom_symbol_names", JSON.stringify(customSymbolNames)); } catch (e) {}
+  }
+  let customSymbolNames = loadCustomSymbolNames();
+
+  function getSymbolName(sym) {
+    return SYMBOL_NAMES[sym] || customSymbolNames[sym] || "";
+  }
+
+  // Best-effort: PSX's own site uses this endpoint (undocumented, but
+  // referenced by third-party PSX data tools) to power its own symbol
+  // search. If it responds in a shape we don't recognise, we just fall
+  // back to whatever name the person typed in manually — nothing breaks.
+  async function lookupCompanyName(symbol) {
+    if (!window.cordova) return "";
+    try {
+      const res = await new Promise((resolve, reject) => {
+        cordova.plugin.http.get("https://dps.psx.com.pk/symbols", {}, {}, resolve, reject);
+      });
+      const list = JSON.parse(res.data);
+      const arr = Array.isArray(list) ? list : (list.data || list.symbols || []);
+      const hit = arr.find(row => {
+        const sym = (row.symbol || row.Symbol || row.SYMBOL || "").toUpperCase();
+        return sym === symbol;
+      });
+      if (!hit) return "";
+      return hit.name || hit.Name || hit.companyName || hit.NAME || "";
+    } catch (e) {
+      return "";
+    }
+  }
 
   function getAllSymbols() {
     const extra = customSymbols.filter(s => !SYMBOLS.includes(s));
@@ -735,6 +786,58 @@
     return header + body;
   }
 
+  function buildTrendExportCsv() {
+    if (trendPeriod === "1D") {
+      const s = lastStockData[trendSymbol];
+      const keyFn = { time: t => t[0], price: t => t[1], volume: t => t[2] }[oneDSortCol] || (t => t[0]);
+      const sorted = ((s && s.ticksChrono) || []).slice().sort((a, b) => oneDSortDir === "asc" ? keyFn(a) - keyFn(b) : keyFn(b) - keyFn(a));
+      const header = "Time,Price,Volume\n";
+      const rows = sorted.map(t => [fmtTime(t[0]), t[1].toFixed(2), t[2]].join(",")).join("\n");
+      return header + rows + "\n";
+    }
+    const keyFn = TREND_SORT_KEYS[trendSortCol] || TREND_SORT_KEYS.date;
+    const sorted = (trendCurrentRows || []).slice().sort((a, b) => {
+      const va = keyFn(a), vb = keyFn(b);
+      return trendSortDir === "asc" ? va - vb : vb - va;
+    });
+    const header = "Date,Open,Close,Change,PctChange,Volume\n";
+    const rows = sorted.map(r => [
+      r.date.toISOString().slice(0, 10), r.open.toFixed(2), r.close.toFixed(2),
+      r.change.toFixed(2), r.pctChange.toFixed(2), r.volume
+    ].join(",")).join("\n");
+    return header + rows + "\n";
+  }
+
+  function exportTrendTableCsv() {
+    if (!window.cordova) {
+      alert("Export only works in the installed app, not in this preview.");
+      return;
+    }
+    const csvText = buildTrendExportCsv();
+    const fileName = `${trendSymbol}_${trendPeriod}_${todayKey()}.csv`;
+    window.resolveLocalFileSystemURL(cordova.file.externalDataDirectory, (dir) => {
+      dir.getDirectory("KMI30-Exports", { create: true }, (exportDir) => {
+        exportDir.getFile(fileName, { create: true }, (fileEntry) => {
+          fileEntry.createWriter((writer) => {
+            writer.onwriteend = () => {
+              const path = cordova.file.externalDataDirectory + "KMI30-Exports/" + fileName;
+              if (window.plugins && window.plugins.socialsharing) {
+                window.plugins.socialsharing.shareWithOptions(
+                  { message: trendSymbol + " " + trendPeriod + " data", files: [path] },
+                  () => {}, () => alert("Saved to KMI30-Exports/" + fileName + " (sharing wasn't available).")
+                );
+              } else {
+                alert("Saved to KMI30-Exports/" + fileName);
+              }
+            };
+            writer.onerror = () => alert("Couldn't write the export file.");
+            writer.write(csvText);
+          }, () => alert("Couldn't create the export file."));
+        }, () => alert("Couldn't access the export folder."));
+      }, () => alert("Couldn't access storage."));
+    }, () => alert("Couldn't access storage."));
+  }
+
   function buildTrendTable(rows) {
     const keyFn = TREND_SORT_KEYS[trendSortCol] || TREND_SORT_KEYS.date;
     const sorted = rows.slice().sort((a, b) => {
@@ -767,6 +870,8 @@
 
   let trendDetailsOpen = false;
   let trendRawData = null;
+  let customFromDate = null;
+  let customToDate = null;
   let trendCurrentRows = null;
   let trendSymbol = null;
   let trendPeriod = "1D";
@@ -913,7 +1018,20 @@
   // ---------- EOD chart (1M / 6M / YTD / 1Y / 3Y / 5Y — both Open & Close) ----------
   function renderEodChart(days) {
     if (!trendRawData) return;
-    const rows = normalizeEodRows(trendRawData, days);
+    let rows;
+    if (trendPeriod === "custom") {
+      const allRows = normalizeEodRows(trendRawData, trendRawData.length);
+      rows = allRows.filter(r => {
+        const t = r.date.getTime();
+        return (!customFromDate || t >= customFromDate.getTime()) && (!customToDate || t <= customToDate.getTime());
+      });
+      if (rows.length === 0) {
+        document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">No data in this date range.</div>`;
+        return;
+      }
+    } else {
+      rows = normalizeEodRows(trendRawData, days);
+    }
     trendCurrentRows = rows;
     const chartType = document.getElementById("trendChartType").value;
 
@@ -1106,11 +1224,14 @@
       btn.classList.toggle("active", btn.getAttribute("data-period") === period);
     });
     const isOneDay = period === "1D";
+    const isCustom = period === "custom";
     document.getElementById("trendLegendOpen").style.display = isOneDay ? "none" : "";
     document.getElementById("closeLabelText").textContent = isOneDay ? "Price" : "Close";
     document.getElementById("trendChartType").style.display = isOneDay ? "none" : "";
     document.getElementById("fitToScreenLabel").style.display = isOneDay ? "none" : "";
+    document.getElementById("customDateRangeRow").style.display = isCustom ? "flex" : "none";
     document.getElementById("trendTable").style.display = "none";
+    document.getElementById("exportTrendCsvBtn").style.display = "none";
     trendDetailsOpen = false;
     document.getElementById("trendDetailsBtn").textContent = "Show details";
 
@@ -1125,6 +1246,23 @@
     document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Loading…</div>`;
     try {
       if (!trendRawData) trendRawData = await getEodRawRows(trendSymbol);
+      if (isCustom) {
+        // Default the pickers to the last 30 days of whatever history is
+        // available, the first time Custom is opened for this stock.
+        const fromInput = document.getElementById("customFromDateInput");
+        const toInput = document.getElementById("customToDateInput");
+        if (!fromInput.value || !toInput.value) {
+          const allRows = normalizeEodRows(trendRawData, trendRawData.length);
+          if (allRows.length > 0) {
+            const last = allRows[allRows.length - 1].date;
+            const first = allRows[Math.max(0, allRows.length - 30)].date;
+            toInput.value = last.toISOString().slice(0, 10);
+            fromInput.value = first.toISOString().slice(0, 10);
+          }
+        }
+        customFromDate = fromInput.value ? new Date(fromInput.value + "T00:00:00") : null;
+        customToDate = toInput.value ? new Date(toInput.value + "T23:59:59") : null;
+      }
       renderEodChart(periodToDays(period));
     } catch (e) {
       document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px; word-break:break-word;">Failed to load.<br>Reason: ${(e && e.message) ? e.message : String(e)}</div>`;
@@ -1152,6 +1290,15 @@
       const btn = e.target.closest("[data-period]");
       if (btn) selectPeriod(btn.getAttribute("data-period"));
     });
+    document.getElementById("applyCustomRangeBtn").addEventListener("click", () => {
+      const fromVal = document.getElementById("customFromDateInput").value;
+      const toVal = document.getElementById("customToDateInput").value;
+      if (!fromVal || !toVal) { alert("Pick both a start and end date."); return; }
+      if (fromVal > toVal) { alert("Start date must be before the end date."); return; }
+      customFromDate = new Date(fromVal + "T00:00:00");
+      customToDate = new Date(toVal + "T23:59:59");
+      renderEodChart(0);
+    });
     document.getElementById("trendChartType").addEventListener("change", () => {
       if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
     });
@@ -1170,17 +1317,21 @@
     document.getElementById("trendDetailsBtn").addEventListener("click", () => {
       trendDetailsOpen = !trendDetailsOpen;
       const tableEl = document.getElementById("trendTable");
+      const exportBtn = document.getElementById("exportTrendCsvBtn");
       if (trendDetailsOpen) {
         tableEl.innerHTML = trendPeriod === "1D"
           ? buildOneDTable(lastStockData[trendSymbol].ticksChrono)
           : buildTrendTable(trendCurrentRows);
         tableEl.style.display = "block";
+        exportBtn.style.display = "block";
         document.getElementById("trendDetailsBtn").textContent = "Hide details";
       } else {
         tableEl.style.display = "none";
+        exportBtn.style.display = "none";
         document.getElementById("trendDetailsBtn").textContent = "Show details";
       }
     });
+    document.getElementById("exportTrendCsvBtn").addEventListener("click", exportTrendTableCsv);
     document.getElementById("trendTable").addEventListener("click", (e) => {
       const sort1d = e.target.closest("[data-sort1d]");
       if (sort1d) {
@@ -1255,7 +1406,7 @@
           <div class="pin-rank" data-pin-rank="${symbol}"></div>
           <div class="sym-block">
             <div class="sym">${symbol}</div>
-            <div class="company-name">${SYMBOL_NAMES[symbol] || ""}</div>
+            <div class="company-name">${getSymbolName(symbol)}</div>
             <div class="placeholder-text">Not loaded yet</div>
           </div>
           <button class="load-btn" data-load="${symbol}">Load</button>
@@ -1272,8 +1423,9 @@
         <div class="pin-rank" data-pin-rank="${s.symbol}"></div>
         <div class="sym-block" data-toggle="${s.symbol}">
           <div class="sym">${s.symbol}</div>
-          <div class="company-name">${SYMBOL_NAMES[s.symbol] || ""}</div>
-          <div class="range">${s.low.toFixed(2)} - ${s.high.toFixed(2)}</div>
+          <div class="company-name">${getSymbolName(s.symbol)}</div>
+          <div class="range">LH: ${s.low.toFixed(2)} - ${s.high.toFixed(2)}</div>
+          <div class="range">OC: ${s.openEntry[1].toFixed(2)} - ${s.closeEntry[1].toFixed(2)}</div>
         </div>
         <div class="price-block" data-toggle="${s.symbol}">
           <div class="now-price">Rs${s.current[1].toFixed(2)}</div>
@@ -1307,7 +1459,7 @@
         <div class="pin-rank" data-pin-rank="${symbol}"></div>
         <div class="sym-block">
           <div class="sym">${symbol}</div>
-          <div class="company-name">${SYMBOL_NAMES[symbol] || ""}</div>
+          <div class="company-name">${getSymbolName(symbol)}</div>
           <div class="err-text">Failed to load — try again</div>
         </div>
         <button class="load-btn" data-load="${symbol}">Retry</button>
@@ -1444,7 +1596,7 @@
     // Meezan Bank above cement companies that just happen to contain "me".
     function scoreFor(card) {
       const sym = normalize(card.dataset.symbol.toLowerCase());
-      const name = normalize((SYMBOL_NAMES[card.dataset.symbol] || "").toLowerCase());
+      const name = normalize(getSymbolName(card.dataset.symbol).toLowerCase());
       if (name.startsWith(q)) return 0;
       if (name.split(/[\s.]+/).some(w => w.startsWith(q))) return 1;
       if (sym.startsWith(q)) return 2;
@@ -1469,7 +1621,17 @@
   }
 
   function wireToolbar() {
-    document.getElementById("symbolSearchInput").addEventListener("input", applySearchFilter);
+    document.getElementById("symbolSearchInput").addEventListener("input", (e) => {
+      document.getElementById("clearSearchBtn").style.display = e.target.value ? "block" : "none";
+      applySearchFilter();
+    });
+    document.getElementById("clearSearchBtn").addEventListener("click", () => {
+      const input = document.getElementById("symbolSearchInput");
+      input.value = "";
+      document.getElementById("clearSearchBtn").style.display = "none";
+      applySearchFilter();
+      input.focus();
+    });
     document.getElementById("expandAllBtn").addEventListener("click", toggleExpandAll);
     const reloadAllBtn = document.getElementById("reloadAllBtn");
     reloadAllBtn.addEventListener("click", async () => {
@@ -2019,17 +2181,31 @@
   }
 
   function wireCustomSymbols() {
-    document.getElementById("addCustomSymbolBtn").addEventListener("click", () => {
+    document.getElementById("addCustomSymbolBtn").addEventListener("click", async () => {
       const input = document.getElementById("customSymbolInput");
+      const nameInput = document.getElementById("customSymbolNameInput");
       const sym = input.value.trim().toUpperCase();
+      const typedName = nameInput.value.trim();
       if (!sym) return;
       if (getAllSymbols().includes(sym)) {
         alert(sym + " is already in the list.");
         return;
       }
+      const addBtn = document.getElementById("addCustomSymbolBtn");
+      addBtn.textContent = "Adding…";
+      let finalName = typedName;
+      if (!finalName) {
+        finalName = await lookupCompanyName(sym);
+      }
       customSymbols.push(sym);
       saveCustomSymbols();
+      if (finalName) {
+        customSymbolNames[sym] = finalName;
+        saveCustomSymbolNames();
+      }
       input.value = "";
+      nameInput.value = "";
+      addBtn.textContent = "Add";
       renderCustomSymbolsList();
       addSymbolCardToList(sym);
       applySort();
@@ -2039,6 +2215,8 @@
       if (!btn) return;
       const sym = btn.getAttribute("data-remove-symbol");
       customSymbols = customSymbols.filter(s => s !== sym);
+      delete customSymbolNames[sym];
+      saveCustomSymbolNames();
       saveCustomSymbols();
       renderCustomSymbolsList();
       removeSymbolCardFromList(sym);
