@@ -184,10 +184,10 @@
   .trend-legend { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: 12px; color: var(--dim); flex-wrap: wrap; }
   .trend-legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
   .trend-legend select { background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text); border-radius: 8px; padding: 5px 8px; font-size: 12px; }
-  .period-tabs { display: flex; gap: 6px; margin-bottom: 10px; overflow-x: auto; }
+  .period-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
   .period-tab {
     flex-shrink: 0; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
-    border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer;
   }
   .period-tab.active { background: var(--accent); color: #0a1510; border-color: var(--accent); }
   .trend-legend-item { display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 4px 2px; }
@@ -355,12 +355,12 @@
       <button class="period-tab" data-period="3Y">3Y</button>
       <button class="period-tab" data-period="5Y">5Y</button>
       <button class="period-tab" data-period="custom">Custom</button>
-    </div>
-    <div id="customDateRangeRow" style="display:none; gap:8px; margin-bottom:10px; align-items:center;">
-      <input type="date" id="customFromDateInput" style="flex:1;" />
-      <span style="color:var(--dim);">to</span>
-      <input type="date" id="customToDateInput" style="flex:1;" />
-      <div class="secondary-btn" id="applyCustomRangeBtn" style="flex:0 0 auto; padding:8px 14px;">Go</div>
+      <span id="customDateRangeRow" style="display:none; align-items:center; gap:4px;">
+        <input type="date" id="customFromDateInput" style="width:96px; padding:5px 4px; font-size:12px;" />
+        <span style="color:var(--dim); font-size:12px;">to</span>
+        <input type="date" id="customToDateInput" style="width:96px; padding:5px 4px; font-size:12px;" />
+        <div class="secondary-btn" id="applyCustomRangeBtn" style="padding:6px 10px; font-size:12px;">Go</div>
+      </span>
     </div>
     <div class="trend-legend">
       <label class="trend-legend-item"><input type="checkbox" id="showCloseCheck" checked /><span class="dot" style="background:var(--accent);"></span><span id="closeLabelText">Close</span></label>
@@ -374,8 +374,10 @@
     </div>
     <div id="trendChart" style="position:relative;"></div>
     <div id="chartTooltip" class="chart-tooltip" style="display:none;"></div>
-    <div class="toolbar-btn" id="trendDetailsBtn" style="text-align:center; margin-top:10px;">Show details</div>
-    <div class="secondary-btn" id="exportTrendCsvBtn" style="display:none; text-align:center; margin-top:8px;">Export this table to CSV</div>
+    <div style="display:flex; gap:8px; margin-top:10px;">
+      <div class="toolbar-btn" id="trendDetailsBtn" style="flex:1; text-align:center;">Show details</div>
+      <div class="secondary-btn" id="exportTrendCsvBtn" style="display:none; flex:1; text-align:center;">Export Data in CSV</div>
+    </div>
     <div id="trendTable" class="trend-table" style="display:none;"></div>
   </div>
 </div>
@@ -1229,9 +1231,19 @@
     document.getElementById("closeLabelText").textContent = isOneDay ? "Price" : "Close";
     document.getElementById("trendChartType").style.display = isOneDay ? "none" : "";
     document.getElementById("fitToScreenLabel").style.display = isOneDay ? "none" : "";
-    document.getElementById("customDateRangeRow").style.display = isCustom ? "flex" : "none";
+    document.getElementById("customDateRangeRow").style.display = isCustom ? "inline-flex" : "none";
     document.getElementById("trendTable").style.display = "none";
     document.getElementById("exportTrendCsvBtn").style.display = "none";
+    document.getElementById("trendChart").style.display = "";
+    document.getElementById("periodTabs").style.display = "flex";
+    document.querySelector("#trendOverlay .trend-legend").style.display = "";
+    {
+      const cardEl = document.querySelector("#trendOverlay .settings-card");
+      cardEl.style.height = ""; cardEl.style.overflowY = ""; cardEl.style.display = ""; cardEl.style.flexDirection = "";
+      cardEl.style.position = ""; cardEl.style.top = ""; cardEl.style.left = ""; cardEl.style.right = ""; cardEl.style.bottom = ""; cardEl.style.borderRadius = "";
+      const tableEl2 = document.getElementById("trendTable");
+      tableEl2.style.flex = ""; tableEl2.style.overflowY = ""; tableEl2.style.minHeight = "";
+    }
     trendDetailsOpen = false;
     document.getElementById("trendDetailsBtn").textContent = "Show details";
 
@@ -1318,6 +1330,10 @@
       trendDetailsOpen = !trendDetailsOpen;
       const tableEl = document.getElementById("trendTable");
       const exportBtn = document.getElementById("exportTrendCsvBtn");
+      const chartEl = document.getElementById("trendChart");
+      const periodTabsEl = document.getElementById("periodTabs");
+      const legendEl = document.querySelector("#trendOverlay .trend-legend");
+      const cardEl = document.querySelector("#trendOverlay .settings-card");
       if (trendDetailsOpen) {
         tableEl.innerHTML = trendPeriod === "1D"
           ? buildOneDTable(lastStockData[trendSymbol].ticksChrono)
@@ -1325,10 +1341,44 @@
         tableEl.style.display = "block";
         exportBtn.style.display = "block";
         document.getElementById("trendDetailsBtn").textContent = "Hide details";
+        // Maximize the table: everything above it hides, the card is
+        // stretched to fill the screen, AND the table itself is made a
+        // flex-growing child so it actually claims that space (forcing the
+        // card taller alone left the extra room empty below a short table).
+        periodTabsEl.style.display = "none";
+        legendEl.style.display = "none";
+        chartEl.style.display = "none";
+        cardEl.style.height = "";
+        cardEl.style.position = "fixed";
+        cardEl.style.top = "0";
+        cardEl.style.left = "0";
+        cardEl.style.right = "0";
+        cardEl.style.bottom = "0";
+        cardEl.style.borderRadius = "0";
+        cardEl.style.display = "flex";
+        cardEl.style.flexDirection = "column";
+        tableEl.style.flex = "1 1 auto";
+        tableEl.style.overflowY = "auto";
+        tableEl.style.minHeight = "0";
       } else {
         tableEl.style.display = "none";
         exportBtn.style.display = "none";
         document.getElementById("trendDetailsBtn").textContent = "Show details";
+        periodTabsEl.style.display = "flex";
+        legendEl.style.display = "";
+        chartEl.style.display = "";
+        cardEl.style.height = "";
+        cardEl.style.position = "";
+        cardEl.style.top = "";
+        cardEl.style.left = "";
+        cardEl.style.right = "";
+        cardEl.style.bottom = "";
+        cardEl.style.borderRadius = "";
+        cardEl.style.display = "";
+        cardEl.style.flexDirection = "";
+        tableEl.style.flex = "";
+        tableEl.style.overflowY = "";
+        tableEl.style.minHeight = "";
       }
     });
     document.getElementById("exportTrendCsvBtn").addEventListener("click", exportTrendTableCsv);
@@ -1431,7 +1481,6 @@
           <div class="now-price">Rs${s.current[1].toFixed(2)}</div>
           <div class="change ${dir}">${arrow} ${Math.abs(s.change).toFixed(2)} (${s.pctChange.toFixed(2)}%)</div>
         </div>
-        <button class="load-btn reload" data-load="${s.symbol}" aria-label="Reload ${s.symbol}" title="Reload">↻</button>
       </div>
       <div class="stock-detail" id="detail-${s.symbol}">
         <div class="detail-section">
@@ -2078,7 +2127,11 @@
   }
 
   // ---------- In-app update check ----------
-  const UPDATE_CHECK_URL = "https://raw.githubusercontent.com/mushtaqimambux/kmi30-android/main/version.txt";
+  // Checking the same place the APK itself gets uploaded to (not the raw
+  // source file, which changes the instant a commit is pushed — well
+  // before the build has actually finished) — this way the app only ever
+  // sees "update available" once the matching APK is truly ready.
+  const UPDATE_CHECK_URL = "https://github.com/mushtaqimambux/kmi30-android/releases/download/release/released-version.txt";
   const UPDATE_APK_URL = "https://github.com/mushtaqimambux/kmi30-android/releases/download/release/kmi30-live.apk";
 
   async function fetchLatestVersion() {
