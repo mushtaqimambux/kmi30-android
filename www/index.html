@@ -73,12 +73,6 @@
     white-space: nowrap; flex-shrink: 0;
   }
   .auto-sort-label input { accent-color: var(--accent); width: 15px; height: 15px; }
-  .pin-rank {
-    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%; background: var(--accent);
-    color: #0a1510; font-size: 11px; font-weight: 700; display: flex; align-items: center;
-    justify-content: center; margin-right: 6px;
-  }
-  .pin-rank:empty { display: none; }
   .stock.pinned-card { border-color: var(--accent); background: var(--pinned-bg); }
   .stock.dragging { box-shadow: 0 10px 28px rgba(0,0,0,0.4); opacity: 0.97; }
   .drag-placeholder {
@@ -99,22 +93,53 @@
   main { padding: 12px 12px 40px; max-width: 640px; margin: 0 auto; }
   .stock {
     background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
-    margin-bottom: 8px; overflow: hidden;
+    margin-bottom: 6px; overflow: hidden; font-size: var(--card-font-size, 14px);
   }
   .stock-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 14px; gap: 10px;
+    display: flex; flex-direction: column;
+    padding: 7px 14px; gap: 1px;
   }
+  .card-name-row { display: flex; align-items: baseline; gap: 8px; cursor: pointer; }
+  .card-mid-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-top: 2px; }
+  .card-holding-row { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--card-border); }
   .sym-block { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; cursor: pointer; }
-  .sym { font-weight: 700; font-size: 14.5px; letter-spacing: 0.3px; }
-  .company-name { font-size: 12.5px; color: var(--dim); margin-top: 2px; }
-  .range { font-family: var(--mono); font-size: 13px; color: var(--dim); }
+  .sym { font-weight: 700; font-size: 1.04em; letter-spacing: 0.3px; }
+  .company-name { font-size: 0.89em; color: var(--dim); margin-top: 2px; }
+  .range { font-family: var(--mono); font-size: 0.93em; color: var(--dim); }
   .placeholder-text { font-size: 11.5px; color: var(--dim); }
   .price-block { text-align: right; cursor: pointer; }
-  .now-price { font-family: var(--mono); font-weight: 700; font-size: 16px; }
-  .change { font-family: var(--mono); font-size: 12px; }
+  .now-price { font-family: var(--mono); font-weight: 700; font-size: 1.14em; }
+  .change { font-family: var(--mono); font-size: 0.86em; }
   .change.up { color: var(--accent); }
   .change.down { color: var(--down); }
+  .holding-summary { font-family: var(--mono); font-size: 0.82em; margin-top: 2px; }
+  .holding-summary.up { color: var(--accent); }
+  .holding-summary.down { color: var(--down); }
+  .holding-form input {
+    width: 100%; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 8px; padding: 8px 10px; font-size: 13px; margin-bottom: 6px;
+  }
+  #addHoldingForm input {
+    width: 100%; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
+    border-radius: 8px; padding: 9px 10px; font-size: 14px;
+  }
+  .holding-suggestion-row { padding: 9px 10px; cursor: pointer; font-size: 13.5px; border-bottom: 1px solid var(--card-border); }
+  .holding-suggestion-row:last-child { border-bottom: none; }
+  .holding-suggestion-row .sym-part { font-weight: 700; }
+  .holding-suggestion-row .name-part { color: var(--dim); font-size: 0.9em; margin-left: 6px; }
+  .holding-line-row { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--card-border); }
+  .holding-line-row:last-child { border-bottom: none; }
+  .holding-line-sym { font-weight: 700; flex-shrink: 0; }
+  .holding-line-detail {
+    font-family: var(--mono); font-size: 0.85em; color: var(--dim); flex: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .holding-line-detail.up { color: var(--accent); }
+  .holding-line-detail.down { color: var(--down); }
+  .holding-line-remove {
+    flex-shrink: 0; background: none; border: 1px solid var(--down); color: var(--down);
+    border-radius: 6px; padding: 4px 9px; font-size: 13px;
+  }
   .change.flat { color: var(--dim); }
   .load-btn {
     flex-shrink: 0; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
@@ -127,11 +152,11 @@
   }
   .load-btn.loading { color: var(--accent); }
   .stock-detail {
-    display: none; padding: 0 14px 14px; font-family: var(--mono); font-size: 12px;
+    display: none; padding: 0 14px 14px; font-family: var(--mono); font-size: 0.86em;
     color: var(--dim); line-height: 1.65; border-top: 1px solid var(--card-border);
   }
   .stock-detail.open { display: block; }
-  .detail-section { margin-top: 10px; }
+  .detail-section { margin-top: 10px; font-size: 0.89em; }
   .detail-label { color: var(--text); font-weight: 700; font-family: -apple-system, sans-serif; font-size: 11.5px; margin-bottom: 3px; }
   .err-text { color: var(--down); font-size: 11.5px; }
 
@@ -219,7 +244,7 @@
     <button id="clearSearchBtn" style="display:none; position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--dim); font-size:16px; line-height:1; padding:4px; cursor:pointer;">✕</button>
   </div>
   <button class="toolbar-icon-btn" id="sortMenuBtn" title="Sort">⇅</button>
-  <button class="toolbar-icon-btn" id="pinnedBtn" title="Pinned">☆</button>
+  <button class="toolbar-icon-btn" id="holdingsBtn" title="My Holdings">💼</button>
   <button class="toolbar-icon-btn" id="expandAllBtn" title="Expand/collapse all">⤢</button>
   <button class="toolbar-icon-btn" id="reloadAllBtn" title="Reload all">↻</button>
 </div>
@@ -232,11 +257,35 @@
   </div>
 </div>
 
-<div class="overlay" id="pinnedOverlay">
+<div class="overlay" id="confirmOverlay">
   <div class="settings-card">
-    <button class="close-btn" id="closePinnedBtn">✕</button>
-    <div class="settings-title">Pinned Stocks (Manual Order)</div>
-    <div id="pinnedList"></div>
+    <div class="settings-title" id="confirmTitle">Are you sure?</div>
+    <div class="settings-actions">
+      <div class="secondary-btn" id="confirmNoBtn">No</div>
+      <div class="primary-btn" id="confirmYesBtn">Yes</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="holdingsOverlay">
+  <div class="settings-card">
+    <button class="close-btn" id="closeHoldingsBtn">✕</button>
+    <div class="settings-title">My Holdings</div>
+    <div style="display:flex; gap:8px; margin-bottom:12px;">
+      <div class="secondary-btn" id="addHoldingBtn" style="flex:1;">+ Add Holding</div>
+      <div class="secondary-btn" id="toggleHoldingsEditBtn" style="flex:1;">Edit</div>
+    </div>
+    <div id="addHoldingForm" style="display:none; margin-bottom:16px;">
+      <div style="position:relative;">
+        <input type="text" id="holdingSymbolSearch" placeholder="Search symbol or company…" autocomplete="off" />
+        <div id="holdingSymbolSuggestions" style="display:none; position:absolute; left:0; right:0; top:100%; z-index:5; background:var(--btn-bg); border:1px solid var(--card-border); border-radius:9px; margin-top:4px; max-height:180px; overflow-y:auto;"></div>
+      </div>
+      <input type="number" id="newHoldingShares" placeholder="Total Shares" style="margin-top:8px;" />
+      <input type="number" id="newHoldingPrice" placeholder="Buy Price (per share)" step="0.01" style="margin-top:8px;" />
+      <div class="secondary-btn" id="saveNewHoldingBtn" style="margin-top:8px;">Save</div>
+    </div>
+    <div id="holdingsList"></div>
+    <div id="holdingsTotals" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--card-border); font-size:13px;"></div>
   </div>
 </div>
 
@@ -281,6 +330,15 @@
         <button type="button" class="toolbar-icon-btn" id="hijriMinusBtn">−</button>
         <div id="hijriPreview" style="flex:1; text-align:center; font-weight:700; font-size:15px;"></div>
         <button type="button" class="toolbar-icon-btn" id="hijriPlusBtn">+</button>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <label>Card text size (front + details)</label>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button type="button" class="toolbar-icon-btn" id="cardFontMinusBtn">−</button>
+        <div id="cardFontPreview" style="flex:1; text-align:center; font-weight:700; font-size:15px;"></div>
+        <button type="button" class="toolbar-icon-btn" id="cardFontPlusBtn">+</button>
       </div>
     </div>
 
@@ -497,8 +555,16 @@
       hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Karachi"
     });
   }
+  // 24-hour, no am/pm — used only inside the card-detail lines below, so
+  // everywhere else (1D table, chart tooltip, CSV export, header clock)
+  // keeps the normal 12-hour am/pm time untouched.
+  function fmtTimeCardDetail(ts) {
+    return new Date(ts * 1000).toLocaleTimeString("en-PK", {
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "Asia/Karachi"
+    });
+  }
   function fmtEntry(entry) {
-    return "Rs" + entry[1].toFixed(2) + " - " + fmtTime(entry[0]) + " - V-" + String(entry[2]).padStart(4, "0");
+    return "Rs" + entry[1].toFixed(2) + " – " + fmtTimeCardDetail(entry[0]) + " V:" + String(entry[2]).padStart(4, "0");
   }
 
   function isValidPayload(json) {
@@ -1445,13 +1511,14 @@
     return `
       <div class="stock" data-symbol="${symbol}">
         <div class="stock-head">
-          <div class="pin-rank" data-pin-rank="${symbol}"></div>
-          <div class="sym-block">
-            <div class="sym">${symbol}</div>
-            <div class="company-name">${getSymbolName(symbol)}</div>
-            <div class="placeholder-text">Not loaded yet</div>
+          <div class="card-name-row">
+            <span class="sym">${symbol}</span>
+            <span class="company-name">${getSymbolName(symbol)}</span>
           </div>
-          <button class="load-btn" data-load="${symbol}">Load</button>
+          <div class="card-mid-row">
+            <div class="placeholder-text">Not loaded yet</div>
+            <button class="load-btn" data-load="${symbol}">Load</button>
+          </div>
         </div>
         <div class="stock-detail" id="detail-${symbol}"></div>
       </div>`;
@@ -1462,34 +1529,49 @@
     const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "•";
     return `
       <div class="stock-head">
-        <div class="pin-rank" data-pin-rank="${s.symbol}"></div>
-        <div class="sym-block" data-toggle="${s.symbol}">
-          <div class="sym">${s.symbol}</div>
-          <div class="company-name">${getSymbolName(s.symbol)}</div>
-          <div class="range">LH: ${s.low.toFixed(2)} - ${s.high.toFixed(2)}</div>
-          <div class="range">OC: ${s.openEntry[1].toFixed(2)} - ${s.closeEntry[1].toFixed(2)}</div>
+        <div class="card-name-row" data-toggle="${s.symbol}">
+          <span class="sym">${s.symbol}</span>
+          <span class="company-name">${getSymbolName(s.symbol)}</span>
         </div>
-        <div class="price-block" data-toggle="${s.symbol}">
-          <div class="now-price">Rs${s.current[1].toFixed(2)}</div>
-          <div class="change ${dir}">${arrow} ${Math.abs(s.change).toFixed(2)} (${s.pctChange.toFixed(2)}%)</div>
+        <div class="card-mid-row">
+          <div class="sym-block" data-toggle="${s.symbol}">
+            <div class="range">LH: ${s.low.toFixed(2)} - ${s.high.toFixed(2)}</div>
+            <div class="range">OC: ${s.openEntry[1].toFixed(2)} - ${s.closeEntry[1].toFixed(2)}</div>
+          </div>
+          <div class="price-block" data-toggle="${s.symbol}">
+            <div class="now-price">Rs${s.current[1].toFixed(2)}</div>
+            <div class="change ${dir}">${arrow} ${Math.abs(s.change).toFixed(2)} (${s.pctChange.toFixed(2)}%)</div>
+          </div>
         </div>
+        ${holdings[s.symbol] ? `<div class="card-holding-row">${holdingSummaryHtml(s.symbol, s.current[1])}</div>` : ""}
       </div>
       <div class="stock-detail" id="detail-${s.symbol}">
         <div class="detail-section">
-          <div class="detail-label">Price</div>
-          Min: ${fmtEntry(s.minEntry)}<br>
-          Max: ${fmtEntry(s.maxEntry)}
+          Min P:${fmtEntry(s.minEntry)}<br>
+          Max P:${fmtEntry(s.maxEntry)}<br>
+          Max V:${String(s.maxVolEntry[2]).padStart(4, "0")} Rs${s.maxVolEntry[1].toFixed(2)} – ${fmtTimeCardDetail(s.maxVolEntry[0])}<br>
+          Today's Total V:${s.totalVolume.toLocaleString("en-US")}
         </div>
         <div class="detail-section">
-          O: ${fmtEntry(s.openEntry)}
-        </div>
-        <div class="detail-section">
-          <div class="detail-label">Volume</div>
-          Today's Total V: ${s.totalVolume.toLocaleString("en-US")}<br>
-          Max-V ${String(s.maxVolEntry[2]).padStart(4, "0")} - Rs${s.maxVolEntry[1].toFixed(2)} - ${fmtTime(s.maxVolEntry[0])}
-        </div>
-        <div class="detail-section">
-          <button class="toolbar-btn" data-trend="${s.symbol}" style="width:100%;">📈 Show Chart</button>
+          <div class="detail-label">My Holdings</div>
+          ${holdings[s.symbol] ? `<div>${holdings[s.symbol].shares} shares @ Rs${holdings[s.symbol].buyPrice.toFixed(2)}</div>` : ""}
+          <div style="display:flex; gap:8px; margin-top:6px;">
+            ${holdings[s.symbol] ? `
+              <button class="toolbar-btn" data-edit-holding="${s.symbol}" style="flex:1;">Edit</button>
+              <button class="toolbar-btn" data-remove-holding="${s.symbol}" style="flex:1;">Remove</button>
+            ` : `
+              <button class="toolbar-btn" data-add-holding="${s.symbol}" style="flex:1;">💼 Add Holdings</button>
+            `}
+            <button class="toolbar-btn" data-trend="${s.symbol}" style="flex:1;">📈 Show Chart</button>
+          </div>
+          <div class="holding-form" id="holdingForm-${s.symbol}" style="display:none; margin-top:8px;">
+            <div style="display:flex; gap:6px; align-items:center;">
+              <input type="number" placeholder="Shares" id="holdingShares-${s.symbol}" value="${holdings[s.symbol] ? holdings[s.symbol].shares : ""}" style="flex:1; min-width:0;" />
+              <input type="number" placeholder="Price" step="0.01" id="holdingPrice-${s.symbol}" value="${holdings[s.symbol] ? holdings[s.symbol].buyPrice : ""}" style="flex:1; min-width:0;" />
+              <button class="toolbar-icon-btn" data-save-holding="${s.symbol}" title="Save">✓</button>
+              <button class="toolbar-icon-btn" data-cancel-holding-edit="${s.symbol}" title="Cancel">✕</button>
+            </div>
+          </div>
         </div>
       </div>`;
   }
@@ -1497,13 +1579,14 @@
   function errorCardInner(symbol) {
     return `
       <div class="stock-head">
-        <div class="pin-rank" data-pin-rank="${symbol}"></div>
-        <div class="sym-block">
-          <div class="sym">${symbol}</div>
-          <div class="company-name">${getSymbolName(symbol)}</div>
-          <div class="err-text">Failed to load — try again</div>
+        <div class="card-name-row">
+          <span class="sym">${symbol}</span>
+          <span class="company-name">${getSymbolName(symbol)}</span>
         </div>
-        <button class="load-btn" data-load="${symbol}">Retry</button>
+        <div class="card-mid-row">
+          <div class="err-text">Failed to load — try again</div>
+          <button class="load-btn" data-load="${symbol}">Retry</button>
+        </div>
       </div>`;
   }
 
@@ -1699,7 +1782,7 @@
   }
 
   // ---------- Settings (auto-update interval + market hours) ----------
-  const DEFAULT_SETTINGS = { intervalSeconds: 120, startHour: 9, endHour: 17, theme: "dark", hijriOffsetDays: -2, autoUpdateCheck: true };
+  const DEFAULT_SETTINGS = { intervalSeconds: 120, startHour: 9, endHour: 17, theme: "dark", hijriOffsetDays: -2, autoUpdateCheck: true, cardFontSize: 14 };
   const lastStockData = {};
 
   function loadPinned() {
@@ -1718,61 +1801,255 @@
     const sym = card.dataset.symbol;
     const idx = pinnedOrder.indexOf(sym);
     card.classList.toggle("pinned-card", idx !== -1);
-    const rankEl = card.querySelector("[data-pin-rank]");
-    if (rankEl) rankEl.textContent = idx !== -1 ? String(idx + 1) : "";
   }
 
   function updatePinButtons() {
     document.querySelectorAll(".stock").forEach(applyPinIndicator);
-    const pinnedBtn = document.getElementById("pinnedBtn");
-    pinnedBtn.textContent = pinnedOrder.length > 0 ? "★" : "☆";
-    pinnedBtn.classList.toggle("active", pinnedOrder.length > 0);
-    pinnedBtn.title = pinnedOrder.length > 0 ? `Pinned (${pinnedOrder.length})` : "Pinned";
   }
 
-  function renderPinnedList() {
-    const el = document.getElementById("pinnedList");
-    if (pinnedOrder.length === 0) {
-      el.innerHTML = `<div class="placeholder-text" style="padding:12px 4px;">No stocks pinned — long-press any card, then drag it up or down with your finger</div>`;
+  // ---------- My Holdings (shares owned + buy price, for P&L analysis) ----------
+  function loadHoldings() {
+    try {
+      const raw = localStorage.getItem("kmi30_holdings");
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {};
+  }
+  function saveHoldings() {
+    try { localStorage.setItem("kmi30_holdings", JSON.stringify(holdings)); } catch (e) {}
+  }
+  let holdings = loadHoldings();
+
+  function holdingPL(symbol, currentPrice) {
+    const h = holdings[symbol];
+    if (!h) return null;
+    const invested = h.shares * h.buyPrice;
+    const currentValue = h.shares * currentPrice;
+    const pl = currentValue - invested;
+    const plPct = invested !== 0 ? (pl / invested) * 100 : 0;
+    return { shares: h.shares, buyPrice: h.buyPrice, invested, currentValue, pl, plPct };
+  }
+
+  function holdingSummaryHtml(symbol, currentPrice) {
+    const p = holdingPL(symbol, currentPrice);
+    if (!p) return "";
+    const dir = p.pl >= 0 ? "up" : "down";
+    const sign = p.pl >= 0 ? "+" : "";
+    return `<div class="holding-summary ${dir}">${p.shares} @ ${p.buyPrice.toFixed(2)} → ${sign}Rs${p.pl.toFixed(2)} (${sign}${p.plPct.toFixed(1)}%)</div>`;
+  }
+
+  let holdingsEditMode = false;
+
+  function renderHoldingsList() {
+    const el = document.getElementById("holdingsList");
+    const totalsEl = document.getElementById("holdingsTotals");
+    const symbols = Object.keys(holdings);
+    if (symbols.length === 0) {
+      el.innerHTML = `<div class="placeholder-text" style="padding:12px 4px;">No holdings added yet — open a stock's details and tap "Add Holdings".</div>`;
+      totalsEl.innerHTML = "";
       return;
     }
-    el.innerHTML = pinnedOrder.map((sym, i) => `
-      <div class="pinned-row">
-        <div class="pinned-sym">${sym}</div>
-        <div class="pinned-actions">
-          <button class="toolbar-btn" data-pin-up="${i}" ${i === 0 ? "disabled" : ""}>▲</button>
-          <button class="toolbar-btn" data-pin-down="${i}" ${i === pinnedOrder.length - 1 ? "disabled" : ""}>▼</button>
-          <button class="toolbar-btn" data-pin-remove="${sym}">✕</button>
-        </div>
-      </div>`).join("");
+    let totalInvested = 0, totalCurrent = 0;
+    el.innerHTML = symbols.map(sym => {
+      const s = lastStockData[sym];
+      const price = s ? s.current[1] : holdings[sym].buyPrice;
+      const p = holdingPL(sym, price);
+      totalInvested += p.invested;
+      totalCurrent += p.currentValue;
+      const dir = p.pl >= 0 ? "up" : "down";
+      const sign = p.pl >= 0 ? "+" : "";
+      return `
+        <div class="holding-line-row">
+          <span class="holding-line-sym">${sym}</span>
+          <span class="holding-line-detail ${dir}">${p.shares} @ ${p.buyPrice.toFixed(2)} → ${sign}Rs${p.pl.toFixed(2)} (${sign}${p.plPct.toFixed(1)}%)</span>
+          ${holdingsEditMode ? `<button class="holding-line-remove" data-holding-remove="${sym}">✕</button>` : ""}
+        </div>`;
+    }).join("");
+    const totalPl = totalCurrent - totalInvested;
+    const totalPlPct = totalInvested !== 0 ? (totalPl / totalInvested) * 100 : 0;
+    const sign = totalPl >= 0 ? "+" : "";
+    totalsEl.innerHTML = `
+      Total invested: Rs${totalInvested.toFixed(2)}<br>
+      Current value: Rs${totalCurrent.toFixed(2)}<br>
+      <b>Total P&amp;L: ${sign}Rs${totalPl.toFixed(2)} (${sign}${totalPlPct.toFixed(1)}%)</b>
+    `;
   }
 
-  function wirePinnedPanel() {
-    const overlay = document.getElementById("pinnedOverlay");
-    document.getElementById("pinnedBtn").addEventListener("click", () => {
-      renderPinnedList();
-      overlay.classList.add("open");
-    });
-    document.getElementById("closePinnedBtn").addEventListener("click", () => overlay.classList.remove("open"));
-    document.getElementById("pinnedList").addEventListener("click", (e) => {
-      const up = e.target.closest("[data-pin-up]");
-      const down = e.target.closest("[data-pin-down]");
-      const remove = e.target.closest("[data-pin-remove]");
-      if (up) {
-        const i = parseInt(up.getAttribute("data-pin-up"), 10);
-        [pinnedOrder[i - 1], pinnedOrder[i]] = [pinnedOrder[i], pinnedOrder[i - 1]];
-        savePinned(); renderPinnedList(); applySort();
-      } else if (down) {
-        const i = parseInt(down.getAttribute("data-pin-down"), 10);
-        [pinnedOrder[i + 1], pinnedOrder[i]] = [pinnedOrder[i], pinnedOrder[i + 1]];
-        savePinned(); renderPinnedList(); applySort();
-      } else if (remove) {
-        const sym = remove.getAttribute("data-pin-remove");
-        pinnedOrder = pinnedOrder.filter(s => s !== sym);
-        savePinned(); renderPinnedList(); applySort(); updatePinButtons();
+  function refreshCard(sym) {
+    const card = document.querySelector(`.stock[data-symbol="${sym}"]`);
+    if (card && lastStockData[sym]) {
+      card.innerHTML = loadedCardInner(lastStockData[sym]);
+      attachCardListeners(card);
+      document.getElementById("detail-" + sym).classList.add("open");
+    }
+  }
+
+  function wireHoldingsFormDelegation() {
+    listEl.addEventListener("click", (e) => {
+      const addBtn = e.target.closest("[data-add-holding]");
+      const editBtn = e.target.closest("[data-edit-holding]");
+      const saveBtn = e.target.closest("[data-save-holding]");
+      const removeBtn = e.target.closest("[data-remove-holding]");
+      const cancelBtn = e.target.closest("[data-cancel-holding-edit]");
+      if (cancelBtn) {
+        e.stopPropagation();
+        const sym = cancelBtn.getAttribute("data-cancel-holding-edit");
+        // Just hide the form — nothing was saved, so re-rendering it from
+        // the still-unchanged `holdings` data restores whatever the inputs
+        // showed before this edit attempt.
+        refreshCard(sym);
+        return;
+      }
+      if (addBtn || editBtn) {
+        e.stopPropagation();
+        const sym = (addBtn || editBtn).getAttribute(addBtn ? "data-add-holding" : "data-edit-holding");
+        const form = document.getElementById("holdingForm-" + sym);
+        form.style.display = form.style.display === "none" ? "block" : "none";
+      } else if (saveBtn) {
+        e.stopPropagation();
+        const sym = saveBtn.getAttribute("data-save-holding");
+        const shares = parseFloat(document.getElementById("holdingShares-" + sym).value);
+        const price = parseFloat(document.getElementById("holdingPrice-" + sym).value);
+        if (!shares || !price || shares <= 0 || price <= 0) { alert("Enter valid shares and price."); return; }
+        holdings[sym] = { shares, buyPrice: price };
+        saveHoldings();
+        refreshCard(sym);
+      } else if (removeBtn) {
+        e.stopPropagation();
+        const sym = removeBtn.getAttribute("data-remove-holding");
+        showConfirm(`Remove your ${sym} holding?`, () => {
+          delete holdings[sym];
+          saveHoldings();
+          refreshCard(sym);
+        });
       }
     });
   }
+
+  // Ranked symbol/company matching, reused for the holdings "add" search.
+  function matchSymbolsForHolding(qRaw) {
+    const q = qRaw.trim().toLowerCase().replace(/(.)\1+/g, "$1");
+    if (!q) return [];
+    function scoreFor(sym) {
+      const symN = sym.toLowerCase().replace(/(.)\1+/g, "$1");
+      const name = getSymbolName(sym).toLowerCase().replace(/(.)\1+/g, "$1");
+      if (name.startsWith(q)) return 0;
+      if (name.split(/[\s.]+/).some(w => w.startsWith(q))) return 1;
+      if (symN.startsWith(q)) return 2;
+      if (symN.includes(q)) return 3;
+      if (name.includes(q)) return 4;
+      return null;
+    }
+    return getAllSymbols()
+      .map(sym => ({ sym, score: scoreFor(sym) }))
+      .filter(x => x.score !== null)
+      .sort((a, b) => a.score - b.score || a.sym.localeCompare(b.sym))
+      .slice(0, 8)
+      .map(x => x.sym);
+  }
+
+  // Custom Yes/No confirmation — native confirm() is unreliable inside a
+  // sandboxed preview iframe (it can silently show nothing there), so we
+  // use our own overlay instead, which works the same everywhere.
+  let confirmCallback = null;
+  function showConfirm(message, onYes) {
+    document.getElementById("confirmTitle").textContent = message;
+    confirmCallback = onYes;
+    document.getElementById("confirmOverlay").classList.add("open");
+  }
+  function wireConfirmOverlay() {
+    document.getElementById("confirmYesBtn").addEventListener("click", () => {
+      document.getElementById("confirmOverlay").classList.remove("open");
+      const cb = confirmCallback;
+      confirmCallback = null;
+      if (cb) cb();
+    });
+    document.getElementById("confirmNoBtn").addEventListener("click", () => {
+      document.getElementById("confirmOverlay").classList.remove("open");
+      confirmCallback = null;
+    });
+  }
+
+  function wireHoldingsPanel() {
+    const overlay = document.getElementById("holdingsOverlay");
+    let selectedHoldingSymbol = null;
+
+    document.getElementById("holdingsBtn").addEventListener("click", () => {
+      holdingsEditMode = false;
+      document.getElementById("toggleHoldingsEditBtn").textContent = "Edit";
+      renderHoldingsList();
+      overlay.classList.add("open");
+    });
+    document.getElementById("closeHoldingsBtn").addEventListener("click", () => overlay.classList.remove("open"));
+
+    document.getElementById("addHoldingBtn").addEventListener("click", () => {
+      const form = document.getElementById("addHoldingForm");
+      const opening = form.style.display === "none";
+      form.style.display = opening ? "block" : "none";
+      if (opening) {
+        selectedHoldingSymbol = null;
+        document.getElementById("holdingSymbolSearch").value = "";
+        document.getElementById("newHoldingShares").value = "";
+        document.getElementById("newHoldingPrice").value = "";
+        document.getElementById("holdingSymbolSuggestions").style.display = "none";
+      }
+    });
+
+    document.getElementById("holdingSymbolSearch").addEventListener("input", (e) => {
+      selectedHoldingSymbol = null;
+      const matches = matchSymbolsForHolding(e.target.value);
+      const box = document.getElementById("holdingSymbolSuggestions");
+      if (matches.length === 0) { box.style.display = "none"; box.innerHTML = ""; return; }
+      box.innerHTML = matches.map(sym => `
+        <div class="holding-suggestion-row" data-pick-symbol="${sym}">
+          <span class="sym-part">${sym}</span><span class="name-part">${getSymbolName(sym)}</span>
+        </div>`).join("");
+      box.style.display = "block";
+    });
+
+    document.getElementById("holdingSymbolSuggestions").addEventListener("click", (e) => {
+      const row = e.target.closest("[data-pick-symbol]");
+      if (!row) return;
+      const sym = row.getAttribute("data-pick-symbol");
+      selectedHoldingSymbol = sym;
+      document.getElementById("holdingSymbolSearch").value = sym + " — " + getSymbolName(sym);
+      document.getElementById("holdingSymbolSuggestions").style.display = "none";
+    });
+
+    document.getElementById("saveNewHoldingBtn").addEventListener("click", () => {
+      const shares = parseFloat(document.getElementById("newHoldingShares").value);
+      const price = parseFloat(document.getElementById("newHoldingPrice").value);
+      if (!selectedHoldingSymbol) { alert("Pick a symbol from the suggestions first."); return; }
+      if (!shares || !price || shares <= 0 || price <= 0) { alert("Enter valid shares and price."); return; }
+      holdings[selectedHoldingSymbol] = { shares, buyPrice: price };
+      saveHoldings();
+      document.getElementById("addHoldingForm").style.display = "none";
+      renderHoldingsList();
+      refreshCard(selectedHoldingSymbol);
+    });
+
+    document.getElementById("toggleHoldingsEditBtn").addEventListener("click", () => {
+      holdingsEditMode = !holdingsEditMode;
+      document.getElementById("toggleHoldingsEditBtn").textContent = holdingsEditMode ? "Done" : "Edit";
+      renderHoldingsList();
+    });
+    document.getElementById("holdingsList").addEventListener("click", (e) => {
+      const removeBtn = e.target.closest("[data-holding-remove]");
+      if (!removeBtn) return;
+      const sym = removeBtn.getAttribute("data-holding-remove");
+      showConfirm(`Remove your ${sym} holding?`, () => {
+        delete holdings[sym];
+        saveHoldings();
+        renderHoldingsList();
+        const card = document.querySelector(`.stock[data-symbol="${sym}"]`);
+        if (card && lastStockData[sym]) {
+          card.innerHTML = loadedCardInner(lastStockData[sym]);
+          attachCardListeners(card);
+        }
+      });
+    });
+  }
+
 
   function loadSettings() {
     try {
@@ -2118,6 +2395,14 @@
     });
   }
 
+  function applyCardFontSize() {
+    document.documentElement.style.setProperty("--card-font-size", settings.cardFontSize + "px");
+  }
+
+  function updateCardFontUI() {
+    document.getElementById("cardFontPreview").textContent = settings.cardFontSize.toFixed(1) + "px";
+  }
+
   // ---------- In-app update check ----------
   // Checking the same place the APK itself gets uploaded to (not the raw
   // source file, which changes the instant a commit is pushed — well
@@ -2153,11 +2438,18 @@
   function downloadAndInstallUpdate() {
     const progress = document.getElementById("updateProgress");
     progress.style.display = "block";
-    progress.textContent = "Opening in browser to download — tap the downloaded file when it's done to install.";
     // Handing off to the system browser is far more reliable than our own
     // download+installer-plugin flow: Chrome's own download manager fetches
     // the APK and Android's own "tap to install" notification takes over —
     // the exact same well-tested path as tapping the GitHub link manually.
+    // This needs cordova-plugin-inappbrowser to actually override
+    // window.open — if this build predates that plugin being added, tell
+    // the person plainly instead of silently doing nothing.
+    if (typeof cordova === "undefined" || !cordova.InAppBrowser) {
+      progress.textContent = "This installed version is too old to auto-update — please download the APK manually from GitHub this one time.";
+      return;
+    }
+    progress.textContent = "Opening in browser to download — tap the downloaded file when it's done to install.";
     window.open(UPDATE_APK_URL, "_system");
   }
 
@@ -2273,6 +2565,7 @@
     document.getElementById("settingsBtn").addEventListener("click", () => {
       updateHijriOffsetUI();
       document.getElementById("autoUpdateCheck").checked = settings.autoUpdateCheck;
+      updateCardFontUI();
       renderCustomSymbolsList();
       overlay.classList.add("open");
     });
@@ -2293,6 +2586,18 @@
       saveSettingsToStorage(settings);
       updateHijriOffsetUI();
       updateLiveClock();
+    });
+    document.getElementById("cardFontMinusBtn").addEventListener("click", () => {
+      settings.cardFontSize = Math.max(9, settings.cardFontSize - 0.5);
+      saveSettingsToStorage(settings);
+      updateCardFontUI();
+      applyCardFontSize();
+    });
+    document.getElementById("cardFontPlusBtn").addEventListener("click", () => {
+      settings.cardFontSize = Math.min(18, settings.cardFontSize + 0.5);
+      saveSettingsToStorage(settings);
+      updateCardFontUI();
+      applyCardFontSize();
     });
     document.getElementById("intervalMinusBtn").addEventListener("click", () => {
       intervalPresetIndex = Math.max(0, intervalPresetIndex - 1);
@@ -2377,16 +2682,24 @@
       const t = e.touches[0];
       startX = t.clientX; startY = t.clientY;
       timer = setTimeout(() => {
-        dragging = true;
         suppressClick = true;
         if (navigator.vibrate) navigator.vibrate(20);
 
-        if (!pinnedOrder.includes(symbol)) {
-          pinnedOrder.push(symbol);
+        if (pinnedOrder.includes(symbol)) {
+          // Already pinned — long-press unpins it directly, no need to
+          // open any panel and tap a remove button.
+          pinnedOrder = pinnedOrder.filter(s => s !== symbol);
           savePinned();
           applySort();
           updatePinButtons();
+          return;
         }
+
+        dragging = true;
+        pinnedOrder.push(symbol);
+        savePinned();
+        applySort();
+        updatePinButtons();
 
         const rect = card.getBoundingClientRect();
         cardWidth = rect.width; cardHeight = rect.height; cardLeft = rect.left;
@@ -2404,7 +2717,7 @@
         card.style.width = cardWidth + "px";
         card.style.zIndex = "999";
         card.style.pointerEvents = "none";
-      }, 450);
+      }, 3000);
     }
 
     function onTouchMove(e) {
@@ -2460,7 +2773,6 @@
         pinnedOrder = Array.from(listEl.querySelectorAll(".stock.pinned-card")).map(el => el.dataset.symbol);
         savePinned();
         updatePinButtons();
-        renderPinnedList();
       }
     }
 
@@ -2485,12 +2797,15 @@
     populateHourSelects();
     populateIntervalSelect();
     applyTheme();
+    applyCardFontSize();
     wireSettingsPanel();
     wireCustomSymbols();
     wireToolbar();
     wireHistoryPanel();
     wireTrendPanel();
-    wirePinnedPanel();
+    wireHoldingsPanel();
+    wireConfirmOverlay();
+    wireHoldingsFormDelegation();
     wireUpdateOverlay();
     updatePinButtons();
     applySort();
