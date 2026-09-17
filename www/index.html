@@ -254,6 +254,14 @@
   }
   .glossary-section-heading:first-child { margin-top: 0; }
   .glossary-term-def { font-size: 13px; color: var(--dim); line-height: 1.5; }
+  .glossary-formula {
+    font-family: var(--mono); font-size: 12px; color: var(--accent2); line-height: 1.6;
+    margin-top: 8px; padding: 8px 10px; background: var(--btn-bg); border-radius: 8px;
+  }
+  .glossary-why {
+    font-size: 12.5px; color: var(--dim); line-height: 1.5; margin-top: 8px;
+  }
+  .glossary-why b { color: var(--accent); }
 </style>
 </head>
 <body>
@@ -478,7 +486,7 @@
       <div id="trendTable" class="trend-table" style="display:none;"></div>
     </div>
 
-    <div id="analysisTabContent" style="display:none;"></div>
+    <div id="analysisTabContent" style="display:none; max-height:68vh; overflow-y:auto; touch-action:pan-y;"></div>
   </div>
 </div>
 
@@ -893,6 +901,9 @@
     sma: {
       name: "Moving Average (50-day / 200-day)",
       category: "technical",
+      formula: "Moving Average = Sum of closing prices over the period ÷ Number of days",
+      whyEn: "Helps you quickly see the stock's overall direction without getting distracted by daily up-and-down noise.",
+      whyUr: "Isse aap stock ka overall rukh (trend) jaldi samajh sakte hain, bina roz ke chhote utaar-chadhav mein ulzhe.",
       short: "Average price over the last 50/200 days — shows the overall trend direction.",
       en: "The average closing price over the last 50 or 200 trading days. When the price is above these averages, it suggests an uptrend; below them, a downtrend.",
       ur: "Pichle 50 ya 200 trading din ki average (aost) closing price. Agar price in averages se upar ho to uptrend (upar ka rukh) samjha jaata hai, neeche ho to downtrend (neeche ka rukh)."
@@ -900,6 +911,9 @@
     rsi: {
       name: "RSI (Relative Strength Index)",
       category: "technical",
+      formula: "RSI = 100 − ( 100 ÷ (1 + Average Gain ÷ Average Loss) ), over 14 days",
+      whyEn: "Helps you spot when a stock might be due for a pullback (overbought) or a bounce (oversold), instead of chasing a price that has already moved a lot.",
+      whyUr: "Isse pata chalta hai ke stock kab pullback (waapis neeche) ya bounce (waapis upar) ke qareeb ho sakta hai, bajaye is ke ke aap already zyada move ho chuki price ke peeche bhaagen.",
       short: "A 0-100 score — above 70 means overbought, below 30 means oversold.",
       en: "A momentum indicator from 0-100. Above 70 usually means the stock is 'overbought' (may be due for a pullback); below 30 means 'oversold' (may be due for a bounce). 30-70 is considered neutral.",
       ur: "Ek momentum indicator jo 0 se 100 tak hota hai. 70 se upar ho to stock 'overbought' (zyada khareeda gaya) samjha jaata hai; 30 se neeche ho to 'oversold' (zyada becha gaya). 30-70 ke darmiyan 'neutral' hota hai."
@@ -907,6 +921,9 @@
     bollinger: {
       name: "Bollinger Bands",
       category: "technical",
+      formula: "Upper Band = 20-day MA + (2 × Standard Deviation)\nLower Band = 20-day MA − (2 × Standard Deviation)",
+      whyEn: "Helps you judge whether the current price is unusually high or low compared to its own recent normal range.",
+      whyUr: "Isse aap andaza laga sakte hain ke current price apni normal range ke muqable mein ghair-mamuli tor par zyada ya kam hai.",
       short: "The price's normal trading range — near the top may mean pricier, near the bottom cheaper.",
       en: "A band around the price showing its normal trading range, based on recent volatility. Price near the upper band may mean it's relatively expensive right now; near the lower band, relatively cheap.",
       ur: "Price ke ird-gird ek 'band' jo uski normal trading range dikhata hai, recent volatility (utaar-chadhav) ke hisaab se. Agar price upper band ke qareeb ho to filhaal thoda mehnga lag sakta hai; lower band ke qareeb ho to sasta."
@@ -914,6 +931,9 @@
     atr: {
       name: "ATR (Average True Range)",
       category: "technical",
+      formula: "ATR = Average of the daily price change over the last 14 days",
+      whyEn: "Helps you gauge how much daily movement/risk to expect, useful for setting realistic stop-loss distances.",
+      whyUr: "Isse aap andaza laga sakte hain ke roz kitna utaar-chadhav (risk) expect karna chahiye, jo stop-loss set karne mein madadgar hai.",
       short: "The average daily price movement — higher means more volatile.",
       en: "The average amount a stock's price moves in a single day. A higher ATR means the stock is more volatile (bigger daily swings).",
       ur: "Ek din mein stock ki price aam tor par kitni move karti hai, uski average. ATR jitna zyada ho, stock utni hi zyada volatile (utaar-chadhav wali) hai."
@@ -921,6 +941,9 @@
     volume: {
       name: "Volume & Average Volume",
       category: "technical",
+      formula: "Average Volume = Sum of volume over last 30 days ÷ 30",
+      whyEn: "Helps you judge how much real interest is behind a price move — a change on unusually high volume is often considered more meaningful.",
+      whyUr: "Isse pata chalta hai ke price move ke peeche kitni asal dilchaspi hai — zyada volume ke saath price change ko aksar zyada ahem samjha jaata hai.",
       short: "Today's trading activity vs the recent daily average.",
       en: "How many shares traded today, compared to the recent daily average. Higher-than-average volume often means stronger interest (buying or selling) in the stock right now.",
       ur: "Aaj kitne shares trade hue, recent din ki average se moqabla karte hue. Average se zyada volume aksar iska matlab hota hai ke stock mein filhaal zyada dilchaspi (khareedari ya farokht) hai."
@@ -928,6 +951,9 @@
     support_resistance: {
       name: "Support & Resistance",
       category: "technical",
+      formula: "Support = Lowest closing price in the recent period\nResistance = Highest closing price in the recent period",
+      whyEn: "Helps you spot likely price levels to watch for a bounce or a breakout, useful for planning entries and exits.",
+      whyUr: "Isse aapko woh price levels pata chalte hain jahan bounce ya breakout ki umeed rakhi ja sakti hai, jo entry/exit plan karne mein kaam aata hai.",
       short: "Price levels where the stock has often paused or reversed before.",
       en: "Support is a price level the stock has historically had trouble falling below; resistance is a level it has had trouble rising above. These are common areas where the price may pause or reverse.",
       ur: "Support woh price level hai jahan se stock aam tor par neeche girne mein mushkil mehsoos karta hai; resistance woh level hai jahan se upar jaane mein mushkil hoti hai. Yeh aksar aise mauqe hote hain jahan price ruk ya wapas palat sakti hai."
@@ -935,6 +961,9 @@
     "52week": {
       name: "52-Week High / Low",
       category: "technical",
+      formula: "52-Week High/Low = Highest / Lowest closing price in the last ~252 trading days",
+      whyEn: "Helps you see whether today's price is near its yearly extremes, giving context on how 'cheap' or 'expensive' it looks versus its own history.",
+      whyUr: "Isse pata chalta hai ke aaj ki price saal ki intihaon ke kitne qareeb hai, jo yeh samajhne mein madad karta hai ke price abhi 'sasti' hai ya 'mehngi'.",
       short: "The highest and lowest price this stock has reached in the past year.",
       en: "The highest and lowest price the stock has reached in the past year. Useful for seeing how today's price compares to its yearly range.",
       ur: "Pichle ek saal mein stock ki sabse zyada aur sabse kam pahunchi hui price. Isse pata chalta hai ke aaj ki price saal bhar ki range ke muqable mein kahan khadi hai."
@@ -942,6 +971,9 @@
     pe_ratio: {
       name: "P/E Ratio (Price-to-Earnings)",
       category: "fundamental",
+      formula: "P/E Ratio = Share Price ÷ Earnings Per Share (EPS)",
+      whyEn: "Helps you judge whether a stock is expensive or cheap relative to its actual earnings, and to compare it against other companies.",
+      whyUr: "Isse aap andaza laga sakte hain ke stock apni asal kamai (earnings) ke muqable mein mehnga hai ya sasta, aur doosri companies se muqabla kar sakte hain.",
       short: "Share price divided by earnings per share — how expensive the stock is relative to its profit.",
       en: "The share price divided by the company's earnings per share (EPS). A high P/E can mean the market expects strong future growth (or that the stock is overpriced); a low P/E can mean it's undervalued (or that growth is expected to be weak).",
       ur: "Share ki price ko company ki earnings per share (EPS) se taqseem kar ke nikala jaata hai. Zyada P/E ka matlab ho sakta hai ke market ko aage acha growth ki tawaqqo hai (ya phir stock mehnga hai); kam P/E ka matlab ho sakta hai stock sasta hai (ya growth kam tawaqqo ki hai)."
@@ -949,6 +981,9 @@
     eps: {
       name: "EPS (Earnings Per Share)",
       category: "fundamental",
+      formula: "EPS = Net Profit ÷ Total Number of Shares Outstanding",
+      whyEn: "Helps you see how profitable the company is on a per-share basis, useful for comparing companies of different sizes.",
+      whyUr: "Isse pata chalta hai ke company har share ke hisaab se kitni munafa-bakhsh hai, jo alag size ki companies ka muqabla karne mein madadgar hai.",
       short: "The company's profit divided by its total number of shares.",
       en: "The company's total profit divided by the number of shares outstanding. It shows how much profit is attributable to each individual share.",
       ur: "Company ka kul munafa, uske total shares ki tadaad se taqseem kiya jaata hai. Yeh dikhata hai ke har ek share ke hisse mein kitna munafa aata hai."
@@ -956,6 +991,9 @@
     dividend_yield: {
       name: "Dividend Yield",
       category: "fundamental",
+      formula: "Dividend Yield = (Annual Dividend per Share ÷ Share Price) × 100",
+      whyEn: "Helps you see how much regular cash income you might earn from holding the stock, useful if you're investing for income rather than just price growth.",
+      whyUr: "Isse pata chalta hai ke stock rakhne se aapko kitni regular cash income mil sakti hai, khaas tor par agar aap sirf price barhne ke bajaye income ke liye invest kar rahe hon.",
       short: "Annual dividend paid, as a percentage of the share price.",
       en: "The annual dividend payment expressed as a percentage of the current share price. It shows how much cash return you'd get from dividends alone, relative to the price you'd pay for the stock.",
       ur: "Saalana dividend (munafa jo company shareholders ko deti hai) ko current share price ka percentage bana kar dikhaya jaata hai. Isse pata chalta hai ke sirf dividend se kitna return mil sakta hai, stock ki price ke muqable mein."
@@ -963,6 +1001,9 @@
     market_cap: {
       name: "Market Capitalization",
       category: "fundamental",
+      formula: "Market Cap = Share Price × Total Number of Shares Outstanding",
+      whyEn: "Helps you understand the overall size of the company, since large and small companies often behave very differently in the market.",
+      whyUr: "Isse company ka overall size samajh aata hai, kyunke badi aur choti companies market mein aksar bohot mukhtalif tareeqe se react karti hain.",
       short: "The total value of the company — share price × total shares.",
       en: "The total market value of a company, calculated as the share price multiplied by the total number of shares outstanding. It's used to gauge the overall size of the company.",
       ur: "Company ki kul market value — share price ko total shares ki tadaad se guna kar ke nikali jaati hai. Isse company ke overall size (bade ya chhote hone) ka andaza hota hai."
@@ -970,6 +1011,9 @@
     book_value: {
       name: "Book Value (per Share)",
       category: "fundamental",
+      formula: "Book Value per Share = (Total Assets − Total Liabilities) ÷ Total Shares Outstanding",
+      whyEn: "Helps you get a rough sense of what the company might be worth if it were shut down and its assets sold off — a 'floor' reference for the stock's value.",
+      whyUr: "Isse ek moti-moti andaza milta hai ke agar company band ho jaye aur uske assets bech diye jayen to uski qeemat kya banegi — stock ki qeemat ke liye ek 'floor' reference.",
       short: "The company's net worth (assets minus liabilities) divided by its shares.",
       en: "The company's total assets minus its total liabilities, divided by the number of shares outstanding. It's a rough estimate of what each share would be worth if the company were liquidated.",
       ur: "Company ke kul assets (jaidad) mein se uski kul liabilities (qarz/zimmedariyan) nikal kar, jo bache usay shares ki tadaad se taqseem kiya jaata hai. Yeh andazan batata hai ke agar company band ho jaye to har share ki qeemat kya banegi."
@@ -977,9 +1021,22 @@
     payout_ratio: {
       name: "Dividend Payout Ratio",
       category: "fundamental",
+      formula: "Payout Ratio = (Total Dividends Paid ÷ Net Profit) × 100",
+      whyEn: "Helps you judge whether a company's dividend payments are sustainable, or if it's paying out more than it can comfortably afford.",
+      whyUr: "Isse pata chalta hai ke company ka dividend dena barqarar rakhne layak hai ya woh apni haisiyat se zyada de rahi hai.",
       short: "How much of the company's profit is paid out as dividends, as a percentage.",
       en: "The percentage of a company's earnings that it pays out to shareholders as dividends, rather than keeping as retained earnings for reinvestment. A very high payout ratio can sometimes be harder to sustain.",
       ur: "Company apne munafe ka kitna hissa (percentage mein) shareholders ko dividend ke tor par de rahi hai, uske muqable mein kitna hissa apne paas (reinvestment ke liye) rakh rahi hai. Bohot zyada payout ratio kabhi kabhi lambe arse tak barqarar rakhna mushkil ho sakta hai."
+    },
+    pivot_points: {
+      name: "Pivot Points (Pivot, R1/R2, S1/S2)",
+      category: "technical",
+      formula: "Pivot = (High + Low + Close) ÷ 3\nR1 = (2 × Pivot) − Low\nR2 = Pivot + (High − Low)\nS1 = (2 × Pivot) − High\nS2 = Pivot − (High − Low)",
+      whyEn: "Helps intraday traders identify likely levels where the price could reverse or break through during the trading day.",
+      whyUr: "Isse intraday traders ko un levels ka andaza hota hai jahan din ke dauran price palat sakti hai ya break kar sakti hai.",
+      short: "Levels calculated from High, Low and Close, used to guess where price may pause today.",
+      en: "A set of price levels calculated from the previous session's High, Low and Close: a central Pivot, two Resistance levels above it (R1, R2), and two Support levels below it (S1, S2). Intraday traders often watch these as likely turning points for the day.",
+      ur: "Pichle session ki High, Low aur Close se nikale gaye price levels: ek darmiyani Pivot, uske upar do Resistance levels (R1, R2), aur neeche do Support levels (S1, S2). Intraday traders in ko aksar din ke mumkin 'mor' (turning points) ke tor par dekhte hain."
     }
   };
   let glossaryLang = "en";
@@ -1042,6 +1099,21 @@
     const resistance = Math.max(...recentForLevels.map(r => r.close));
     const support = Math.min(...recentForLevels.map(r => r.close));
     return { last, sma50, sma200, rsi, bb, atr, avgVolume, todayVolume: last.volume, high52, low52, support, resistance };
+  }
+
+  // Pivot Points need yesterday's High/Low/Close — PSX's EOD data doesn't
+  // include daily High/Low (only Open/Close/Volume), so this uses today's
+  // own live session High/Low/current-price instead when that stock is
+  // currently loaded, clearly labelled as such.
+  function computePivotPoints(high, low, close) {
+    const pivot = (high + low + close) / 3;
+    return {
+      pivot,
+      r1: 2 * pivot - low,
+      r2: pivot + (high - low),
+      s1: 2 * pivot - high,
+      s2: pivot - (high - low)
+    };
   }
 
   const TREND_SORT_KEYS = {
@@ -1611,6 +1683,35 @@
 
     const volDiffPct = a.avgVolume ? ((a.todayVolume - a.avgVolume) / a.avgVolume) * 100 : 0;
     const volLabel = a.avgVolume ? `${volDiffPct >= 0 ? "+" : ""}${volDiffPct.toFixed(0)}% vs 30-day avg` : "–";
+    const volLevel = !a.avgVolume ? "–" : volDiffPct > 50 ? "Very High" : volDiffPct > 10 ? "Above Average" : volDiffPct < -10 ? "Below Average" : "Average";
+    const volLevelDir = !a.avgVolume ? "" : volDiffPct > 10 ? "up" : volDiffPct < -10 ? "down" : "";
+
+    let bbLabel = "–", bbDir = "";
+    if (a.bb) {
+      if (a.last.close > a.bb.upper) { bbLabel = "Above Upper Band (Expensive)"; bbDir = "down"; }
+      else if (a.last.close < a.bb.lower) { bbLabel = "Below Lower Band (Cheap)"; bbDir = "up"; }
+      else if (a.last.close > a.bb.mid) { bbLabel = "Upper Half (Pricier)"; bbDir = ""; }
+      else { bbLabel = "Lower Half (Cheaper)"; bbDir = ""; }
+    }
+
+    let atrLevel = "–";
+    if (a.atr) {
+      const atrPct = (a.atr / a.last.close) * 100;
+      atrLevel = (atrPct > 2.5 ? "High" : atrPct < 1 ? "Low" : "Moderate") + ` Volatility (${atrPct.toFixed(1)}% of price)`;
+    }
+
+    // Uses today's own live session High/Low/current-price (not yesterday's,
+    // since PSX's EOD feed doesn't give us daily High/Low) — only available
+    // once this stock's live data has loaded.
+    const liveStock = lastStockData[trendSymbol];
+    const pivots = liveStock ? computePivotPoints(liveStock.high, liveStock.low, liveStock.current[1]) : null;
+
+    let levelNote = "–", levelDir = "";
+    const distToRes = Math.abs(a.resistance - a.last.close) / a.last.close * 100;
+    const distToSup = Math.abs(a.last.close - a.support) / a.last.close * 100;
+    if (distToRes < 2) { levelNote = "Near Resistance"; levelDir = "down"; }
+    else if (distToSup < 2) { levelNote = "Near Support"; levelDir = "up"; }
+    else { levelNote = "Mid-Range"; levelDir = ""; }
 
     el.innerHTML = `
       <div class="placeholder-text" style="margin-bottom:14px;">Based on ~1 year of price history. These are calculations, not guarantees — always do your own research before trading.</div>
@@ -1646,8 +1747,16 @@
           <div class="analysis-value">${a.bb ? `Rs${a.bb.lower.toFixed(2)} – Rs${a.bb.upper.toFixed(2)}` : "–"}</div>
         </div>
         <div class="analysis-row">
+          <div class="analysis-label">Price Position</div>
+          <div class="analysis-value ${bbDir}">${bbLabel}</div>
+        </div>
+        <div class="analysis-row">
           <div class="analysis-label">ATR (avg daily move) ${infoIcon("atr")}</div>
           <div class="analysis-value">${a.atr ? "Rs" + a.atr.toFixed(2) : "–"}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">Volatility Level</div>
+          <div class="analysis-value">${atrLevel}</div>
         </div>
       </div>
 
@@ -1660,6 +1769,10 @@
         <div class="analysis-row">
           <div class="analysis-label">vs 30-day Average</div>
           <div class="analysis-value ${volDiffPct >= 0 ? "up" : "down"}">${volLabel}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">Activity Level</div>
+          <div class="analysis-value ${volLevelDir}">${volLevel}</div>
         </div>
       </div>
 
@@ -1681,6 +1794,37 @@
           <div class="analysis-label">Nearest Resistance ${infoIcon("support_resistance")}</div>
           <div class="analysis-value">Rs${a.resistance.toFixed(2)}</div>
         </div>
+        <div class="analysis-row">
+          <div class="analysis-label">Current Position</div>
+          <div class="analysis-value ${levelDir}">${levelNote}</div>
+        </div>
+      </div>
+
+      <div class="analysis-section">
+        <div class="analysis-heading">Pivot Points ${infoIcon("pivot_points")}</div>
+        ${pivots ? `
+          <div class="analysis-row">
+            <div class="analysis-label">Resistance 2 (R2)</div>
+            <div class="analysis-value">Rs${pivots.r2.toFixed(2)}</div>
+          </div>
+          <div class="analysis-row">
+            <div class="analysis-label">Resistance 1 (R1)</div>
+            <div class="analysis-value">Rs${pivots.r1.toFixed(2)}</div>
+          </div>
+          <div class="analysis-row">
+            <div class="analysis-label">Pivot</div>
+            <div class="analysis-value">Rs${pivots.pivot.toFixed(2)}</div>
+          </div>
+          <div class="analysis-row">
+            <div class="analysis-label">Support 1 (S1)</div>
+            <div class="analysis-value">Rs${pivots.s1.toFixed(2)}</div>
+          </div>
+          <div class="analysis-row">
+            <div class="analysis-label">Support 2 (S2)</div>
+            <div class="analysis-value">Rs${pivots.s2.toFixed(2)}</div>
+          </div>
+          <div class="placeholder-text" style="margin-top:8px;">Based on today's session so far, not yesterday's full close.</div>
+        ` : `<div class="placeholder-text">Load this stock's live price first to see today's pivot levels.</div>`}
       </div>
     `;
   }
@@ -1695,10 +1839,18 @@
       const keys = Object.keys(GLOSSARY).filter(k => GLOSSARY[k].category === cat.key);
       const terms = keys.map(key => {
         const g = GLOSSARY[key];
+        const formulaHtml = g.formula
+          ? `<div class="glossary-formula">${(glossaryLang === "en" ? "Formula: " : "Formula: ") + g.formula.replace(/\n/g, "<br>")}</div>`
+          : "";
+        const whyHtml = (g.whyEn || g.whyUr)
+          ? `<div class="glossary-why"><b>${glossaryLang === "en" ? "Why check this?" : "Isay kyun dekhte hain?"}</b> ${glossaryLang === "en" ? g.whyEn : g.whyUr}</div>`
+          : "";
         return `
           <div class="glossary-term" id="glossary-${key}">
             <div class="glossary-term-name">${g.name}</div>
             <div class="glossary-term-def">${glossaryLang === "en" ? g.en : g.ur}</div>
+            ${formulaHtml}
+            ${whyHtml}
           </div>`;
       }).join("");
       return `<div class="glossary-section-heading">${cat.heading}</div>${terms}`;
