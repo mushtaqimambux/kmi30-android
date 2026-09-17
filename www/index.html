@@ -222,6 +222,38 @@
     border-radius: 8px; padding: 6px 10px; font-size: 11px; line-height: 1.5; color: var(--text);
     z-index: 20; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.35); white-space: nowrap;
   }
+  .analysis-section {
+    margin-bottom: 18px; background: var(--btn-bg); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .analysis-heading {
+    font-size: 15.5px; font-weight: 700; margin-bottom: 10px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .analysis-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 0; border-bottom: 1px solid var(--card-border); font-size: 14.5px;
+  }
+  .analysis-row:last-child { border-bottom: none; }
+  .analysis-label { display: flex; align-items: center; gap: 6px; color: var(--dim); }
+  .analysis-value { font-family: var(--mono); font-weight: 700; text-align: right; font-size: 15px; }
+  .analysis-value.up { color: var(--accent); }
+  .analysis-value.down { color: var(--down); }
+  .info-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 19px; height: 19px; border-radius: 50%; border: 1.5px solid var(--accent2);
+    color: var(--accent2); font-size: 12px; font-weight: 700; font-style: italic; font-family: serif;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .glossary-term { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--card-border); }
+  .glossary-term:last-child { border-bottom: none; }
+  .glossary-term-name { font-size: 14.5px; font-weight: 700; margin-bottom: 5px; }
+  .glossary-section-heading {
+    font-size: 15px; font-weight: 700; color: var(--accent2); margin: 16px 0 10px;
+    padding-bottom: 6px; border-bottom: 2px solid var(--accent2);
+  }
+  .glossary-section-heading:first-child { margin-top: 0; }
+  .glossary-term-def { font-size: 13px; color: var(--dim); line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -230,6 +262,7 @@
   <div class="header-top">
     <h1>KMI-30</h1>
     <div style="display:flex; gap:8px;">
+      <button class="icon-btn" id="studyBtn" aria-label="Study">📖</button>
       <button class="icon-btn" id="historyBtn" aria-label="History">📅</button>
       <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
     </div>
@@ -347,7 +380,7 @@
         <input type="checkbox" id="autoUpdateCheck" checked style="width:18px; height:18px; accent-color:var(--accent); margin:0; flex-shrink:0;" />
         <span style="font-size:13px; color:var(--text);">Auto-check for updates on launch</span>
       </label>
-      <div class="secondary-btn" id="checkUpdatesNowBtn" style="margin-top:8px;">Check for Updates Now</div>
+      <div class="secondary-btn" id="checkUpdatesNowBtn" style="margin-top:8px;">Download Updated App</div>
     </div>
 
     <div class="settings-row">
@@ -393,7 +426,7 @@
     <div id="updateMessage" style="font-size:13.5px; color:var(--dim); margin-bottom:16px;"></div>
     <div class="settings-actions">
       <div class="secondary-btn" id="updateNotNowBtn">Not Now</div>
-      <div class="primary-btn" id="updateYesBtn">Update Now</div>
+      <a class="primary-btn" id="updateYesBtn" style="text-decoration:none; display:block;" href="https://github.com/mushtaqimambux/kmi30-android/releases/download/release/kmi30-live.apk">Update Now</a>
     </div>
     <div id="updateNeverAskBtn" style="text-align:center; margin-top:14px; color:var(--dim); font-size:12px; text-decoration:underline;">Never ask again</div>
     <div id="updateProgress" style="display:none; text-align:center; margin-top:14px; font-size:12.5px; color:var(--dim);"></div>
@@ -404,39 +437,69 @@
   <div class="settings-card">
     <button class="close-btn" id="closeTrendBtn">✕</button>
     <div class="settings-title" id="trendTitle">Trend</div>
-    <div class="period-tabs" id="periodTabs">
-      <button class="period-tab" data-period="1D">1D</button>
-      <button class="period-tab" data-period="1M">1M</button>
-      <button class="period-tab" data-period="6M">6M</button>
-      <button class="period-tab" data-period="YTD">YTD</button>
-      <button class="period-tab" data-period="1Y">1Y</button>
-      <button class="period-tab" data-period="3Y">3Y</button>
-      <button class="period-tab" data-period="5Y">5Y</button>
-      <button class="period-tab" data-period="custom">Custom</button>
-      <span id="customDateRangeRow" style="display:none; align-items:center; gap:4px;">
-        <input type="date" id="customFromDateInput" style="width:96px; padding:5px 4px; font-size:12px;" />
-        <span style="color:var(--dim); font-size:12px;">to</span>
-        <input type="date" id="customToDateInput" style="width:96px; padding:5px 4px; font-size:12px;" />
-        <div class="secondary-btn" id="applyCustomRangeBtn" style="padding:6px 10px; font-size:12px;">Go</div>
-      </span>
+    <div class="period-tabs" style="margin-bottom:10px;">
+      <button class="period-tab active" id="chartSubTabBtn" data-subtab="chart" style="flex:1;">📈 Chart</button>
+      <button class="period-tab" id="analysisSubTabBtn" data-subtab="analysis" style="flex:1;">📊 Analysis</button>
     </div>
-    <div class="trend-legend">
-      <label class="trend-legend-item"><input type="checkbox" id="showCloseCheck" checked /><span class="dot" style="background:var(--accent);"></span><span id="closeLabelText">Close</span></label>
-      <label class="trend-legend-item" id="trendLegendOpen"><input type="checkbox" id="showOpenCheck" checked /><span class="dot" style="background:var(--accent2);"></span> Open</label>
-      <select id="trendChartType" class="toolbar-select" style="flex:0 0 auto; width:auto;">
-        <option value="line">Line</option>
-        <option value="area">Area</option>
-        <option value="bar">Bar (Open-Close)</option>
-      </select>
-      <label id="fitToScreenLabel" class="auto-sort-label"><input type="checkbox" id="fitToScreenCheck" checked /> Fit to screen</label>
+
+    <div id="chartTabContent">
+      <div class="period-tabs" id="periodTabs">
+        <button class="period-tab" data-period="1D">1D</button>
+        <button class="period-tab" data-period="1M">1M</button>
+        <button class="period-tab" data-period="6M">6M</button>
+        <button class="period-tab" data-period="YTD">YTD</button>
+        <button class="period-tab" data-period="1Y">1Y</button>
+        <button class="period-tab" data-period="3Y">3Y</button>
+        <button class="period-tab" data-period="5Y">5Y</button>
+        <button class="period-tab" data-period="custom">Custom</button>
+        <span id="customDateRangeRow" style="display:none; align-items:center; gap:4px;">
+          <input type="date" id="customFromDateInput" style="width:96px; padding:5px 4px; font-size:12px;" />
+          <span style="color:var(--dim); font-size:12px;">to</span>
+          <input type="date" id="customToDateInput" style="width:96px; padding:5px 4px; font-size:12px;" />
+          <div class="secondary-btn" id="applyCustomRangeBtn" style="padding:6px 10px; font-size:12px;">Go</div>
+        </span>
+      </div>
+      <div class="trend-legend">
+        <label class="trend-legend-item"><input type="checkbox" id="showCloseCheck" checked /><span class="dot" style="background:var(--accent);"></span><span id="closeLabelText">Close</span></label>
+        <label class="trend-legend-item" id="trendLegendOpen"><input type="checkbox" id="showOpenCheck" checked /><span class="dot" style="background:var(--accent2);"></span> Open</label>
+        <select id="trendChartType" class="toolbar-select" style="flex:0 0 auto; width:auto;">
+          <option value="line">Line</option>
+          <option value="area">Area</option>
+          <option value="bar">Bar (Open-Close)</option>
+        </select>
+        <label id="fitToScreenLabel" class="auto-sort-label"><input type="checkbox" id="fitToScreenCheck" checked /> Fit to screen</label>
+      </div>
+      <div id="trendChart" style="position:relative;"></div>
+      <div id="chartTooltip" class="chart-tooltip" style="display:none;"></div>
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <div class="toolbar-btn" id="trendDetailsBtn" style="flex:1; text-align:center;">Show details</div>
+        <div class="secondary-btn" id="exportTrendCsvBtn" style="display:none; flex:1; text-align:center;">Export Data in CSV</div>
+      </div>
+      <div id="trendTable" class="trend-table" style="display:none;"></div>
     </div>
-    <div id="trendChart" style="position:relative;"></div>
-    <div id="chartTooltip" class="chart-tooltip" style="display:none;"></div>
-    <div style="display:flex; gap:8px; margin-top:10px;">
-      <div class="toolbar-btn" id="trendDetailsBtn" style="flex:1; text-align:center;">Show details</div>
-      <div class="secondary-btn" id="exportTrendCsvBtn" style="display:none; flex:1; text-align:center;">Export Data in CSV</div>
+
+    <div id="analysisTabContent" style="display:none;"></div>
+  </div>
+</div>
+
+<div class="overlay" id="glossaryOverlay">
+  <div class="settings-card">
+    <button class="close-btn" id="closeGlossaryBtn">✕</button>
+    <div class="settings-title">📖 Study: Stock Market Terms</div>
+    <div class="period-tabs" style="margin-bottom:14px;">
+      <button class="period-tab active" id="glossaryLangEn" data-lang="en" style="flex:1;">English</button>
+      <button class="period-tab" id="glossaryLangUr" data-lang="ur" style="flex:1;">Roman Urdu</button>
     </div>
-    <div id="trendTable" class="trend-table" style="display:none;"></div>
+    <div id="glossaryList" style="max-height:70vh; overflow-y:auto;"></div>
+  </div>
+</div>
+
+<div id="glossaryShortPopup" style="display:none; position:fixed; left:16px; right:16px; bottom:16px; z-index:60; max-width:608px; margin:0 auto; background:var(--card); border:1px solid var(--accent); border-radius:12px; padding:14px; box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+  <div id="glossaryShortTitle" style="font-weight:700; font-size:14px; margin-bottom:6px;"></div>
+  <div id="glossaryShortText" style="font-size:13px; color:var(--text); line-height:1.5; margin-bottom:12px;"></div>
+  <div style="display:flex; gap:8px;">
+    <div class="secondary-btn" id="glossaryShortCloseBtn" style="flex:1;">Close</div>
+    <div class="primary-btn" id="glossaryShortMoreBtn" style="flex:1;">Read Full Detail</div>
   </div>
 </div>
 
@@ -823,6 +886,162 @@
       ${seriesSvg}
       ${dateLabels}
     </svg>`;
+  }
+
+  // ---------- Glossary: term definitions in English + Roman Urdu ----------
+  const GLOSSARY = {
+    sma: {
+      name: "Moving Average (50-day / 200-day)",
+      category: "technical",
+      short: "Average price over the last 50/200 days — shows the overall trend direction.",
+      en: "The average closing price over the last 50 or 200 trading days. When the price is above these averages, it suggests an uptrend; below them, a downtrend.",
+      ur: "Pichle 50 ya 200 trading din ki average (aost) closing price. Agar price in averages se upar ho to uptrend (upar ka rukh) samjha jaata hai, neeche ho to downtrend (neeche ka rukh)."
+    },
+    rsi: {
+      name: "RSI (Relative Strength Index)",
+      category: "technical",
+      short: "A 0-100 score — above 70 means overbought, below 30 means oversold.",
+      en: "A momentum indicator from 0-100. Above 70 usually means the stock is 'overbought' (may be due for a pullback); below 30 means 'oversold' (may be due for a bounce). 30-70 is considered neutral.",
+      ur: "Ek momentum indicator jo 0 se 100 tak hota hai. 70 se upar ho to stock 'overbought' (zyada khareeda gaya) samjha jaata hai; 30 se neeche ho to 'oversold' (zyada becha gaya). 30-70 ke darmiyan 'neutral' hota hai."
+    },
+    bollinger: {
+      name: "Bollinger Bands",
+      category: "technical",
+      short: "The price's normal trading range — near the top may mean pricier, near the bottom cheaper.",
+      en: "A band around the price showing its normal trading range, based on recent volatility. Price near the upper band may mean it's relatively expensive right now; near the lower band, relatively cheap.",
+      ur: "Price ke ird-gird ek 'band' jo uski normal trading range dikhata hai, recent volatility (utaar-chadhav) ke hisaab se. Agar price upper band ke qareeb ho to filhaal thoda mehnga lag sakta hai; lower band ke qareeb ho to sasta."
+    },
+    atr: {
+      name: "ATR (Average True Range)",
+      category: "technical",
+      short: "The average daily price movement — higher means more volatile.",
+      en: "The average amount a stock's price moves in a single day. A higher ATR means the stock is more volatile (bigger daily swings).",
+      ur: "Ek din mein stock ki price aam tor par kitni move karti hai, uski average. ATR jitna zyada ho, stock utni hi zyada volatile (utaar-chadhav wali) hai."
+    },
+    volume: {
+      name: "Volume & Average Volume",
+      category: "technical",
+      short: "Today's trading activity vs the recent daily average.",
+      en: "How many shares traded today, compared to the recent daily average. Higher-than-average volume often means stronger interest (buying or selling) in the stock right now.",
+      ur: "Aaj kitne shares trade hue, recent din ki average se moqabla karte hue. Average se zyada volume aksar iska matlab hota hai ke stock mein filhaal zyada dilchaspi (khareedari ya farokht) hai."
+    },
+    support_resistance: {
+      name: "Support & Resistance",
+      category: "technical",
+      short: "Price levels where the stock has often paused or reversed before.",
+      en: "Support is a price level the stock has historically had trouble falling below; resistance is a level it has had trouble rising above. These are common areas where the price may pause or reverse.",
+      ur: "Support woh price level hai jahan se stock aam tor par neeche girne mein mushkil mehsoos karta hai; resistance woh level hai jahan se upar jaane mein mushkil hoti hai. Yeh aksar aise mauqe hote hain jahan price ruk ya wapas palat sakti hai."
+    },
+    "52week": {
+      name: "52-Week High / Low",
+      category: "technical",
+      short: "The highest and lowest price this stock has reached in the past year.",
+      en: "The highest and lowest price the stock has reached in the past year. Useful for seeing how today's price compares to its yearly range.",
+      ur: "Pichle ek saal mein stock ki sabse zyada aur sabse kam pahunchi hui price. Isse pata chalta hai ke aaj ki price saal bhar ki range ke muqable mein kahan khadi hai."
+    },
+    pe_ratio: {
+      name: "P/E Ratio (Price-to-Earnings)",
+      category: "fundamental",
+      short: "Share price divided by earnings per share — how expensive the stock is relative to its profit.",
+      en: "The share price divided by the company's earnings per share (EPS). A high P/E can mean the market expects strong future growth (or that the stock is overpriced); a low P/E can mean it's undervalued (or that growth is expected to be weak).",
+      ur: "Share ki price ko company ki earnings per share (EPS) se taqseem kar ke nikala jaata hai. Zyada P/E ka matlab ho sakta hai ke market ko aage acha growth ki tawaqqo hai (ya phir stock mehnga hai); kam P/E ka matlab ho sakta hai stock sasta hai (ya growth kam tawaqqo ki hai)."
+    },
+    eps: {
+      name: "EPS (Earnings Per Share)",
+      category: "fundamental",
+      short: "The company's profit divided by its total number of shares.",
+      en: "The company's total profit divided by the number of shares outstanding. It shows how much profit is attributable to each individual share.",
+      ur: "Company ka kul munafa, uske total shares ki tadaad se taqseem kiya jaata hai. Yeh dikhata hai ke har ek share ke hisse mein kitna munafa aata hai."
+    },
+    dividend_yield: {
+      name: "Dividend Yield",
+      category: "fundamental",
+      short: "Annual dividend paid, as a percentage of the share price.",
+      en: "The annual dividend payment expressed as a percentage of the current share price. It shows how much cash return you'd get from dividends alone, relative to the price you'd pay for the stock.",
+      ur: "Saalana dividend (munafa jo company shareholders ko deti hai) ko current share price ka percentage bana kar dikhaya jaata hai. Isse pata chalta hai ke sirf dividend se kitna return mil sakta hai, stock ki price ke muqable mein."
+    },
+    market_cap: {
+      name: "Market Capitalization",
+      category: "fundamental",
+      short: "The total value of the company — share price × total shares.",
+      en: "The total market value of a company, calculated as the share price multiplied by the total number of shares outstanding. It's used to gauge the overall size of the company.",
+      ur: "Company ki kul market value — share price ko total shares ki tadaad se guna kar ke nikali jaati hai. Isse company ke overall size (bade ya chhote hone) ka andaza hota hai."
+    },
+    book_value: {
+      name: "Book Value (per Share)",
+      category: "fundamental",
+      short: "The company's net worth (assets minus liabilities) divided by its shares.",
+      en: "The company's total assets minus its total liabilities, divided by the number of shares outstanding. It's a rough estimate of what each share would be worth if the company were liquidated.",
+      ur: "Company ke kul assets (jaidad) mein se uski kul liabilities (qarz/zimmedariyan) nikal kar, jo bache usay shares ki tadaad se taqseem kiya jaata hai. Yeh andazan batata hai ke agar company band ho jaye to har share ki qeemat kya banegi."
+    },
+    payout_ratio: {
+      name: "Dividend Payout Ratio",
+      category: "fundamental",
+      short: "How much of the company's profit is paid out as dividends, as a percentage.",
+      en: "The percentage of a company's earnings that it pays out to shareholders as dividends, rather than keeping as retained earnings for reinvestment. A very high payout ratio can sometimes be harder to sustain.",
+      ur: "Company apne munafe ka kitna hissa (percentage mein) shareholders ko dividend ke tor par de rahi hai, uske muqable mein kitna hissa apne paas (reinvestment ke liye) rakh rahi hai. Bohot zyada payout ratio kabhi kabhi lambe arse tak barqarar rakhna mushkil ho sakta hai."
+    }
+  };
+  let glossaryLang = "en";
+
+  // ---------- Analysis calculations (all from the same EOD rows already
+  // fetched for the chart — no extra data source needed) ----------
+  function computeSMA(rows, period) {
+    if (rows.length < period) return null;
+    const slice = rows.slice(rows.length - period);
+    return slice.reduce((sum, r) => sum + r.close, 0) / period;
+  }
+
+  function computeRSI(rows, period) {
+    if (rows.length < period + 1) return null;
+    const slice = rows.slice(rows.length - period - 1);
+    let gains = 0, losses = 0;
+    for (let i = 1; i < slice.length; i++) {
+      const diff = slice[i].close - slice[i - 1].close;
+      if (diff >= 0) gains += diff; else losses -= diff;
+    }
+    const avgGain = gains / period, avgLoss = losses / period;
+    if (avgLoss === 0) return 100;
+    const rs = avgGain / avgLoss;
+    return 100 - (100 / (1 + rs));
+  }
+
+  function computeBollinger(rows, period) {
+    if (rows.length < period) return null;
+    const slice = rows.slice(rows.length - period);
+    const mean = slice.reduce((sum, r) => sum + r.close, 0) / period;
+    const variance = slice.reduce((sum, r) => sum + Math.pow(r.close - mean, 2), 0) / period;
+    const sd = Math.sqrt(variance);
+    return { mid: mean, upper: mean + 2 * sd, lower: mean - 2 * sd };
+  }
+
+  function computeATR(rows, period) {
+    if (rows.length < period + 1) return null;
+    const slice = rows.slice(rows.length - period - 1);
+    let sumRange = 0;
+    for (let i = 1; i < slice.length; i++) {
+      sumRange += Math.abs(slice[i].close - slice[i - 1].close);
+    }
+    return sumRange / period;
+  }
+
+  function computeAnalysis(rows) {
+    if (!rows || rows.length < 30) return null;
+    const last = rows[rows.length - 1];
+    const sma50 = computeSMA(rows, 50);
+    const sma200 = computeSMA(rows, 200);
+    const rsi = computeRSI(rows, 14);
+    const bb = computeBollinger(rows, 20);
+    const atr = computeATR(rows, 14);
+    const recentVolRows = rows.slice(-30);
+    const avgVolume = recentVolRows.reduce((s, r) => s + r.volume, 0) / recentVolRows.length;
+    const periodRows = rows.slice(-252); // ~52 trading weeks
+    const high52 = Math.max(...periodRows.map(r => r.close));
+    const low52 = Math.min(...periodRows.map(r => r.close));
+    const recentForLevels = rows.slice(-60);
+    const resistance = Math.max(...recentForLevels.map(r => r.close));
+    const support = Math.min(...recentForLevels.map(r => r.close));
+    return { last, sma50, sma200, rsi, bb, atr, avgVolume, todayVolume: last.volume, high52, low52, support, resistance };
   }
 
   const TREND_SORT_KEYS = {
@@ -1347,7 +1566,7 @@
     }
   }
 
-  async function openTrendFor(symbol) {
+  async function openTrendFor(symbol, startTab) {
     const overlay = document.getElementById("trendOverlay");
     trendSymbol = symbol;
     trendRawData = null;
@@ -1357,13 +1576,200 @@
     document.getElementById("showOpenCheck").checked = true;
     document.getElementById("trendTitle").textContent = symbol + " — Trend";
     overlay.classList.add("open");
-    await selectPeriod("1D");
+    await selectPeriod(startTab === "analysis" ? "1Y" : "1D");
+    selectTrendSubTab(startTab === "analysis" ? "analysis" : "chart");
+  }
+
+  function infoIcon(termKey) {
+    return `<span class="info-icon" data-glossary-term="${termKey}">i</span>`;
+  }
+
+  async function renderAnalysisTab() {
+    const el = document.getElementById("analysisTabContent");
+    el.innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Loading…</div>`;
+    if (!trendRawData) {
+      try {
+        trendRawData = await getEodRawRows(trendSymbol);
+      } catch (e) {
+        el.innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Failed to load data for analysis.</div>`;
+        return;
+      }
+    }
+    const rows = normalizeEodRows(trendRawData, 365);
+    const a = computeAnalysis(rows);
+    if (!a) {
+      el.innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Not enough history yet for analysis — at least ~1 month of data is needed, ideally 1 year.</div>`;
+      return;
+    }
+    const trendUp = a.sma50 && a.sma200 ? (a.last.close > a.sma50 && a.sma50 > a.sma200) : null;
+    const trendDown = a.sma50 && a.sma200 ? (a.last.close < a.sma50 && a.sma50 < a.sma200) : null;
+    const trendLabel = trendUp ? "▲ Uptrend" : trendDown ? "▼ Downtrend" : "• Mixed / Sideways";
+    const trendDir = trendUp ? "up" : trendDown ? "down" : "";
+
+    const rsiLabel = a.rsi === null ? "–" : a.rsi.toFixed(0) + (a.rsi > 70 ? " (Overbought)" : a.rsi < 30 ? " (Oversold)" : " (Neutral)");
+    const rsiDir = a.rsi === null ? "" : a.rsi > 70 ? "down" : a.rsi < 30 ? "up" : "";
+
+    const volDiffPct = a.avgVolume ? ((a.todayVolume - a.avgVolume) / a.avgVolume) * 100 : 0;
+    const volLabel = a.avgVolume ? `${volDiffPct >= 0 ? "+" : ""}${volDiffPct.toFixed(0)}% vs 30-day avg` : "–";
+
+    el.innerHTML = `
+      <div class="placeholder-text" style="margin-bottom:14px;">Based on ~1 year of price history. These are calculations, not guarantees — always do your own research before trading.</div>
+
+      <div class="analysis-section">
+        <div class="analysis-heading">Trend</div>
+        <div class="analysis-row">
+          <div class="analysis-label">50-day MA ${infoIcon("sma")}</div>
+          <div class="analysis-value">${a.sma50 ? "Rs" + a.sma50.toFixed(2) : "–"}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">200-day MA ${infoIcon("sma")}</div>
+          <div class="analysis-value">${a.sma200 ? "Rs" + a.sma200.toFixed(2) : "–"}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">Status</div>
+          <div class="analysis-value ${trendDir}">${trendLabel}</div>
+        </div>
+      </div>
+
+      <div class="analysis-section">
+        <div class="analysis-heading">Momentum</div>
+        <div class="analysis-row">
+          <div class="analysis-label">RSI (14) ${infoIcon("rsi")}</div>
+          <div class="analysis-value ${rsiDir}">${rsiLabel}</div>
+        </div>
+      </div>
+
+      <div class="analysis-section">
+        <div class="analysis-heading">Volatility</div>
+        <div class="analysis-row">
+          <div class="analysis-label">Bollinger Bands ${infoIcon("bollinger")}</div>
+          <div class="analysis-value">${a.bb ? `Rs${a.bb.lower.toFixed(2)} – Rs${a.bb.upper.toFixed(2)}` : "–"}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">ATR (avg daily move) ${infoIcon("atr")}</div>
+          <div class="analysis-value">${a.atr ? "Rs" + a.atr.toFixed(2) : "–"}</div>
+        </div>
+      </div>
+
+      <div class="analysis-section">
+        <div class="analysis-heading">Volume</div>
+        <div class="analysis-row">
+          <div class="analysis-label">Today's Volume ${infoIcon("volume")}</div>
+          <div class="analysis-value">${a.todayVolume.toLocaleString("en-US")}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">vs 30-day Average</div>
+          <div class="analysis-value ${volDiffPct >= 0 ? "up" : "down"}">${volLabel}</div>
+        </div>
+      </div>
+
+      <div class="analysis-section">
+        <div class="analysis-heading">Price Levels</div>
+        <div class="analysis-row">
+          <div class="analysis-label">52-Week High ${infoIcon("52week")}</div>
+          <div class="analysis-value">Rs${a.high52.toFixed(2)}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">52-Week Low ${infoIcon("52week")}</div>
+          <div class="analysis-value">Rs${a.low52.toFixed(2)}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">Nearest Support ${infoIcon("support_resistance")}</div>
+          <div class="analysis-value">Rs${a.support.toFixed(2)}</div>
+        </div>
+        <div class="analysis-row">
+          <div class="analysis-label">Nearest Resistance ${infoIcon("support_resistance")}</div>
+          <div class="analysis-value">Rs${a.resistance.toFixed(2)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderGlossary() {
+    const el = document.getElementById("glossaryList");
+    const categories = [
+      { key: "technical", heading: glossaryLang === "en" ? "Technical Analysis Terms" : "Technical Analysis ki Terms" },
+      { key: "fundamental", heading: glossaryLang === "en" ? "Fundamental Analysis Terms" : "Fundamental Analysis ki Terms" }
+    ];
+    el.innerHTML = categories.map(cat => {
+      const keys = Object.keys(GLOSSARY).filter(k => GLOSSARY[k].category === cat.key);
+      const terms = keys.map(key => {
+        const g = GLOSSARY[key];
+        return `
+          <div class="glossary-term" id="glossary-${key}">
+            <div class="glossary-term-name">${g.name}</div>
+            <div class="glossary-term-def">${glossaryLang === "en" ? g.en : g.ur}</div>
+          </div>`;
+      }).join("");
+      return `<div class="glossary-section-heading">${cat.heading}</div>${terms}`;
+    }).join("");
+  }
+
+  let pendingGlossaryTerm = null;
+
+  function wireGlossary() {
+    document.getElementById("studyBtn").addEventListener("click", () => {
+      renderGlossary();
+      document.getElementById("glossaryOverlay").classList.add("open");
+    });
+    document.getElementById("closeGlossaryBtn").addEventListener("click", () => {
+      document.getElementById("glossaryOverlay").classList.remove("open");
+    });
+    document.getElementById("glossaryLangEn").addEventListener("click", () => {
+      glossaryLang = "en";
+      document.getElementById("glossaryLangEn").classList.add("active");
+      document.getElementById("glossaryLangUr").classList.remove("active");
+      renderGlossary();
+    });
+    document.getElementById("glossaryLangUr").addEventListener("click", () => {
+      glossaryLang = "ur";
+      document.getElementById("glossaryLangUr").classList.add("active");
+      document.getElementById("glossaryLangEn").classList.remove("active");
+      renderGlossary();
+    });
+    document.getElementById("analysisTabContent").addEventListener("click", (e) => {
+      const icon = e.target.closest("[data-glossary-term]");
+      if (!icon) return;
+      const key = icon.getAttribute("data-glossary-term");
+      pendingGlossaryTerm = key;
+      document.getElementById("glossaryShortTitle").textContent = GLOSSARY[key].name;
+      document.getElementById("glossaryShortText").textContent = GLOSSARY[key].short;
+      document.getElementById("glossaryShortPopup").style.display = "block";
+    });
+    document.getElementById("glossaryShortCloseBtn").addEventListener("click", () => {
+      document.getElementById("glossaryShortPopup").style.display = "none";
+      pendingGlossaryTerm = null;
+    });
+    document.getElementById("glossaryShortMoreBtn").addEventListener("click", () => {
+      document.getElementById("glossaryShortPopup").style.display = "none";
+      const key = pendingGlossaryTerm;
+      pendingGlossaryTerm = null;
+      if (!key) return;
+      document.getElementById("trendOverlay").classList.remove("open");
+      renderGlossary();
+      document.getElementById("glossaryOverlay").classList.add("open");
+      setTimeout(() => {
+        const target = document.getElementById("glossary-" + key);
+        if (target) target.scrollIntoView({ block: "start" });
+      }, 50);
+    });
+  }
+
+  function selectTrendSubTab(tab) {
+    const isChart = tab === "chart";
+    document.getElementById("chartSubTabBtn").classList.toggle("active", isChart);
+    document.getElementById("analysisSubTabBtn").classList.toggle("active", !isChart);
+    document.getElementById("chartTabContent").style.display = isChart ? "" : "none";
+    document.getElementById("analysisTabContent").style.display = isChart ? "none" : "block";
+    if (!isChart) renderAnalysisTab();
   }
 
   function wireTrendPanel() {
     document.getElementById("closeTrendBtn").addEventListener("click", () => {
       document.getElementById("trendOverlay").classList.remove("open");
     });
+    document.getElementById("chartSubTabBtn").addEventListener("click", () => selectTrendSubTab("chart"));
+    document.getElementById("analysisSubTabBtn").addEventListener("click", () => selectTrendSubTab("analysis"));
     document.getElementById("periodTabs").addEventListener("click", (e) => {
       const btn = e.target.closest("[data-period]");
       if (btn) selectPeriod(btn.getAttribute("data-period"));
@@ -1562,7 +1968,8 @@
             ` : `
               <button class="toolbar-btn" data-add-holding="${s.symbol}" style="flex:1;">💼 Add Holdings</button>
             `}
-            <button class="toolbar-btn" data-trend="${s.symbol}" style="flex:1;">📈 Show Chart</button>
+            <button class="toolbar-btn" data-trend="${s.symbol}" style="flex:1;">📈 Chart</button>
+            <button class="toolbar-btn" data-analysis="${s.symbol}" style="flex:1;">📊 Analysis</button>
           </div>
           <div class="holding-form" id="holdingForm-${s.symbol}" style="display:none; margin-top:8px;">
             <div style="display:flex; gap:6px; align-items:center;">
@@ -2435,23 +2842,12 @@
     document.getElementById("updateOverlay").classList.add("open");
   }
 
-  function downloadAndInstallUpdate() {
-    const progress = document.getElementById("updateProgress");
-    progress.style.display = "block";
-    // Handing off to the system browser is far more reliable than our own
-    // download+installer-plugin flow: Chrome's own download manager fetches
-    // the APK and Android's own "tap to install" notification takes over —
-    // the exact same well-tested path as tapping the GitHub link manually.
-    // This needs cordova-plugin-inappbrowser to actually override
-    // window.open — if this build predates that plugin being added, tell
-    // the person plainly instead of silently doing nothing.
-    if (typeof cordova === "undefined" || !cordova.InAppBrowser) {
-      progress.textContent = "This installed version is too old to auto-update — please download the APK manually from GitHub this one time.";
-      return;
-    }
-    progress.textContent = "Opening in browser to download — tap the downloaded file when it's done to install.";
-    window.open(UPDATE_APK_URL, "_system");
-  }
+  // The "Update Now" button is now a plain <a href> link (see HTML above)
+  // pointing straight at the APK download URL — tapping it lets Cordova's
+  // own whitelist/intent handling (already allowed via config.xml's
+  // allow-intent rules) hand it to the system browser, the same well-tested
+  // path as tapping the GitHub link manually. No custom JS download logic
+  // needed, which is what kept failing before.
 
   async function checkForUpdate(manual) {
     const latest = await fetchLatestVersion();
@@ -2470,7 +2866,10 @@
     document.getElementById("closeUpdateBtn").addEventListener("click", () => {
       document.getElementById("updateOverlay").classList.remove("open");
     });
-    document.getElementById("updateYesBtn").addEventListener("click", downloadAndInstallUpdate);
+    document.getElementById("updateYesBtn").addEventListener("click", () => {
+      document.getElementById("updateProgress").style.display = "block";
+      document.getElementById("updateProgress").textContent = "Opening in your browser to download — once it's done, tap the downloaded file to install.";
+    });
     document.getElementById("updateNotNowBtn").addEventListener("click", () => {
       document.getElementById("updateOverlay").classList.remove("open");
     });
@@ -2644,7 +3043,12 @@
     const trendBtn = card.querySelector("[data-trend]");
     if (trendBtn) trendBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      openTrendFor(trendBtn.getAttribute("data-trend"));
+      openTrendFor(trendBtn.getAttribute("data-trend"), "chart");
+    });
+    const analysisBtn = card.querySelector("[data-analysis]");
+    if (analysisBtn) analysisBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openTrendFor(analysisBtn.getAttribute("data-analysis"), "analysis");
     });
     applyPinIndicator(card);
     if (!card.dataset.longpressBound) {
@@ -2803,6 +3207,7 @@
     wireToolbar();
     wireHistoryPanel();
     wireTrendPanel();
+    wireGlossary();
     wireHoldingsPanel();
     wireConfirmOverlay();
     wireHoldingsFormDelegation();
