@@ -27,6 +27,10 @@ jobs:
         if: steps.checkversion.outputs.should_build == 'true'
         run: VERSION=$(cat version.txt | tr -d '[:space:]'); sed -i "s/__VERSION__/$VERSION/g" www/index.html; echo "Stamped version $VERSION into www/index.html"
 
+      - name: Stamp version into the APK itself (not just the download link)
+        if: steps.checkversion.outputs.should_build == 'true'
+        run: VERSION=$(cat version.txt | tr -d '[:space:]'); sed -i "s/version=\"1\.0\.0\"/version=\"1.0.$VERSION\"/" config.xml; echo "Stamped Android version 1.0.$VERSION into config.xml"
+
       - name: Set up Node.js
         if: steps.checkversion.outputs.should_build == 'true'
         uses: actions/setup-node@v4
@@ -56,7 +60,7 @@ jobs:
 
       - name: Add plugins
         if: steps.checkversion.outputs.should_build == 'true'
-        run: (cordova plugin add cordova-plugin-advanced-http || true) && (cordova plugin add cordova-plugin-file || true) && (cordova plugin add cordova-plugin-x-socialsharing || true) && (cordova plugin add cordova-plugin-file-opener2 || true) && (cordova plugin add cordova-plugin-inappbrowser || true)
+        run: (cordova plugin add cordova-plugin-advanced-http || true) && (cordova plugin add cordova-plugin-file || true) && (cordova plugin add cordova-plugin-x-socialsharing || true) && (cordova plugin add cordova-plugin-file-opener2 || true) && (cordova plugin add cordova-plugin-inappbrowser || true) && (cordova plugin add cordova-plugin-whitelist || true)
 
       - name: Build debug APK
         if: steps.checkversion.outputs.should_build == 'true'
