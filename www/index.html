@@ -423,6 +423,8 @@
       <input type="date" id="historyDateInput" />
       <button class="toolbar-btn" id="nextDayBtn">›</button>
     </div>
+    <div class="secondary-btn" id="viewHistoryDateBtn" style="text-align:center; margin-bottom:10px;">View This Date</div>
+    <div id="historyDateLabel" style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:10px;"></div>
     <div class="history-nav">
       <button class="toolbar-btn" id="shareRecordBtn" style="flex:1;">Share</button>
       <button class="toolbar-btn" id="importRecordBtn" style="flex:1;">Import</button>
@@ -450,7 +452,7 @@
   <div class="settings-card">
     <button class="close-btn" id="closeTrendBtn">✕</button>
     <div class="settings-title" id="trendTitle">Trend</div>
-    <div class="period-tabs" style="margin-bottom:10px;">
+    <div class="period-tabs" id="trendSubTabsRow" style="display:none; margin-bottom:10px;">
       <button class="period-tab active" id="chartSubTabBtn" data-subtab="chart" style="flex:1;">📈 Chart</button>
       <button class="period-tab" id="analysisSubTabBtn" data-subtab="analysis" style="flex:1;">📊 Analysis</button>
     </div>
@@ -475,6 +477,8 @@
       <div class="trend-legend">
         <label class="trend-legend-item"><input type="checkbox" id="showCloseCheck" checked /><span class="dot" style="background:var(--accent);"></span><span id="closeLabelText">Close</span></label>
         <label class="trend-legend-item" id="trendLegendOpen"><input type="checkbox" id="showOpenCheck" checked /><span class="dot" style="background:var(--accent2);"></span> Open</label>
+        <label class="trend-legend-item" id="trendLegendAvgClose"><input type="checkbox" id="showAvgCloseCheck" /><span class="dot" style="background:var(--accent); opacity:0.6;"></span> Avg Close</label>
+        <label class="trend-legend-item" id="trendLegendAvgOpen"><input type="checkbox" id="showAvgOpenCheck" /><span class="dot" style="background:var(--accent2); opacity:0.6;"></span> Avg Open</label>
         <select id="trendChartType" class="toolbar-select" style="flex:0 0 auto; width:auto;">
           <option value="line">Line</option>
           <option value="area">Area</option>
@@ -895,9 +899,23 @@
       `;
     }
 
+    const avgClose = rows.reduce((s, r) => s + r.close, 0) / rows.length;
+    const avgOpen = rows.reduce((s, r) => s + r.open, 0) / rows.length;
+    const avgLinesSvg = `
+      ${showAvgCloseLine ? `
+        <line x1="${padSide}" y1="${yFor(avgClose).toFixed(1)}" x2="${(width - padSide).toFixed(1)}" y2="${yFor(avgClose).toFixed(1)}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.75" />
+        <text x="${padSide + 4}" y="${(yFor(avgClose) - 4).toFixed(1)}" font-size="9" font-weight="bold" fill="var(--accent)">Avg Close: ${avgClose.toFixed(2)}</text>
+      ` : ""}
+      ${showAvgOpenLine ? `
+        <line x1="${padSide}" y1="${yFor(avgOpen).toFixed(1)}" x2="${(width - padSide).toFixed(1)}" y2="${yFor(avgOpen).toFixed(1)}" stroke="var(--accent2)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.75" />
+        <text x="${padSide + 4}" y="${(yFor(avgOpen) + 12).toFixed(1)}" font-size="9" font-weight="bold" fill="var(--accent2)">Avg Open: ${avgOpen.toFixed(2)}</text>
+      ` : ""}
+    `;
+
     return `<svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
       ${hLines}${vLines}
       ${seriesSvg}
+      ${avgLinesSvg}
       ${dateLabels}
     </svg>`;
   }
@@ -1508,6 +1526,8 @@
   let fitToScreen = true;
   let showCloseLine = true;
   let showOpenLine = true;
+  let showAvgCloseLine = false;
+  let showAvgOpenLine = false;
   let lastChartGeom = null; // shared info so a single tap can find the nearest point
   let oneDSortCol = "time";
   let oneDSortDir = "desc";
@@ -1854,6 +1874,8 @@
     const isOneDay = period === "1D";
     const isCustom = period === "custom";
     document.getElementById("trendLegendOpen").style.display = isOneDay ? "none" : "";
+    document.getElementById("trendLegendAvgOpen").style.display = isOneDay ? "none" : "";
+    document.getElementById("trendLegendAvgClose").style.display = isOneDay ? "none" : "";
     document.getElementById("closeLabelText").textContent = isOneDay ? "Price" : "Close";
     document.getElementById("trendChartType").style.display = isOneDay ? "none" : "";
     document.getElementById("fitToScreenLabel").style.display = isOneDay ? "none" : "";
@@ -1869,6 +1891,8 @@
       cardEl.style.position = ""; cardEl.style.top = ""; cardEl.style.left = ""; cardEl.style.right = ""; cardEl.style.bottom = ""; cardEl.style.borderRadius = "";
       const tableEl2 = document.getElementById("trendTable");
       tableEl2.style.flex = ""; tableEl2.style.overflowY = ""; tableEl2.style.minHeight = ""; tableEl2.style.maxHeight = "";
+      const chartTabContentEl2 = document.getElementById("chartTabContent");
+      chartTabContentEl2.style.display = ""; chartTabContentEl2.style.flexDirection = ""; chartTabContentEl2.style.flex = ""; chartTabContentEl2.style.minHeight = "";
     }
     trendDetailsOpen = false;
     document.getElementById("trendDetailsBtn").textContent = "Show details";
@@ -1915,7 +1939,7 @@
     showOpenLine = true;
     document.getElementById("showCloseCheck").checked = true;
     document.getElementById("showOpenCheck").checked = true;
-    document.getElementById("trendTitle").textContent = symbol + " — Trend";
+    document.getElementById("trendTitle").textContent = symbol + (startTab === "analysis" ? " — Analysis" : " — Chart");
     overlay.classList.add("open");
     await selectPeriod(startTab === "analysis" ? "1Y" : "1D");
     selectTrendSubTab(startTab === "analysis" ? "analysis" : "chart");
@@ -2319,6 +2343,14 @@
       showOpenLine = e.target.checked;
       if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
     });
+    document.getElementById("showAvgCloseCheck").addEventListener("change", (e) => {
+      showAvgCloseLine = e.target.checked;
+      if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
+    });
+    document.getElementById("showAvgOpenCheck").addEventListener("change", (e) => {
+      showAvgOpenLine = e.target.checked;
+      if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
+    });
     document.getElementById("trendDetailsBtn").addEventListener("click", () => {
       trendDetailsOpen = !trendDetailsOpen;
       const tableEl = document.getElementById("trendTable");
@@ -2327,6 +2359,7 @@
       const periodTabsEl = document.getElementById("periodTabs");
       const legendEl = document.querySelector("#trendOverlay .trend-legend");
       const cardEl = document.querySelector("#trendOverlay .settings-card");
+      const chartTabContentEl = document.getElementById("chartTabContent");
       if (trendDetailsOpen) {
         tableEl.innerHTML = trendPeriod === "1D"
           ? buildOneDTable((lastStockData[trendSymbol] && lastStockData[trendSymbol].ticksChrono))
@@ -2334,10 +2367,13 @@
         tableEl.style.display = "block";
         exportBtn.style.display = "block";
         document.getElementById("trendDetailsBtn").textContent = "Hide details";
-        // Maximize the table: everything above it hides, the card is
-        // stretched to fill the screen, AND the table itself is made a
-        // flex-growing child so it actually claims that space (forcing the
-        // card taller alone left the extra room empty below a short table).
+        // Maximize the table: everything above it hides, the card and its
+        // chartTabContent wrapper are both stretched with flex-column (the
+        // table is nested a level deep inside chartTabContent, so that
+        // wrapper also needs to flex — sizing only the outer card left the
+        // table stuck at its old fixed height since its real parent wasn't
+        // flexed), and the table itself is the flex-growing child so it
+        // actually claims that space.
         periodTabsEl.style.display = "none";
         legendEl.style.display = "none";
         chartEl.style.display = "none";
@@ -2345,6 +2381,10 @@
         cardEl.style.display = "flex";
         cardEl.style.flexDirection = "column";
         cardEl.style.borderRadius = "0";
+        chartTabContentEl.style.display = "flex";
+        chartTabContentEl.style.flexDirection = "column";
+        chartTabContentEl.style.flex = "1 1 auto";
+        chartTabContentEl.style.minHeight = "0";
         tableEl.style.flex = "1 1 auto";
         tableEl.style.maxHeight = "none";
         tableEl.style.overflowY = "auto";
@@ -2360,6 +2400,10 @@
         cardEl.style.display = "";
         cardEl.style.flexDirection = "";
         cardEl.style.borderRadius = "";
+        chartTabContentEl.style.display = "";
+        chartTabContentEl.style.flexDirection = "";
+        chartTabContentEl.style.flex = "";
+        chartTabContentEl.style.minHeight = "";
         tableEl.style.flex = "";
         tableEl.style.maxHeight = "";
         tableEl.style.overflowY = "";
@@ -2478,6 +2522,12 @@
           Max P:${fmtEntry(s.maxEntry)}<br>
           Max V:${String(s.maxVolEntry[2]).padStart(4, "0")} Rs${s.maxVolEntry[1].toFixed(2)} – ${fmtTimeCardDetail(s.maxVolEntry[0])}<br>
           Today's Total V:${s.totalVolume.toLocaleString("en-US")}
+        </div>
+        <div class="detail-section">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" data-pin-toggle="${s.symbol}" ${pinnedOrder.includes(s.symbol) ? "checked" : ""} style="width:18px; height:18px; accent-color:var(--accent); margin:0; flex-shrink:0;" />
+            <span>📌 Pin this stock</span>
+          </label>
         </div>
         <div class="detail-section">
           <div class="detail-label">My Holdings</div>
@@ -2805,6 +2855,19 @@
   }
 
   function wireHoldingsFormDelegation() {
+    listEl.addEventListener("change", (e) => {
+      const pinToggle = e.target.closest("[data-pin-toggle]");
+      if (!pinToggle) return;
+      const sym = pinToggle.getAttribute("data-pin-toggle");
+      if (pinToggle.checked) {
+        if (!pinnedOrder.includes(sym)) pinnedOrder.push(sym);
+      } else {
+        pinnedOrder = pinnedOrder.filter(s => s !== sym);
+      }
+      savePinned();
+      applySort();
+      updatePinButtons();
+    });
     listEl.addEventListener("click", (e) => {
       const openPanelBtn = e.target.closest("[data-open-holding-panel]");
       const removeBtn = e.target.closest("[data-remove-holding]");
@@ -3176,9 +3239,19 @@
     el.innerHTML = records.map(historyRowHtml).join("");
   }
 
+  function updateHistoryDateLabel() {
+    const el = document.getElementById("historyDateLabel");
+    if (!historyDate) { el.textContent = ""; return; }
+    const d = new Date(historyDate + "T00:00:00");
+    const dateStr = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+    const isToday = historyDate === todayKey();
+    el.textContent = `Showing: ${dateStr}` + (isToday ? " (Today)" : " (Past Record)");
+  }
+
   function loadHistoryDate(dateStr) {
     historyDate = dateStr;
     document.getElementById("historyDateInput").value = dateStr;
+    updateHistoryDateLabel();
     readDailyRecord(dateStr).then(renderHistory).catch(() => renderHistory([]));
   }
 
@@ -3239,6 +3312,9 @@
     });
     document.getElementById("closeHistoryBtn").addEventListener("click", () => overlay.classList.remove("open"));
     document.getElementById("historyDateInput").addEventListener("change", (e) => loadHistoryDate(e.target.value));
+    document.getElementById("viewHistoryDateBtn").addEventListener("click", () => {
+      loadHistoryDate(document.getElementById("historyDateInput").value);
+    });
     document.getElementById("prevDayBtn").addEventListener("click", () => shiftHistoryDate(-1));
     document.getElementById("nextDayBtn").addEventListener("click", () => shiftHistoryDate(1));
     document.getElementById("shareRecordBtn").addEventListener("click", () => shareRecord(historyDate));
@@ -3600,21 +3676,13 @@
         suppressClick = true;
         if (navigator.vibrate) navigator.vibrate(20);
 
-        if (pinnedOrder.includes(symbol)) {
-          // Already pinned — long-press unpins it directly, no need to
-          // open any panel and tap a remove button.
-          pinnedOrder = pinnedOrder.filter(s => s !== symbol);
+        dragging = true;
+        if (!pinnedOrder.includes(symbol)) {
+          pinnedOrder.push(symbol);
           savePinned();
           applySort();
           updatePinButtons();
-          return;
         }
-
-        dragging = true;
-        pinnedOrder.push(symbol);
-        savePinned();
-        applySort();
-        updatePinButtons();
 
         const rect = card.getBoundingClientRect();
         cardWidth = rect.width; cardHeight = rect.height; cardLeft = rect.left;
