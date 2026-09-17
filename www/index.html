@@ -3453,9 +3453,22 @@
     document.getElementById("closeUpdateBtn").addEventListener("click", () => {
       document.getElementById("updateOverlay").classList.remove("open");
     });
-    document.getElementById("updateYesBtn").addEventListener("click", () => {
-      document.getElementById("updateProgress").style.display = "block";
-      document.getElementById("updateProgress").textContent = "Opening in your browser to download — once it's done, tap the downloaded file to install.";
+    document.getElementById("updateYesBtn").addEventListener("click", (e) => {
+      const progress = document.getElementById("updateProgress");
+      progress.style.display = "block";
+      const url = "https://github.com/mushtaqimambux/kmi30-android/releases/download/release/kmi30-live.apk";
+      try {
+        if (window.cordova && cordova.InAppBrowser && cordova.InAppBrowser.open) {
+          e.preventDefault();
+          cordova.InAppBrowser.open(url, "_system");
+          progress.textContent = "Opening in your browser to download — once it's done, tap the downloaded file to install.";
+        } else {
+          progress.textContent = "InAppBrowser isn't available on this build — falling back to the link itself. If nothing happens, this build is missing cordova-plugin-inappbrowser.";
+        }
+      } catch (err) {
+        e.preventDefault();
+        progress.textContent = "Couldn't open the browser. Error: " + (err && err.message ? err.message : JSON.stringify(err));
+      }
     });
     document.getElementById("updateNotNowBtn").addEventListener("click", () => {
       document.getElementById("updateOverlay").classList.remove("open");
