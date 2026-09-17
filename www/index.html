@@ -905,8 +905,8 @@
       whyEn: "Helps you quickly see the stock's overall direction without getting distracted by daily up-and-down noise.",
       whyUr: "Isse aap stock ka overall rukh (trend) jaldi samajh sakte hain, bina roz ke chhote utaar-chadhav mein ulzhe.",
       short: "Average price over the last 50/200 days — shows the overall trend direction.",
-      en: "The average closing price over the last 50 or 200 trading days. When the price is above these averages, it suggests an uptrend; below them, a downtrend.",
-      ur: "Pichle 50 ya 200 trading din ki average (aost) closing price. Agar price in averages se upar ho to uptrend (upar ka rukh) samjha jaata hai, neeche ho to downtrend (neeche ka rukh)."
+      en: "The average closing price over the last 50 or 200 trading days, used together to read the trend. Three outcomes are possible: Uptrend — price is above the 50-day MA, and the 50-day MA is above the 200-day MA (both the short and long term are pointing up). Downtrend — price is below the 50-day MA, and the 50-day MA is below the 200-day MA (both pointing down). Mixed/Sideways — anything in between, e.g. price has dipped below the 50-day MA even though the longer 200-day trend is still up, or price has bounced above the 50-day MA while the 200-day trend is still down. This usually means the stock is in a transition or a choppy, directionless period rather than a clear trend.",
+      ur: "Pichle 50 ya 200 trading din ki average (aost) closing price, jinhe milaakar trend padha jaata hai. Teen nateeje mumkin hain: Uptrend — price 50-day MA se upar ho, aur 50-day MA khud 200-day MA se upar ho (chhota aur lamba dono rukh upar ki taraf). Downtrend — price 50-day MA se neeche ho, aur 50-day MA bhi 200-day MA se neeche ho (dono rukh neeche ki taraf). Mixed/Sideways — in dono ke darmiyan koi bhi soorat, jaise price 50-day MA se neeche chali gayi ho jabke lamba (200-day) trend abhi bhi upar ho, ya price 50-day MA se upar uchhal gayi ho jabke 200-day trend abhi bhi neeche ho. Iska matlab aam tor par yeh hota hai ke stock filhaal kisi saaf trend mein nahin, balke transition ya bikhri hui (directionless) soorat-e-haal mein hai."
     },
     rsi: {
       name: "RSI (Relative Strength Index)",
@@ -925,8 +925,8 @@
       whyEn: "Helps you judge whether the current price is unusually high or low compared to its own recent normal range.",
       whyUr: "Isse aap andaza laga sakte hain ke current price apni normal range ke muqable mein ghair-mamuli tor par zyada ya kam hai.",
       short: "The price's normal trading range — near the top may mean pricier, near the bottom cheaper.",
-      en: "A band around the price showing its normal trading range, based on recent volatility. Price near the upper band may mean it's relatively expensive right now; near the lower band, relatively cheap.",
-      ur: "Price ke ird-gird ek 'band' jo uski normal trading range dikhata hai, recent volatility (utaar-chadhav) ke hisaab se. Agar price upper band ke qareeb ho to filhaal thoda mehnga lag sakta hai; lower band ke qareeb ho to sasta."
+      en: "A band around the price showing its normal trading range, based on recent volatility. The app reports one of four 'Price Position' outcomes: Above Upper Band (Expensive) — price has pushed past the top of its normal range, often seen as pricier/potentially overbought. Upper Half (Pricier) — price is above the middle of the band but still within it. Lower Half (Cheaper) — price is below the middle but still within the band. Below Lower Band (Cheap) — price has dropped past the bottom of its normal range, often seen as cheaper/potentially oversold.",
+      ur: "Price ke ird-gird ek 'band' jo uski normal trading range dikhata hai, recent volatility (utaar-chadhav) ke hisaab se. App char 'Price Position' nateejon mein se ek dikhati hai: Above Upper Band (Expensive) — price apni normal range ke oopar chali gayi hai, aksar mehngi/potentially overbought samjhi jaati hai. Upper Half (Pricier) — price band ke darmiyan se upar hai magar abhi bhi band ke andar hi hai. Lower Half (Cheaper) — price darmiyan se neeche hai magar abhi bhi band ke andar hai. Below Lower Band (Cheap) — price apni normal range ke neeche chali gayi hai, aksar sasti/potentially oversold samjhi jaati hai."
     },
     atr: {
       name: "ATR (Average True Range)",
@@ -935,8 +935,8 @@
       whyEn: "Helps you gauge how much daily movement/risk to expect, useful for setting realistic stop-loss distances.",
       whyUr: "Isse aap andaza laga sakte hain ke roz kitna utaar-chadhav (risk) expect karna chahiye, jo stop-loss set karne mein madadgar hai.",
       short: "The average daily price movement — higher means more volatile.",
-      en: "The average amount a stock's price moves in a single day. A higher ATR means the stock is more volatile (bigger daily swings).",
-      ur: "Ek din mein stock ki price aam tor par kitni move karti hai, uski average. ATR jitna zyada ho, stock utni hi zyada volatile (utaar-chadhav wali) hai."
+      en: "The average amount a stock's price moves in a single day. The app classifies this (as a % of the current price) into one of three 'Volatility Level' outcomes: High Volatility — the daily move is above 2.5% of the price, meaning big daily swings and higher risk. Moderate Volatility — between 1% and 2.5%, a fairly typical amount of daily movement. Low Volatility — below 1%, meaning the price tends to move very little day to day.",
+      ur: "Ek din mein stock ki price aam tor par kitni move karti hai, uski average. App isay (current price ke % ke tor par) teen 'Volatility Level' nateejon mein taqseem karti hai: High Volatility — roz ki move price ke 2.5% se zyada ho, yani bade daily utaar-chadhav aur zyada risk. Moderate Volatility — 1% se 2.5% ke darmiyan, ek aam si roz ki movement. Low Volatility — 1% se kam, yani price roz-marra bohot kam move karti hai."
     },
     volume: {
       name: "Volume & Average Volume",
@@ -945,8 +945,8 @@
       whyEn: "Helps you judge how much real interest is behind a price move — a change on unusually high volume is often considered more meaningful.",
       whyUr: "Isse pata chalta hai ke price move ke peeche kitni asal dilchaspi hai — zyada volume ke saath price change ko aksar zyada ahem samjha jaata hai.",
       short: "Today's trading activity vs the recent daily average.",
-      en: "How many shares traded today, compared to the recent daily average. Higher-than-average volume often means stronger interest (buying or selling) in the stock right now.",
-      ur: "Aaj kitne shares trade hue, recent din ki average se moqabla karte hue. Average se zyada volume aksar iska matlab hota hai ke stock mein filhaal zyada dilchaspi (khareedari ya farokht) hai."
+      en: "How many shares traded today, compared to the recent 30-day daily average. The app reports one of four 'Activity Level' outcomes: Very High — today's volume is more than 50% above the average, suggesting unusually strong interest (buying or selling). Above Average — 10% to 50% above the average, somewhat more active than usual. Average — within 10% either side of the average, a normal trading day. Below Average — more than 10% below the average, quieter than usual with less trading interest.",
+      ur: "Aaj kitne shares trade hue, pichle 30 din ki roz ki average se moqabla karte hue. App char 'Activity Level' nateejon mein se ek dikhati hai: Very High — aaj ka volume average se 50% se zyada ho, yani ghair-mamuli tor par zyada dilchaspi (khareedari ya farokht). Above Average — average se 10% se 50% zyada, mamool se thora zyada active. Average — average ke 10% ke aas-paas, ek mamooli trading din. Below Average — average se 10% se zyada kam, mamool se khaamosh, kam dilchaspi ke sath."
     },
     support_resistance: {
       name: "Support & Resistance",
@@ -955,8 +955,8 @@
       whyEn: "Helps you spot likely price levels to watch for a bounce or a breakout, useful for planning entries and exits.",
       whyUr: "Isse aapko woh price levels pata chalte hain jahan bounce ya breakout ki umeed rakhi ja sakti hai, jo entry/exit plan karne mein kaam aata hai.",
       short: "Price levels where the stock has often paused or reversed before.",
-      en: "Support is a price level the stock has historically had trouble falling below; resistance is a level it has had trouble rising above. These are common areas where the price may pause or reverse.",
-      ur: "Support woh price level hai jahan se stock aam tor par neeche girne mein mushkil mehsoos karta hai; resistance woh level hai jahan se upar jaane mein mushkil hoti hai. Yeh aksar aise mauqe hote hain jahan price ruk ya wapas palat sakti hai."
+      en: "Support is a price level the stock has historically had trouble falling below; resistance is a level it has had trouble rising above. The app also shows the current price's 'Position' relative to these: Near Resistance — current price is within about 2% of the resistance level, meaning it may struggle to rise further without a stronger push. Near Support — current price is within about 2% of the support level, meaning it may find buyers there and bounce. Mid-Range — current price is comfortably between the two, not close to either level right now.",
+      ur: "Support woh price level hai jahan se stock aam tor par neeche girne mein mushkil mehsoos karta hai; resistance woh level hai jahan se upar jaane mein mushkil hoti hai. App current price ki 'Position' bhi dikhati hai in levels ke muqable mein: Near Resistance — current price resistance level ke taqreeban 2% ke andar hai, yani bagair zyada zor ke aage badhna mushkil ho sakta hai. Near Support — current price support level ke taqreeban 2% ke andar hai, yani wahan khareedar mil kar price wapas upar ja sakti hai. Mid-Range — current price aaram se in dono levels ke darmiyan hai, filhaal kisi ke bhi qareeb nahin."
     },
     "52week": {
       name: "52-Week High / Low",
@@ -1040,6 +1040,30 @@
     }
   };
   let glossaryLang = "en";
+
+  // Loads glossary.json from GitHub at runtime and, if it's there and valid,
+  // REPLACES the built-in GLOSSARY above with it — so editing that one text
+  // file on GitHub and committing updates the Study page's content with no
+  // APK rebuild needed at all. If the fetch fails (offline, browser preview,
+  // bad JSON), the built-in GLOSSARY above is kept as a safe fallback.
+  const GLOSSARY_URL = "https://raw.githubusercontent.com/mushtaqimambux/kmi30-android/main/glossary.json";
+  let glossaryLoaded = false;
+  async function loadRemoteGlossary() {
+    if (glossaryLoaded || !window.cordova) return;
+    try {
+      const res = await new Promise((resolve, reject) => {
+        cordova.plugin.http.get(GLOSSARY_URL, {}, {}, resolve, reject);
+      });
+      const remote = JSON.parse(res.data);
+      if (remote && typeof remote === "object" && Object.keys(remote).length > 0) {
+        Object.keys(GLOSSARY).forEach(k => delete GLOSSARY[k]);
+        Object.assign(GLOSSARY, remote);
+        glossaryLoaded = true;
+      }
+    } catch (e) {
+      // Keep the built-in GLOSSARY as-is.
+    }
+  }
 
   // ---------- Analysis calculations (all from the same EOD rows already
   // fetched for the chart — no extra data source needed) ----------
@@ -1831,12 +1855,26 @@
 
   function renderGlossary() {
     const el = document.getElementById("glossaryList");
-    const categories = [
-      { key: "technical", heading: glossaryLang === "en" ? "Technical Analysis Terms" : "Technical Analysis ki Terms" },
-      { key: "fundamental", heading: glossaryLang === "en" ? "Fundamental Analysis Terms" : "Fundamental Analysis ki Terms" }
-    ];
+    const knownHeadings = {
+      technical: { en: "Technical Analysis Terms", ur: "Technical Analysis ki Terms" },
+      fundamental: { en: "Fundamental Analysis Terms", ur: "Fundamental Analysis ki Terms" }
+    };
+    // Derived from whatever's actually in GLOSSARY right now (built-in or
+    // replaced by glossary.json), so a newly added category in that file
+    // still gets its own heading automatically.
+    const categoryKeys = [];
+    Object.keys(GLOSSARY).forEach(k => {
+      const c = GLOSSARY[k].category || "other";
+      if (!categoryKeys.includes(c)) categoryKeys.push(c);
+    });
+    const categories = categoryKeys.map(key => ({
+      key,
+      heading: knownHeadings[key]
+        ? (glossaryLang === "en" ? knownHeadings[key].en : knownHeadings[key].ur)
+        : key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ")
+    }));
     el.innerHTML = categories.map(cat => {
-      const keys = Object.keys(GLOSSARY).filter(k => GLOSSARY[k].category === cat.key);
+      const keys = Object.keys(GLOSSARY).filter(k => (GLOSSARY[k].category || "other") === cat.key);
       const terms = keys.map(key => {
         const g = GLOSSARY[key];
         const formulaHtml = g.formula
@@ -1860,9 +1898,11 @@
   let pendingGlossaryTerm = null;
 
   function wireGlossary() {
-    document.getElementById("studyBtn").addEventListener("click", () => {
+    document.getElementById("studyBtn").addEventListener("click", async () => {
       renderGlossary();
       document.getElementById("glossaryOverlay").classList.add("open");
+      await loadRemoteGlossary();
+      renderGlossary(); // refresh in place once the latest content (if any) is in
     });
     document.getElementById("closeGlossaryBtn").addEventListener("click", () => {
       document.getElementById("glossaryOverlay").classList.remove("open");
@@ -2115,21 +2155,13 @@
           ${holdings[s.symbol] ? `<div>${holdings[s.symbol].shares} shares @ Rs${holdings[s.symbol].buyPrice.toFixed(2)}</div>` : ""}
           <div style="display:flex; gap:8px; margin-top:6px;">
             ${holdings[s.symbol] ? `
-              <button class="toolbar-btn" data-edit-holding="${s.symbol}" style="flex:1;">Edit</button>
+              <button class="toolbar-btn" data-open-holding-panel="${s.symbol}" style="flex:1;">Edit</button>
               <button class="toolbar-btn" data-remove-holding="${s.symbol}" style="flex:1;">Remove</button>
             ` : `
-              <button class="toolbar-btn" data-add-holding="${s.symbol}" style="flex:1;">💼 Add Holdings</button>
+              <button class="toolbar-btn" data-open-holding-panel="${s.symbol}" style="flex:1;">💼 Add Holdings</button>
             `}
             <button class="toolbar-btn" data-trend="${s.symbol}" style="flex:1;">📈 Chart</button>
             <button class="toolbar-btn" data-analysis="${s.symbol}" style="flex:1;">📊 Analysis</button>
-          </div>
-          <div class="holding-form" id="holdingForm-${s.symbol}" style="display:none; margin-top:8px;">
-            <div style="display:flex; gap:6px; align-items:center;">
-              <input type="number" placeholder="Shares" id="holdingShares-${s.symbol}" value="${holdings[s.symbol] ? holdings[s.symbol].shares : ""}" style="flex:1; min-width:0;" />
-              <input type="number" placeholder="Price" step="0.01" id="holdingPrice-${s.symbol}" value="${holdings[s.symbol] ? holdings[s.symbol].buyPrice : ""}" style="flex:1; min-width:0;" />
-              <button class="toolbar-icon-btn" data-save-holding="${s.symbol}" title="Save">✓</button>
-              <button class="toolbar-icon-btn" data-cancel-holding-edit="${s.symbol}" title="Cancel">✕</button>
-            </div>
           </div>
         </div>
       </div>`;
@@ -2445,35 +2477,14 @@
 
   function wireHoldingsFormDelegation() {
     listEl.addEventListener("click", (e) => {
-      const addBtn = e.target.closest("[data-add-holding]");
-      const editBtn = e.target.closest("[data-edit-holding]");
-      const saveBtn = e.target.closest("[data-save-holding]");
+      const openPanelBtn = e.target.closest("[data-open-holding-panel]");
       const removeBtn = e.target.closest("[data-remove-holding]");
-      const cancelBtn = e.target.closest("[data-cancel-holding-edit]");
-      if (cancelBtn) {
+      if (openPanelBtn) {
         e.stopPropagation();
-        const sym = cancelBtn.getAttribute("data-cancel-holding-edit");
-        // Just hide the form — nothing was saved, so re-rendering it from
-        // the still-unchanged `holdings` data restores whatever the inputs
-        // showed before this edit attempt.
-        refreshCard(sym);
+        openHoldingsPanelFor(openPanelBtn.getAttribute("data-open-holding-panel"));
         return;
       }
-      if (addBtn || editBtn) {
-        e.stopPropagation();
-        const sym = (addBtn || editBtn).getAttribute(addBtn ? "data-add-holding" : "data-edit-holding");
-        const form = document.getElementById("holdingForm-" + sym);
-        form.style.display = form.style.display === "none" ? "block" : "none";
-      } else if (saveBtn) {
-        e.stopPropagation();
-        const sym = saveBtn.getAttribute("data-save-holding");
-        const shares = parseFloat(document.getElementById("holdingShares-" + sym).value);
-        const price = parseFloat(document.getElementById("holdingPrice-" + sym).value);
-        if (!shares || !price || shares <= 0 || price <= 0) { alert("Enter valid shares and price."); return; }
-        holdings[sym] = { shares, buyPrice: price };
-        saveHoldings();
-        refreshCard(sym);
-      } else if (removeBtn) {
+      if (removeBtn) {
         e.stopPropagation();
         const sym = removeBtn.getAttribute("data-remove-holding");
         showConfirm(`Remove your ${sym} holding?`, () => {
@@ -2529,9 +2540,28 @@
     });
   }
 
+  let selectedHoldingSymbol = null;
+
+  // Opens the standalone My Holdings panel with a symbol pre-filled and
+  // ready to save — used from card details, so typing shares/price is never
+  // at risk of being wiped out by the card's own periodic auto-refresh
+  // (the panel is a completely separate overlay, untouched by that).
+  function openHoldingsPanelFor(symbol) {
+    holdingsEditMode = false;
+    document.getElementById("toggleHoldingsEditBtn").textContent = "Edit";
+    renderHoldingsList();
+    document.getElementById("holdingsOverlay").classList.add("open");
+    selectedHoldingSymbol = symbol;
+    document.getElementById("holdingSymbolSearch").value = symbol + " — " + getSymbolName(symbol);
+    document.getElementById("holdingSymbolSuggestions").style.display = "none";
+    const existing = holdings[symbol];
+    document.getElementById("newHoldingShares").value = existing ? existing.shares : "";
+    document.getElementById("newHoldingPrice").value = existing ? existing.buyPrice : "";
+    document.getElementById("addHoldingForm").style.display = "block";
+  }
+
   function wireHoldingsPanel() {
     const overlay = document.getElementById("holdingsOverlay");
-    let selectedHoldingSymbol = null;
 
     document.getElementById("holdingsBtn").addEventListener("click", () => {
       holdingsEditMode = false;
@@ -3372,6 +3402,7 @@
     setInterval(heartbeat, 3000);
     setInterval(updateLiveClock, 1000);
     if (settings.autoUpdateCheck) checkForUpdate(false);
+    loadRemoteGlossary();
   }
 
   // In a real APK, Cordova fires "deviceready" once native plugins are ready.
