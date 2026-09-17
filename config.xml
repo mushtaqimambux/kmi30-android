@@ -38,6 +38,11 @@
     <plugin name="cordova-plugin-x-socialsharing" spec="^6.0.4" />
     <!-- Opens the downloaded APK with Android's installer, for in-app updates. -->
     <plugin name="cordova-plugin-file-opener2" spec="^4.0.0" />
+    <!-- Required for the <allow-intent> rules below to actually work — without
+         this plugin, external links (like the update download) just try to
+         load inside the app's own WebView and silently do nothing, instead
+         of being handed off to the system browser. -->
+    <plugin name="cordova-plugin-whitelist" spec="^1.3.5" />
     <!-- window.open(url, "_system") needs this plugin to hand off to the
          device's own browser — without it, in-app update downloads silently
          do nothing. -->
