@@ -60,7 +60,7 @@ jobs:
 
       - name: Add plugins
         if: steps.checkversion.outputs.should_build == 'true'
-        run: (cordova plugin add cordova-plugin-advanced-http || true) && (cordova plugin add cordova-plugin-file || true) && (cordova plugin add cordova-plugin-x-socialsharing || true) && (cordova plugin add cordova-plugin-file-opener2 || true) && (cordova plugin add cordova-plugin-inappbrowser || true) && (cordova plugin add cordova-plugin-whitelist || true)
+        run: (cordova plugin add cordova-plugin-advanced-http || true) && (cordova plugin add cordova-plugin-file || true) && (cordova plugin add cordova-plugin-x-socialsharing || true) && (cordova plugin add cordova-plugin-file-opener2 || true) && (cordova plugin add cordova-plugin-inappbrowser || true)
 
       - name: Build debug APK
         if: steps.checkversion.outputs.should_build == 'true'
