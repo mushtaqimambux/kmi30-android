@@ -192,10 +192,10 @@
     flex: 1; background: var(--btn-bg); border: 1px solid var(--card-border); color: var(--text);
     border-radius: 9px; padding: 9px 10px; font-size: 14px;
   }
-  .history-list { max-height: 58vh; overflow-y: auto; touch-action: pan-y; }
-  .trend-scroll { overflow-x: auto; padding: 4px 0; touch-action: pan-x; }
+  .history-list { max-height: 58vh; overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
+  .trend-scroll { overflow-x: auto; padding: 4px 0; touch-action: pan-x; -webkit-overflow-scrolling: touch; }
   .trend-scroll svg { display: block; }
-  .trend-table { max-height: 40vh; overflow-y: auto; margin-top: 10px; font-size: 11.5px; }
+  .trend-table { max-height: 40vh; overflow-y: auto; margin-top: 10px; font-size: 11.5px; touch-action: pan-y; -webkit-overflow-scrolling: touch; }
   .trend-row {
     display: grid; grid-template-columns: 1.1fr 1fr 1fr 1fr 0.9fr 1.3fr;
     gap: 4px; padding: 6px 2px; border-bottom: 1px solid var(--card-border); text-align: center;
@@ -262,6 +262,11 @@
     font-size: 12.5px; color: var(--dim); line-height: 1.5; margin-top: 8px;
   }
   .glossary-why b { color: var(--accent); }
+  .analysis-action {
+    font-size: 12.5px; color: var(--dim); line-height: 1.5; margin-top: 8px;
+    padding-top: 8px; border-top: 1px dashed var(--card-border);
+  }
+  .analysis-action b { color: var(--accent2); }
 </style>
 </head>
 <body>
@@ -497,6 +502,7 @@
     <div class="period-tabs" style="margin-bottom:14px;">
       <button class="period-tab active" id="glossaryLangEn" data-lang="en" style="flex:1;">English</button>
       <button class="period-tab" id="glossaryLangUr" data-lang="ur" style="flex:1;">Roman Urdu</button>
+      <button class="period-tab" id="glossaryLangUrdu" data-lang="urdu" style="flex:1;">اردو</button>
     </div>
     <div id="glossaryList" style="max-height:70vh; overflow-y:auto;"></div>
   </div>
@@ -898,148 +904,381 @@
 
   // ---------- Glossary: term definitions in English + Roman Urdu ----------
   const GLOSSARY = {
-    sma: {
-      name: "Moving Average (50-day / 200-day)",
-      category: "technical",
-      formula: "Moving Average = Sum of closing prices over the period ÷ Number of days",
-      whyEn: "Helps you quickly see the stock's overall direction without getting distracted by daily up-and-down noise.",
-      whyUr: "Isse aap stock ka overall rukh (trend) jaldi samajh sakte hain, bina roz ke chhote utaar-chadhav mein ulzhe.",
-      short: "Average price over the last 50/200 days — shows the overall trend direction.",
-      en: "The average closing price over the last 50 or 200 trading days, used together to read the trend. Three outcomes are possible: Uptrend — price is above the 50-day MA, and the 50-day MA is above the 200-day MA (both the short and long term are pointing up). Downtrend — price is below the 50-day MA, and the 50-day MA is below the 200-day MA (both pointing down). Mixed/Sideways — anything in between, e.g. price has dipped below the 50-day MA even though the longer 200-day trend is still up, or price has bounced above the 50-day MA while the 200-day trend is still down. This usually means the stock is in a transition or a choppy, directionless period rather than a clear trend.",
-      ur: "Pichle 50 ya 200 trading din ki average (aost) closing price, jinhe milaakar trend padha jaata hai. Teen nateeje mumkin hain: Uptrend — price 50-day MA se upar ho, aur 50-day MA khud 200-day MA se upar ho (chhota aur lamba dono rukh upar ki taraf). Downtrend — price 50-day MA se neeche ho, aur 50-day MA bhi 200-day MA se neeche ho (dono rukh neeche ki taraf). Mixed/Sideways — in dono ke darmiyan koi bhi soorat, jaise price 50-day MA se neeche chali gayi ho jabke lamba (200-day) trend abhi bhi upar ho, ya price 50-day MA se upar uchhal gayi ho jabke 200-day trend abhi bhi neeche ho. Iska matlab aam tor par yeh hota hai ke stock filhaal kisi saaf trend mein nahin, balke transition ya bikhri hui (directionless) soorat-e-haal mein hai."
+  "sma": {
+    "name": "Moving Average (50-day / 200-day)",
+    "nameUrdu": "متحرک اوسط (٥٠ دن / ٢٠٠ دن)",
+    "category": "technical",
+    "formula": "Moving Average = Sum of closing prices over the period ÷ Number of days",
+    "short": "Average price over the last 50/200 days — shows the overall trend direction.",
+    "shortUr": "Pichle 50/200 dinon ki average price — stock ka overall rukh (trend) dikhati hai.",
+    "shortUrdu": "پچھلے ٥٠ یا ٢٠٠ دنوں کی اوسط قیمت — اسٹاک کا مجموعی رخ (رجحان) دکھاتی ہے۔",
+    "en": "The average closing price over the last 50 or 200 trading days, used together to read the trend. Three outcomes are possible: Uptrend — price is above the 50-day average, and the 50-day average is above the 200-day average (both the short and long term are pointing up). Downtrend — price is below the 50-day average, and the 50-day average is below the 200-day average (both pointing down). Mixed/Sideways — anything in between, e.g. price has dipped below the 50-day average even though the longer 200-day trend is still up, or price has bounced above the 50-day average while the 200-day trend is still down. This usually means the stock is in a transition or a choppy, directionless period rather than a clear trend.",
+    "ur": "Pichle 50 ya 200 trading dinon ki average (osat) qeemat, jinhe milaakar rukh (trend) samjha jaata hai. Teen nateeje mumkin hain: 'Uptrend' (upar ka rukh) — qeemat 50-din wali average se upar ho, aur 50-din wali average khud 200-din wali average se upar ho (yani chhota aur lamba dono rukh upar ki taraf ja rahe hon). 'Downtrend' (neeche ka rukh) — qeemat 50-din wali average se neeche ho, aur 50-din wali average bhi 200-din wali average se neeche ho (dono rukh neeche ki taraf). 'Mixed/Sideways' (mila-jula/bikhra hua) — in dono ke darmiyan koi bhi soorat, jaise qeemat 50-din wali average se neeche chali gayi ho jabke lamba (200-din) rukh abhi bhi upar ho, ya qeemat 50-din wali average se upar uchhal gayi ho jabke 200-din wala rukh abhi bhi neeche ho. Iska matlab aam tor par yeh hota hai ke stock filhaal kisi saaf rukh mein nahin, balke tabdeeli ya bikhri hui (be-simt) soorat-e-haal mein hai.",
+    "urdu": "پچھلے ٥٠ یا ٢٠٠ ٹریڈنگ دنوں کی اوسط بند ہونے والی قیمت، جنہیں ملا کر اسٹاک کا رخ (رجحان) سمجھا جاتا ہے۔ تین نتائج ممکن ہیں: 'اپ ٹرینڈ' (اوپر کا رجحان) — قیمت ٥٠ دن والی اوسط سے اوپر ہو، اور ٥٠ دن والی اوسط خود ٢٠٠ دن والی اوسط سے اوپر ہو (یعنی مختصر اور طویل دونوں رخ اوپر جا رہے ہوں)۔ 'ڈاؤن ٹرینڈ' (نیچے کا رجحان) — قیمت ٥٠ دن والی اوسط سے نیچے ہو، اور ٥٠ دن والی اوسط بھی ٢٠٠ دن والی اوسط سے نیچے ہو۔ 'مکسڈ/سائیڈ ویز' (ملا جلا/بکھرا ہوا) — ان دونوں کے درمیان کوئی بھی صورت، جیسے قیمت ٥٠ دن والی اوسط سے نیچے چلی گئی ہو جبکہ طویل (٢٠٠ دن) رجحان ابھی بھی اوپر ہو۔ اس کا مطلب عام طور پر یہ ہوتا ہے کہ اسٹاک فی الحال کسی صاف رجحان میں نہیں، بلکہ تبدیلی یا بکھری ہوئی (بے سمت) صورتحال میں ہے۔",
+    "whyEn": "Helps you quickly see the stock's overall direction without getting distracted by daily up-and-down noise.",
+    "whyUr": "Isse aap stock ka overall rukh (trend) jaldi samajh sakte hain, bina roz ke chhote utaar-chadhav mein ulzhe.",
+    "whyUrdu": "اس سے آپ اسٹاک کا مجموعی رخ جلدی سمجھ سکتے ہیں، روزانہ کے چھوٹے اتار چڑھاؤ میں الجھے بغیر۔"
+  },
+  "rsi": {
+    "name": "RSI (Relative Strength Index)",
+    "nameUrdu": "آر ایس آئی (رفتار ناپنے کا پیمانہ)",
+    "category": "technical",
+    "formula": "RSI = 100 − ( 100 ÷ (1 + Average Gain ÷ Average Loss) ), over 14 days",
+    "short": "A 0-100 score measuring how fast price has been rising or falling — above 70 means overbought, below 30 means oversold.",
+    "shortUr": "0 se 100 tak ka number jo yeh naapta hai ke qeemat kitni tezi se badh/ghat rahi hai — 70 se upar 'overbought', 30 se neeche 'oversold'.",
+    "shortUrdu": "٠ سے ١٠٠ تک کا نمبر جو یہ ناپتا ہے کہ قیمت کتنی تیزی سے بڑھ یا گھٹ رہی ہے — ٧٠ سے اوپر 'زیادہ خریدا گیا'، ٣٠ سے نیچے 'زیادہ بیچا گیا'۔",
+    "en": "RSI stands for Relative Strength Index — a way of measuring the speed and size of recent price changes (this speed of change is often called 'momentum' — think of it like how fast a car is accelerating, not just where it currently is). It gives a score from 0 to 100. Above 70 usually means the stock is 'overbought' (it has risen fast and may be due for a pullback); below 30 means 'oversold' (it has fallen fast and may be due for a bounce). 30-70 is considered neutral — no strong signal either way.",
+    "ur": "RSI ka matlab hai 'Relative Strength Index' — yeh ek tareeqa hai qeemat ki HAAL HI ki tabdeeli ki raftaar aur size naapne ka (is raftaar ko English mein aksar 'momentum' kaha jaata hai — isay yun samjhein jaise gaari kitni tezi se speed pakad rahi hai, sirf yeh nahi ke woh abhi kahan hai). Isay 0 se 100 tak ka number diya jaata hai. 70 se upar ho to aam tor par stock 'overbought' (zyada khareeda gaya) samjha jaata hai — yani woh tezi se upar gaya hai aur wapas neeche aa sakta hai. 30 se neeche ho to 'oversold' (zyada becha gaya) — yani woh tezi se neeche gaya hai aur wapas upar uchhal sakta hai. 30 se 70 ke darmiyan 'neutral' (na idhar na udhar) samjha jaata hai — koi bhi mazboot ishara nahin.",
+    "urdu": "آر ایس آئی کا مطلب ہے 'ریلیٹو اسٹرینتھ انڈیکس' — یہ ایک طریقہ ہے قیمت کی حالیہ تبدیلی کی رفتار اور مقدار ناپنے کا (اس رفتار کو انگریزی میں اکثر 'مومینٹم' کہا جاتا ہے — اسے یوں سمجھیں جیسے گاڑی کتنی تیزی سے رفتار پکڑ رہی ہے، صرف یہ نہیں کہ وہ ابھی کہاں ہے)۔ اسے ٠ سے ١٠٠ تک کا نمبر دیا جاتا ہے۔ ٧٠ سے اوپر ہو تو عام طور پر اسٹاک 'زیادہ خریدا گیا' سمجھا جاتا ہے — یعنی وہ تیزی سے اوپر گیا ہے اور واپس نیچے آ سکتا ہے۔ ٣٠ سے نیچے ہو تو 'زیادہ بیچا گیا' — یعنی وہ تیزی سے نیچے گیا ہے اور واپس اوپر اچھل سکتا ہے۔ ٣٠ سے ٧٠ کے درمیان 'غیر جانبدار' سمجھا جاتا ہے — کوئی مضبوط اشارہ نہیں۔",
+    "whyEn": "Helps you spot when a stock might be due for a pullback (overbought) or a bounce (oversold), instead of chasing a price that has already moved a lot.",
+    "whyUr": "Isse pata chalta hai ke stock kab wapas neeche aa sakta hai (overbought) ya wapas upar uchhal sakta hai (oversold), bajaye is ke ke aap pehle se hi zyada move ho chuki qeemat ke peeche bhaagen.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ اسٹاک کب واپس نیچے آ سکتا ہے یا واپس اوپر اچھل سکتا ہے، بجائے اس کے کہ آپ پہلے سے زیادہ حرکت کر چکی قیمت کے پیچھے بھاگیں۔"
+  },
+  "bollinger": {
+    "name": "Bollinger Bands",
+    "nameUrdu": "بولنجر بینڈز (قیمت کی حد بندی)",
+    "category": "technical",
+    "formula": "Upper Band = 20-day MA + (2 × Standard Deviation)\nLower Band = 20-day MA − (2 × Standard Deviation)",
+    "short": "The price's normal trading range (like a lane a car usually stays within) — near the top edge may mean pricier, near the bottom cheaper.",
+    "shortUr": "Qeemat ki normal 'lane' (jaisay gaari apni lane mein chalti hai) — upar wali hadd ke qareeb ho to mehnga, neeche wali hadd ke qareeb ho to sasta.",
+    "shortUrdu": "قیمت کی نارمل 'لین' (جیسے گاڑی اپنی لین میں چلتی ہے) — اوپر والی حد کے قریب ہو تو مہنگا، نیچے والی حد کے قریب ہو تو سستا۔",
+    "en": "Bollinger Bands are named after the person who created them (Bollinger is a surname, not a descriptive word) — the idea itself is simple: it's a 'lane' drawn around the price showing its normal trading range, based on recent volatility (i.e. how much it usually wiggles up and down). The app reports one of four 'Price Position' outcomes: Above Upper Band (Expensive) — price has pushed past the top of its lane, often seen as pricier/potentially overbought. Upper Half (Pricier) — price is above the middle of the lane but still inside it. Lower Half (Cheaper) — price is below the middle but still inside the lane. Below Lower Band (Cheap) — price has dropped past the bottom of its lane, often seen as cheaper/potentially oversold.",
+    "ur": "'Bollinger Bands' ka naam us shakhs (Bollinger) ke naam par rakha gaya hai jisne isay banaya — yeh koi maani wala lafz nahin, sirf ek naam hai. Asal soch simple hai: yeh qeemat ke ird-gird banayi gayi ek 'lane' (raasta) hai jo uski normal trading range dikhati hai, is baat par mabni ke qeemat aam tor par kitna upar-neeche 'hilti' hai (isay volatility, yaani utaar-chadhav, kehte hain). App char 'Price Position' (qeemat ki jagah) nateejon mein se ek dikhati hai: 'Above Upper Band' (Expensive) — qeemat apni lane ke upar wali hadd se bhi upar chali gayi hai, aksar mehngi/shayad zyada khareedi gayi samjhi jaati hai. 'Upper Half' (Pricier) — qeemat lane ke darmiyan se upar hai magar abhi bhi lane ke andar hi hai. 'Lower Half' (Cheaper) — qeemat darmiyan se neeche hai magar abhi bhi lane ke andar hai. 'Below Lower Band' (Cheap) — qeemat apni lane ki neeche wali hadd se bhi neeche chali gayi hai, aksar sasti/shayad zyada bechi gayi samjhi jaati hai.",
+    "urdu": "'بولنجر بینڈز' کا نام اس شخص (بولنجر) کے نام پر رکھا گیا ہے جس نے اسے بنایا — یہ کوئی معنی والا لفظ نہیں، صرف ایک نام ہے۔ اصل سوچ سادہ ہے: یہ قیمت کے ارد گرد بنائی گئی ایک 'لین' (راستہ) ہے جو اس کی نارمل ٹریڈنگ رینج دکھاتی ہے، اس بات پر مبنی کہ قیمت عام طور پر کتنا اوپر نیچے 'ہلتی' ہے۔ ایپ چار نتائج میں سے ایک دکھاتی ہے: 'اوپر کی حد سے اوپر' (مہنگا) — قیمت اپنی لین کی اوپری حد سے بھی اوپر چلی گئی ہے۔ 'اوپری آدھا حصہ' (تھوڑا مہنگا) — قیمت لین کے درمیان سے اوپر ہے مگر ابھی بھی لین کے اندر ہی ہے۔ 'نچلا آدھا حصہ' (تھوڑا سستا) — قیمت درمیان سے نیچے ہے مگر ابھی بھی لین کے اندر ہے۔ 'نیچے کی حد سے نیچے' (سستا) — قیمت اپنی لین کی نچلی حد سے بھی نیچے چلی گئی ہے۔",
+    "whyEn": "Helps you judge whether the current price is unusually high or low compared to its own recent normal range.",
+    "whyUr": "Isse aap andaza laga sakte hain ke current qeemat apni haal hi ki normal range ke muqable mein ghair-mamuli tor par zyada ya kam hai.",
+    "whyUrdu": "اس سے آپ اندازہ لگا سکتے ہیں کہ موجودہ قیمت اپنی حالیہ نارمل رینج کے مقابلے میں غیر معمولی طور پر زیادہ یا کم ہے۔"
+  },
+  "atr": {
+    "name": "ATR (Average True Range)",
+    "nameUrdu": "اے ٹی آر (اوسط روزانہ حرکت)",
+    "category": "technical",
+    "formula": "ATR = Average of the daily price change over the last 14 days",
+    "short": "The average daily price movement — higher means more volatile (bigger up-down swings).",
+    "shortUr": "Roz ki average qeemat ki harkat — jitna zyada, utna hi zyada utaar-chadhav.",
+    "shortUrdu": "روز کی اوسط قیمت کی حرکت — جتنا زیادہ، اتنا ہی زیادہ اتار چڑھاؤ۔",
+    "en": "ATR stands for 'Average True Range' — simply, the average amount a stock's price moves in a single day. The app classifies this (as a % of the current price) into one of three 'Volatility Level' (utaar-chadhav ki miqdaar) outcomes: High Volatility — the daily move is above 2.5% of the price, meaning big daily swings and higher risk. Moderate Volatility — between 1% and 2.5%, a fairly typical amount of daily movement. Low Volatility — below 1%, meaning the price tends to move very little day to day.",
+    "ur": "ATR ka matlab hai 'Average True Range' — seedhi si baat, yeh stock ki qeemat ki roz ki average harkat (movement) hai. App isay (current qeemat ke % ke tor par) teen 'Volatility Level' (utaar-chadhav ki miqdaar) nateejon mein taqseem karti hai: 'High Volatility' (zyada utaar-chadhav) — roz ki harkat qeemat ke 2.5% se zyada ho, yani bade roz ke jhatke aur zyada risk. 'Moderate Volatility' (darmiyani) — 1% se 2.5% ke darmiyan, ek aam si roz ki harkat. 'Low Volatility' (kam) — 1% se kam, yani qeemat roz-marra bohot kam hilti hai.",
+    "urdu": "اے ٹی آر کا مطلب ہے 'ایوریج ٹرو رینج' — سیدھی سی بات، یہ اسٹاک کی قیمت کی روز کی اوسط حرکت ہے۔ ایپ اسے تین درجوں میں تقسیم کرتی ہے: 'ہائی وولیٹیلیٹی' (زیادہ اتار چڑھاؤ) — روز کی حرکت قیمت کے ٢.٥٪ سے زیادہ ہو، یعنی بڑے روزانہ جھٹکے اور زیادہ خطرہ۔ 'مڈریٹ وولیٹیلیٹی' (درمیانی) — ١٪ سے ٢.٥٪ کے درمیان، ایک عام سی روز کی حرکت۔ 'لو وولیٹیلیٹی' (کم) — ١٪ سے کم، یعنی قیمت روزمرہ بہت کم ہلتی ہے۔",
+    "whyEn": "Helps you gauge how much daily movement/risk to expect, useful for setting realistic stop-loss distances.",
+    "whyUr": "Isse aap andaza laga sakte hain ke roz kitna utaar-chadhav (risk) expect karna chahiye, jo apna nuqsaan rokne ki hadd (stop-loss) set karne mein madadgar hai.",
+    "whyUrdu": "اس سے آپ اندازہ لگا سکتے ہیں کہ روزانہ کتنا اتار چڑھاؤ (خطرہ) متوقع ہونا چاہیے، جو نقصان روکنے کی حد مقرر کرنے میں مددگار ہے۔"
+  },
+  "volume": {
+    "name": "Volume & Average Volume",
+    "nameUrdu": "حجم اور اوسط حجم",
+    "category": "technical",
+    "formula": "Average Volume = Sum of volume over last 30 days ÷ 30",
+    "short": "Today's trading activity (how many shares changed hands) vs the recent daily average.",
+    "shortUr": "Aaj kitni khareed-o-farokht hui (kitne shares haath badle), pichle dinon ki average se moqabla.",
+    "shortUrdu": "آج کتنی خرید و فروخت ہوئی (کتنے حصص ہاتھ بدلے)، پچھلے دنوں کی اوسط سے موازنہ۔",
+    "en": "Volume means how many shares traded today — a simple count of buying-and-selling activity. This is compared to the recent 30-day daily average. The app reports one of four 'Activity Level' outcomes: Very High — today's volume is more than 50% above the average, suggesting unusually strong interest (buying or selling). Above Average — 10% to 50% above the average, somewhat more active than usual. Average — within 10% either side of the average, a normal trading day. Below Average — more than 10% below the average, quieter than usual with less trading interest.",
+    "ur": "'Volume' ka matlab hai aaj kitne shares trade hue — yani khareed-o-farokht ki miqdaar ka seedha-saada shumaar. Isay pichle 30 dinon ki roz ki average se moqabla kiya jaata hai. App char 'Activity Level' (sargarmi ki miqdaar) nateejon mein se ek dikhati hai: 'Very High' (bohot zyada) — aaj ka volume average se 50% se zyada ho, yani ghair-mamuli tor par zyada dilchaspi (khareedari ya farokht). 'Above Average' (average se zyada) — average se 10% se 50% zyada, mamool se thora zyada sargarm. 'Average' (mamooli) — average ke 10% ke aas-paas, ek aam trading din. 'Below Average' (average se kam) — average se 10% se zyada kam, mamool se khamosh, kam dilchaspi ke sath.",
+    "urdu": "'والیوم' کا مطلب ہے آج کتنے حصص ٹریڈ ہوئے — یعنی خرید و فروخت کی مقدار کا سیدھا سادہ شمار۔ اسے پچھلے ٣٠ دنوں کی روز کی اوسط سے موازنہ کیا جاتا ہے۔ ایپ چار نتائج میں سے ایک دکھاتی ہے: 'بہت زیادہ' — آج کا حجم اوسط سے ٥٠٪ سے زیادہ ہو، یعنی غیر معمولی طور پر زیادہ دلچسپی۔ 'اوسط سے زیادہ' — اوسط سے ١٠٪ سے ٥٠٪ زیادہ، معمول سے تھوڑا زیادہ سرگرم۔ 'اوسط' — اوسط کے ١٠٪ کے آس پاس، ایک عام تجارتی دن۔ 'اوسط سے کم' — اوسط سے ١٠٪ سے زیادہ کم، معمول سے خاموش۔",
+    "whyEn": "Helps you judge how much real interest is behind a price move — a change on unusually high volume is often considered more meaningful.",
+    "whyUr": "Isse pata chalta hai ke qeemat ki harkat ke peeche kitni asal dilchaspi hai — zyada volume ke sath qeemat ki tabdeeli ko aksar zyada ahem samjha jaata hai.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ قیمت کی حرکت کے پیچھے کتنی اصل دلچسپی ہے — زیادہ حجم کے ساتھ قیمت کی تبدیلی کو اکثر زیادہ اہم سمجھا جاتا ہے۔"
+  },
+  "support_resistance": {
+    "name": "Support & Resistance",
+    "nameUrdu": "سپورٹ اور ریزسٹنس (سہارا اور رکاوٹ)",
+    "category": "technical",
+    "formula": "Support = Lowest closing price in the recent period\nResistance = Highest closing price in the recent period",
+    "short": "Price levels where the stock has often paused or reversed before — support is a 'floor', resistance is a 'ceiling'.",
+    "shortUr": "Woh qeemat levels jahan stock pehle bhi ruka ya palta hai — support 'farsh' jaisa hai, resistance 'chhat' jaisi.",
+    "shortUrdu": "وہ قیمت کی سطحیں جہاں اسٹاک پہلے بھی رکا یا پلٹا ہے — سپورٹ 'فرش' جیسا ہے، ریزسٹنس 'چھت' جیسی۔",
+    "en": "Support ('sahara') is a price level acting like a floor — the stock has historically had trouble falling below it. Resistance ('rukawat') is a level acting like a ceiling — the stock has had trouble rising above it. The app also shows the current price's 'Position' relative to these: Near Resistance — current price is within about 2% of the ceiling level, meaning it may struggle to rise further without a stronger push. Near Support — current price is within about 2% of the floor level, meaning it may find buyers there and bounce. Mid-Range — current price is comfortably between the floor and ceiling, not close to either right now.",
+    "ur": "'Support' (yaani sahara/farsh) ek qeemat ki hadd hai jo farsh ki tarah kaam karti hai — stock ko is se neeche girna aam tor par mushkil hota hai. 'Resistance' (yaani rukawat/chhat) ek hadd hai jo chhat ki tarah kaam karti hai — stock ko is se upar jaana mushkil hota hai. App current qeemat ki 'Position' (jagah) bhi dikhati hai in dono hadon ke muqable mein: 'Near Resistance' (rukawat ke qareeb) — current qeemat 'chhat' wali hadd ke taqreeban 2% ke andar hai, yani bagair zyada zor ke aage badhna mushkil ho sakta hai. 'Near Support' (sahare ke qareeb) — current qeemat 'farsh' wali hadd ke taqreeban 2% ke andar hai, yani wahan khareedaar mil kar qeemat wapas upar ja sakti hai. 'Mid-Range' (darmiyan mein) — current qeemat aaram se farsh aur chhat ke darmiyan hai, filhaal kisi ke bhi qareeb nahin.",
+    "urdu": "'سپورٹ' (یعنی سہارا/فرش) ایک قیمت کی حد ہے جو فرش کی طرح کام کرتی ہے — اسٹاک کو اس سے نیچے گرنا عام طور پر مشکل ہوتا ہے۔ 'ریزسٹنس' (یعنی رکاوٹ/چھت) ایک حد ہے جو چھت کی طرح کام کرتی ہے — اسٹاک کو اس سے اوپر جانا مشکل ہوتا ہے۔ ایپ موجودہ قیمت کی جگہ بھی دکھاتی ہے: 'رکاوٹ کے قریب' — موجودہ قیمت 'چھت' والی حد کے تقریباً ٢٪ کے اندر ہے۔ 'سہارے کے قریب' — موجودہ قیمت 'فرش' والی حد کے تقریباً ٢٪ کے اندر ہے۔ 'درمیان میں' — موجودہ قیمت آرام سے فرش اور چھت کے درمیان ہے، فی الحال کسی کے بھی قریب نہیں۔",
+    "whyEn": "Helps you spot likely price levels to watch for a bounce or a breakout, useful for planning entries and exits.",
+    "whyUr": "Isse aapko woh qeemat wali hadein pata chalti hain jahan wapsi (bounce) ya toot-phoot (breakout) ki umeed rakhi ja sakti hai, jo khareedne/bechne ka waqt tay karne mein kaam aata hai.",
+    "whyUrdu": "اس سے آپ کو وہ قیمت کی حدیں پتا چلتی ہیں جہاں واپسی یا ٹوٹ پھوٹ کی امید رکھی جا سکتی ہے، جو خریدنے یا بیچنے کا وقت طے کرنے میں کام آتا ہے۔"
+  },
+  "52week": {
+    "name": "52-Week High / Low",
+    "nameUrdu": "٥٢ ہفتوں کی بلند ترین / پست ترین قیمت",
+    "category": "technical",
+    "formula": "52-Week High/Low = Highest / Lowest closing price in the last ~252 trading days",
+    "short": "The highest and lowest price this stock has reached in the past year.",
+    "shortUr": "Pichle ek saal mein stock ki sabse zyada aur sabse kam pahunchi hui qeemat.",
+    "shortUrdu": "پچھلے ایک سال میں اسٹاک کی سب سے زیادہ اور سب سے کم پہنچی ہوئی قیمت۔",
+    "en": "The highest and lowest price the stock has reached in the past year (about 252 trading days). Useful for seeing how today's price compares to its own yearly range — for example, if today's price is very close to the 52-week high, that's a different context than if it's close to the 52-week low, even if the raw price number looks the same.",
+    "ur": "Pichle ek saal (taqreeban 252 trading dinon) mein stock ki sabse zyada aur sabse kam pahunchi hui qeemat. Isse yeh dekhna aasan hota hai ke aaj ki qeemat apni hi saal bhar ki range ke muqable mein kahan khadi hai — masalan, agar aaj ki qeemat 52-hafton ki sabse zyada wali qeemat ke bohot qareeb hai, to yeh alag surat-e-haal hai bajaye is ke ke woh sabse kam wali qeemat ke qareeb ho, chahe qeemat ka number wahi kyun na ho.",
+    "urdu": "پچھلے ایک سال (تقریباً ٢٥٢ تجارتی دنوں) میں اسٹاک کی سب سے زیادہ اور سب سے کم پہنچی ہوئی قیمت۔ اس سے یہ دیکھنا آسان ہوتا ہے کہ آج کی قیمت اپنی ہی سال بھر کی رینج کے مقابلے میں کہاں کھڑی ہے — مثلاً، اگر آج کی قیمت ٥٢ ہفتوں کی سب سے زیادہ والی قیمت کے بہت قریب ہے، تو یہ الگ صورتحال ہے بجائے اس کے کہ وہ سب سے کم والی قیمت کے قریب ہو۔",
+    "whyEn": "Helps you see whether today's price is near its yearly extremes, giving context on how 'cheap' or 'expensive' it looks versus its own history.",
+    "whyUr": "Isse pata chalta hai ke aaj ki qeemat saal ki intihaon ke kitne qareeb hai, jo yeh samajhne mein madad karta hai ke qeemat abhi apni hi history ke muqable mein 'sasti' hai ya 'mehngi'.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ آج کی قیمت سال کی انتہاؤں کے کتنے قریب ہے، جو یہ سمجھنے میں مدد کرتا ہے کہ قیمت ابھی اپنی ہی تاریخ کے مقابلے میں 'سستی' ہے یا 'مہنگی'۔"
+  },
+  "pivot_points": {
+    "name": "Pivot Points (Pivot, R1/R2, S1/S2)",
+    "nameUrdu": "پیوٹ پوائنٹس (متوقع موڑ کے مقامات)",
+    "category": "technical",
+    "formula": "Pivot = (High + Low + Close) ÷ 3\nR1 = (2 × Pivot) − Low\nR2 = Pivot + (High − Low)\nS1 = (2 × Pivot) − High\nS2 = Pivot − (High − Low)",
+    "short": "Levels calculated from High, Low and Close, used to guess where price may pause or turn today.",
+    "shortUr": "High, Low aur Close se nikale gaye levels, jinse andaza lagaya jaata hai ke aaj qeemat kahan ruk ya palat sakti hai.",
+    "shortUrdu": "بلند ترین، پست ترین اور بند ہونے والی قیمت سے نکالے گئے مقامات، جن سے اندازہ لگایا جاتا ہے کہ آج قیمت کہاں رک یا پلٹ سکتی ہے۔",
+    "en": "A set of price levels calculated from the previous session's High, Low and Close: a central 'Pivot' point, two Resistance (ceiling) levels above it (R1, R2), and two Support (floor) levels below it (S1, S2). Intraday (same-day) traders often watch these as likely 'turning points' — spots where the price might pause, reverse, or break through — during the trading day.",
+    "ur": "Kuch qeemat wali hadein jo pichle session ki High (sabse zyada), Low (sabse kam) aur Close (band hone wali qeemat) se nikali jaati hain: ek darmiyani 'Pivot' point, uske upar do Resistance (chhat/rukawat) levels (R1, R2), aur uske neeche do Support (farsh/sahara) levels (S1, S2). Intraday (usi din ke andar) trading karne wale log in ko aksar din ke mumkin 'mor' (turning points) ke tor par dekhte hain — aisi jagahen jahan qeemat ruk sakti hai, palat sakti hai, ya toot kar aage nikal sakti hai.",
+    "urdu": "کچھ قیمت کی حدیں جو پچھلے سیشن کی بلند ترین، پست ترین اور بند ہونے والی قیمت سے نکالی جاتی ہیں: ایک درمیانی 'پیوٹ' پوائنٹ، اس کے اوپر دو ریزسٹنس (چھت) کی سطحیں، اور اس کے نیچے دو سپورٹ (فرش) کی سطحیں۔ اسی دن کی ٹریڈنگ کرنے والے لوگ انہیں اکثر دن کے ممکنہ موڑ کے مقامات کے طور پر دیکھتے ہیں۔",
+    "whyEn": "Helps intraday traders identify likely levels where the price could reverse or break through during the trading day.",
+    "whyUr": "Isse usi din trading karne walon ko un levels ka andaza hota hai jahan din ke dauran qeemat palat sakti hai ya toot kar aage nikal sakti hai.",
+    "whyUrdu": "اس سے اسی دن ٹریڈنگ کرنے والوں کو ان سطحوں کا اندازہ ہوتا ہے جہاں دن کے دوران قیمت پلٹ سکتی ہے یا آگے نکل سکتی ہے۔"
+  },
+  "pe_ratio": {
+    "name": "P/E Ratio (Price-to-Earnings)",
+    "nameUrdu": "پی ای ریشو (قیمت اور کمائی کا تناسب)",
+    "category": "fundamental",
+    "formula": "P/E Ratio = Share Price ÷ Earnings Per Share (EPS)",
+    "short": "Share price divided by earnings per share — how expensive the stock is relative to its actual profit.",
+    "shortUr": "Share ki qeemat ko har share ki kamai se taqseem kiya jaata hai — stock apne asal munafe ke muqable mein kitna mehnga hai.",
+    "shortUrdu": "حصص کی قیمت کو ہر حصے کی کمائی سے تقسیم کیا جاتا ہے — اسٹاک اپنے اصل منافع کے مقابلے میں کتنا مہنگا ہے۔",
+    "en": "The share price divided by the company's earnings per share (EPS — see the EPS entry below). A high P/E can mean the market expects strong future growth (or that the stock is simply overpriced); a low P/E can mean it's undervalued (or that growth is expected to be weak).",
+    "ur": "Share ki qeemat ko company ki har share ki kamai (EPS — neeche EPS wali entry dekhein) se taqseem kar ke nikala jaata hai. Zyada P/E ka matlab ho sakta hai ke market ko aage acha izafa (growth) ki tawaqqo hai (ya phir stock sirf mehnga hai). Kam P/E ka matlab ho sakta hai stock sasta hai (ya izafe ki tawaqqo kam hai).",
+    "urdu": "حصص کی قیمت کو کمپنی کی ہر حصے کی کمائی سے تقسیم کر کے نکالا جاتا ہے۔ زیادہ پی ای کا مطلب ہو سکتا ہے کہ مارکیٹ کو آگے اچھے اضافے کی توقع ہے (یا پھر اسٹاک صرف مہنگا ہے)۔ کم پی ای کا مطلب ہو سکتا ہے اسٹاک سستا ہے۔",
+    "whyEn": "Helps you judge whether a stock is expensive or cheap relative to its actual earnings, and to compare it against other companies.",
+    "whyUr": "Isse aap andaza laga sakte hain ke stock apni asal kamai ke muqable mein mehnga hai ya sasta, aur doosri companies se moqabla kar sakte hain.",
+    "whyUrdu": "اس سے آپ اندازہ لگا سکتے ہیں کہ اسٹاک اپنی اصل کمائی کے مقابلے میں مہنگا ہے یا سستا، اور دوسری کمپنیوں سے موازنہ کر سکتے ہیں۔"
+  },
+  "eps": {
+    "name": "EPS (Earnings Per Share)",
+    "nameUrdu": "ای پی ایس (فی حصہ کمائی)",
+    "category": "fundamental",
+    "formula": "EPS = Net Profit ÷ Total Number of Shares Outstanding",
+    "short": "The company's profit divided by its total number of shares.",
+    "shortUr": "Company ka munafa uske total shares ki tadaad se taqseem kiya jaata hai.",
+    "shortUrdu": "کمپنی کا منافع اس کے کل حصص کی تعداد سے تقسیم کیا جاتا ہے۔",
+    "en": "EPS stands for 'Earnings Per Share' — the company's total profit divided by the number of shares outstanding. It shows how much profit is attributable to each individual share, and is the basis for calculating the P/E Ratio above.",
+    "ur": "EPS ka matlab hai 'Earnings Per Share' (fi share kamai) — company ka kul munafa, uske total shares ki tadaad se taqseem kiya jaata hai. Yeh dikhata hai ke har ek share ke hisse mein kitna munafa aata hai, aur isi se upar wala P/E Ratio bhi nikala jaata hai.",
+    "urdu": "ای پی ایس کا مطلب ہے 'فی حصہ کمائی' — کمپنی کا کل منافع، اس کے کل حصص کی تعداد سے تقسیم کیا جاتا ہے۔ یہ دکھاتا ہے کہ ہر ایک حصے کے حصے میں کتنا منافع آتا ہے، اور اسی سے اوپر والا پی ای ریشو بھی نکالا جاتا ہے۔",
+    "whyEn": "Helps you see how profitable the company is on a per-share basis, useful for comparing companies of different sizes.",
+    "whyUr": "Isse pata chalta hai ke company har share ke hisaab se kitni munafa-bakhsh hai, jo alag size ki companies ka moqabla karne mein madadgar hai.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ کمپنی ہر حصے کے حساب سے کتنی منافع بخش ہے، جو مختلف سائز کی کمپنیوں کا موازنہ کرنے میں مددگار ہے۔"
+  },
+  "dividend_yield": {
+    "name": "Dividend Yield",
+    "nameUrdu": "ڈیویڈنڈ یِیلڈ (منافع کی شرح)",
+    "category": "fundamental",
+    "formula": "Dividend Yield = (Annual Dividend per Share ÷ Share Price) × 100",
+    "short": "Annual dividend paid, as a percentage of the share price.",
+    "shortUr": "Saalana dividend (naqad munafa), share ki qeemat ka percentage bana kar.",
+    "shortUrdu": "سالانہ ڈیویڈنڈ (نقد منافع)، حصے کی قیمت کا فیصد بنا کر۔",
+    "en": "'Dividend' means the cash payment a company gives to its shareholders out of its profits. Dividend Yield expresses the annual dividend as a percentage of the current share price. It shows how much cash return you'd get from dividends alone, relative to the price you'd pay for the stock.",
+    "ur": "'Dividend' ka matlab hai woh naqad raqam jo company apne munafe mein se apne shareholders ko deti hai. 'Dividend Yield' saalana dividend ko current share qeemat ka percentage bana kar dikhata hai. Isse pata chalta hai ke sirf dividend se kitna naqad wapis mil sakta hai, stock ki qeemat ke muqable mein.",
+    "urdu": "'ڈیویڈنڈ' کا مطلب ہے وہ نقد رقم جو کمپنی اپنے منافع میں سے اپنے حصص داروں کو دیتی ہے۔ 'ڈیویڈنڈ یِیلڈ' سالانہ ڈیویڈنڈ کو موجودہ قیمت کا فیصد بنا کر دکھاتا ہے۔ اس سے پتا چلتا ہے کہ صرف ڈیویڈنڈ سے کتنا نقد واپس مل سکتا ہے، اسٹاک کی قیمت کے مقابلے میں۔",
+    "whyEn": "Helps you see how much regular cash income you might earn from holding the stock, useful if you're investing for income rather than just price growth.",
+    "whyUr": "Isse pata chalta hai ke stock rakhne se aapko kitni regular naqad income mil sakti hai, khaas tor par agar aap sirf qeemat barhne ke bajaye income ke liye invest kar rahe hon.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ اسٹاک رکھنے سے آپ کو کتنی باقاعدہ نقد آمدنی مل سکتی ہے، خاص طور پر اگر آپ صرف قیمت بڑھنے کی بجائے آمدنی کے لیے سرمایہ کاری کر رہے ہوں۔"
+  },
+  "market_cap": {
+    "name": "Market Capitalization",
+    "nameUrdu": "مارکیٹ کیپیٹلائزیشن (کمپنی کی مجموعی مالیت)",
+    "category": "fundamental",
+    "formula": "Market Cap = Share Price × Total Number of Shares Outstanding",
+    "short": "The total value of the company — share price × total shares.",
+    "shortUr": "Company ki kul qeemat — share price ko total shares se guna kar ke.",
+    "shortUrdu": "کمپنی کی کل قیمت — حصے کی قیمت کو کل حصص سے ضرب دے کر۔",
+    "en": "The total market value of a company, calculated as the share price multiplied by the total number of shares outstanding. It's used to gauge the overall size of the company — often grouped into 'large-cap' (big), 'mid-cap' (medium), and 'small-cap' (small) companies.",
+    "ur": "Company ki kul market qeemat, jo share ki qeemat ko total shares ki tadaad se guna kar ke nikali jaati hai. Isse company ke overall size ka andaza hota hai — companies ko aksar 'large-cap' (badi), 'mid-cap' (darmiyani), aur 'small-cap' (choti) mein taqseem kiya jaata hai.",
+    "urdu": "کمپنی کی کل مارکیٹ قیمت، جو حصے کی قیمت کو کل حصص کی تعداد سے ضرب دے کر نکالی جاتی ہے۔ اس سے کمپنی کے مجموعی سائز کا اندازہ ہوتا ہے — کمپنیوں کو اکثر 'بڑی'، 'درمیانی'، اور 'چھوٹی' میں تقسیم کیا جاتا ہے۔",
+    "whyEn": "Helps you understand the overall size of the company, since large and small companies often behave very differently in the market.",
+    "whyUr": "Isse company ka overall size samajh aata hai, kyunke badi aur choti companies market mein aksar bohot mukhtalif tareeqe se react karti hain.",
+    "whyUrdu": "اس سے کمپنی کا مجموعی سائز سمجھ آتا ہے، کیونکہ بڑی اور چھوٹی کمپنیاں مارکیٹ میں اکثر بہت مختلف طریقے سے ردعمل ظاہر کرتی ہیں۔"
+  },
+  "book_value": {
+    "name": "Book Value (per Share)",
+    "nameUrdu": "بک ویلیو (فی حصہ کاغذی مالیت)",
+    "category": "fundamental",
+    "formula": "Book Value per Share = (Total Assets − Total Liabilities) ÷ Total Shares Outstanding",
+    "short": "The company's net worth (what it owns minus what it owes) divided by its shares.",
+    "shortUr": "Company ki asal haisiyat (jo malik hai us mein se jo qarz hai woh nikal kar), shares ki tadaad se taqseem.",
+    "shortUrdu": "کمپنی کی اصل حیثیت (جو مالک ہے اس میں سے جو قرض ہے وہ نکال کر)، حصص کی تعداد سے تقسیم۔",
+    "en": "The company's total assets (what it owns) minus its total liabilities (what it owes/debts), divided by the number of shares outstanding. It's a rough estimate of what each share would be worth if the company were shut down, all its assets sold, and all debts paid off.",
+    "ur": "Company ke kul assets (jo woh malik hai) mein se uski kul liabilities (jo woh qarzdaar hai/dena hai) nikal kar, jo bache usay shares ki tadaad se taqseem kiya jaata hai. Yeh andazan batata hai ke agar company band ho jaye, uske sab assets bech diye jayen, aur sare qarz utar diye jayen, to har share ki qeemat kya banegi.",
+    "urdu": "کمپنی کے کل اثاثوں میں سے اس کی کل واجبات نکال کر، جو بچے اسے حصص کی تعداد سے تقسیم کیا جاتا ہے۔ یہ اندازاً بتاتا ہے کہ اگر کمپنی بند ہو جائے، اس کے تمام اثاثے بیچ دیے جائیں، اور تمام قرضے چکا دیے جائیں، تو ہر حصے کی قیمت کیا بنے گی۔",
+    "whyEn": "Helps you get a rough sense of what the company might be worth if it were liquidated — a 'floor' reference for the stock's value.",
+    "whyUr": "Isse ek moti-moti andaza milta hai ke agar company band ho jaye to uski qeemat kya banegi — stock ki qeemat ke liye ek 'sab se kam' (floor) reference.",
+    "whyUrdu": "اس سے ایک موٹا موٹا اندازہ ملتا ہے کہ اگر کمپنی بند ہو جائے تو اس کی قیمت کیا بنے گی — اسٹاک کی قیمت کے لیے ایک کم از کم حوالہ۔"
+  },
+  "payout_ratio": {
+    "name": "Dividend Payout Ratio",
+    "nameUrdu": "ڈیویڈنڈ پے آؤٹ ریشو (منافع دینے کی شرح)",
+    "category": "fundamental",
+    "formula": "Payout Ratio = (Total Dividends Paid ÷ Net Profit) × 100",
+    "short": "How much of the company's profit is paid out as dividends, as a percentage.",
+    "shortUr": "Company apne munafe ka kitna hissa dividend (naqad) ke tor par de rahi hai, percentage mein.",
+    "shortUrdu": "کمپنی اپنے منافع کا کتنا حصہ ڈیویڈنڈ کے طور پر دے رہی ہے، فیصد میں۔",
+    "en": "The percentage of a company's earnings (profit) that it pays out to shareholders as dividends, rather than keeping as retained earnings for reinvestment back into the business. A very high payout ratio (e.g. paying out almost all of its profit) can sometimes be harder to sustain in a bad year.",
+    "ur": "Company apni kamai (munafe) ka kitna hissa (percentage mein) apne shareholders ko dividend ke tor par de rahi hai, uske muqable mein kitna hissa apne paas rakh rahi hai (dobara business mein lagane ke liye). Bohot zyada payout ratio (yani mota-mota sara munafa hi de dena) kabhi kabhi kisi bure saal mein barqarar rakhna mushkil ho sakta hai.",
+    "urdu": "کمپنی اپنی کمائی کا کتنا حصہ (فیصد میں) اپنے حصص داروں کو ڈیویڈنڈ کے طور پر دے رہی ہے، اس کے مقابلے میں کتنا حصہ اپنے پاس رکھ رہی ہے (دوبارہ کاروبار میں لگانے کے لیے)۔ بہت زیادہ پے آؤٹ ریشو کبھی کبھی کسی برے سال میں برقرار رکھنا مشکل ہو سکتا ہے۔",
+    "whyEn": "Helps you judge whether a company's dividend payments are sustainable, or if it's paying out more than it can comfortably afford.",
+    "whyUr": "Isse pata chalta hai ke company ka dividend dena barqarar rakhne layak hai ya woh apni haisiyat se zyada de rahi hai.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ کمپنی کا ڈیویڈنڈ دینا برقرار رکھنے کے قابل ہے یا وہ اپنی حیثیت سے زیادہ دے رہی ہے۔"
+  },
+  "_actions": {
+    "trend": {
+      "up": {
+        "en": "Trend is upward — dips may be worth buying, but do your own research first.",
+        "ur": "Trend upward hai — dips par khareedari dekhi ja sakti hai, lekin apni tehqeeq zaroor karein.",
+        "urdu": "رجحان اوپر کی طرف ہے — گراوٹ پر خریداری دیکھی جا سکتی ہے، لیکن اپنی تحقیق ضرور کریں۔"
+      },
+      "down": {
+        "en": "Trend is downward — caution is advised before taking a new position right now.",
+        "ur": "Trend downward hai — is waqt naye position lene se ehtiyat behtar hai.",
+        "urdu": "رجحان نیچے کی طرف ہے — اس وقت نئی پوزیشن لینے سے احتیاط بہتر ہے۔"
+      },
+      "mixed": {
+        "en": "No clear direction — waiting, or buying only a small amount cautiously, is better for now.",
+        "ur": "Sungin rukh nahi mil raha — filhaal intezar ya sirf ehtiyat ke saath thodi quantity mein khareedna behtar hai.",
+        "urdu": "واضح رخ نہیں مل رہا — فی الحال انتظار یا صرف احتیاط کے ساتھ تھوڑی مقدار میں خریدنا بہتر ہے۔"
+      }
     },
-    rsi: {
-      name: "RSI (Relative Strength Index)",
-      category: "technical",
-      formula: "RSI = 100 − ( 100 ÷ (1 + Average Gain ÷ Average Loss) ), over 14 days",
-      whyEn: "Helps you spot when a stock might be due for a pullback (overbought) or a bounce (oversold), instead of chasing a price that has already moved a lot.",
-      whyUr: "Isse pata chalta hai ke stock kab pullback (waapis neeche) ya bounce (waapis upar) ke qareeb ho sakta hai, bajaye is ke ke aap already zyada move ho chuki price ke peeche bhaagen.",
-      short: "A 0-100 score — above 70 means overbought, below 30 means oversold.",
-      en: "A momentum indicator from 0-100. Above 70 usually means the stock is 'overbought' (may be due for a pullback); below 30 means 'oversold' (may be due for a bounce). 30-70 is considered neutral.",
-      ur: "Ek momentum indicator jo 0 se 100 tak hota hai. 70 se upar ho to stock 'overbought' (zyada khareeda gaya) samjha jaata hai; 30 se neeche ho to 'oversold' (zyada becha gaya). 30-70 ke darmiyan 'neutral' hota hai."
+    "rsi": {
+      "overbought": {
+        "en": "The stock has been heavily bought (overbought) — be cautious with new buying, a correction is possible.",
+        "ur": "Stock zyada khareeda ja chuka hai (overbought) — nayi khareedari mein ehtiyat karein, correction ka imkaan hai.",
+        "urdu": "اسٹاک زیادہ خریدا جا چکا ہے (overbought) — نئی خریداری میں احتیاط کریں، کریکشن کا امکان ہے۔"
+      },
+      "oversold": {
+        "en": "The stock has been heavily sold (oversold) — this could be a good buying opportunity.",
+        "ur": "Stock zyada becha ja chuka hai (oversold) — yeh khareedari ka acha mauka ho sakta hai.",
+        "urdu": "اسٹاک زیادہ بیچا جا چکا ہے (oversold) — یہ خریداری کا اچھا موقع ہو سکتا ہے۔"
+      },
+      "neutral": {
+        "en": "Neither hot nor cold — there's basically no harm in buying, but do check the other factors too.",
+        "ur": "Na zyada garam na thanda — khareedne mein bunyadi taur par harj nahi, baaki factors bhi zaroor dekh lein.",
+        "urdu": "نہ زیادہ گرم نہ ٹھنڈا — خریدنے میں بنیادی طور پر کوئی حرج نہیں، باقی factors بھی ضرور دیکھ لیں۔"
+      }
     },
-    bollinger: {
-      name: "Bollinger Bands",
-      category: "technical",
-      formula: "Upper Band = 20-day MA + (2 × Standard Deviation)\nLower Band = 20-day MA − (2 × Standard Deviation)",
-      whyEn: "Helps you judge whether the current price is unusually high or low compared to its own recent normal range.",
-      whyUr: "Isse aap andaza laga sakte hain ke current price apni normal range ke muqable mein ghair-mamuli tor par zyada ya kam hai.",
-      short: "The price's normal trading range — near the top may mean pricier, near the bottom cheaper.",
-      en: "A band around the price showing its normal trading range, based on recent volatility. The app reports one of four 'Price Position' outcomes: Above Upper Band (Expensive) — price has pushed past the top of its normal range, often seen as pricier/potentially overbought. Upper Half (Pricier) — price is above the middle of the band but still within it. Lower Half (Cheaper) — price is below the middle but still within the band. Below Lower Band (Cheap) — price has dropped past the bottom of its normal range, often seen as cheaper/potentially oversold.",
-      ur: "Price ke ird-gird ek 'band' jo uski normal trading range dikhata hai, recent volatility (utaar-chadhav) ke hisaab se. App char 'Price Position' nateejon mein se ek dikhati hai: Above Upper Band (Expensive) — price apni normal range ke oopar chali gayi hai, aksar mehngi/potentially overbought samjhi jaati hai. Upper Half (Pricier) — price band ke darmiyan se upar hai magar abhi bhi band ke andar hi hai. Lower Half (Cheaper) — price darmiyan se neeche hai magar abhi bhi band ke andar hai. Below Lower Band (Cheap) — price apni normal range ke neeche chali gayi hai, aksar sasti/potentially oversold samjhi jaati hai."
+    "bollinger": {
+      "aboveUpper": {
+        "en": "Price has moved above its upper band — it may be expensive right now, buy cautiously or wait.",
+        "ur": "Price apne upper band se upar hai — filhaal mehnga ho sakta hai, ehtiyat se khareeden ya intezar karein.",
+        "urdu": "قیمت اپنے اوپری بینڈ سے اوپر ہے — فی الحال مہنگی ہو سکتی ہے، احتیاط سے خریدیں یا انتظار کریں۔"
+      },
+      "belowLower": {
+        "en": "Price has dropped below its lower band — this could be a cheap buying opportunity.",
+        "ur": "Price apne lower band se neeche hai — yeh khareedari ka sasta mauka ho sakta hai.",
+        "urdu": "قیمت اپنے نچلے بینڈ سے نیچے ہے — یہ خریداری کا سستا موقع ہو سکتا ہے۔"
+      },
+      "upperHalf": {
+        "en": "Price is in the upper half of its range — a bit pricier, buy thoughtfully.",
+        "ur": "Price apni range ke upper hisse mein hai — thora mehnga hai, soch samajh kar khareeden.",
+        "urdu": "قیمت اپنی رینج کے اوپری حصے میں ہے — تھوڑا مہنگا ہے، سوچ سمجھ کر خریدیں۔"
+      },
+      "lowerHalf": {
+        "en": "Price is in the lower half of its range — this may be a better range to buy in.",
+        "ur": "Price apni range ke neeche hisse mein hai — khareedne ke liye yeh behtar range ho sakti hai.",
+        "urdu": "قیمت اپنی رینج کے نچلے حصے میں ہے — خریدنے کے لیے یہ بہتر رینج ہو سکتی ہے۔"
+      }
     },
-    atr: {
-      name: "ATR (Average True Range)",
-      category: "technical",
-      formula: "ATR = Average of the daily price change over the last 14 days",
-      whyEn: "Helps you gauge how much daily movement/risk to expect, useful for setting realistic stop-loss distances.",
-      whyUr: "Isse aap andaza laga sakte hain ke roz kitna utaar-chadhav (risk) expect karna chahiye, jo stop-loss set karne mein madadgar hai.",
-      short: "The average daily price movement — higher means more volatile.",
-      en: "The average amount a stock's price moves in a single day. The app classifies this (as a % of the current price) into one of three 'Volatility Level' outcomes: High Volatility — the daily move is above 2.5% of the price, meaning big daily swings and higher risk. Moderate Volatility — between 1% and 2.5%, a fairly typical amount of daily movement. Low Volatility — below 1%, meaning the price tends to move very little day to day.",
-      ur: "Ek din mein stock ki price aam tor par kitni move karti hai, uski average. App isay (current price ke % ke tor par) teen 'Volatility Level' nateejon mein taqseem karti hai: High Volatility — roz ki move price ke 2.5% se zyada ho, yani bade daily utaar-chadhav aur zyada risk. Moderate Volatility — 1% se 2.5% ke darmiyan, ek aam si roz ki movement. Low Volatility — 1% se kam, yani price roz-marra bohot kam move karti hai."
+    "atr": {
+      "high": {
+        "en": "The price is making big daily swings — risk is higher, keep position size small or use a stop-loss.",
+        "ur": "Price mein roz bade utaar-chadhav aa rahe hain — risk zyada hai, position size chhoti rakhein ya stop-loss zaroor lagayen.",
+        "urdu": "قیمت میں روز بڑے اتار چڑھاؤ آ رہے ہیں — رسک زیادہ ہے، پوزیشن سائز چھوٹا رکھیں یا اسٹاپ لاس ضرور لگائیں۔"
+      },
+      "moderate": {
+        "en": "This is a fairly typical amount of daily movement — normal risk management is enough.",
+        "ur": "Aam si daily movement hai — mamool ke risk management ke sath trade kiya ja sakta hai.",
+        "urdu": "عام سی روزانہ حرکت ہے — معمول کے رسک مینجمنٹ کے ساتھ ٹریڈ کیا جا سکتا ہے۔"
+      },
+      "low": {
+        "en": "The price is barely moving day to day — a big move is unlikely for now.",
+        "ur": "Price bohot kam move kar rahi hai — filhaal koi bara move ka imkaan kam hai.",
+        "urdu": "قیمت بہت کم حرکت کر رہی ہے — فی الحال کوئی بڑا موو کا امکان کم ہے۔"
+      }
     },
-    volume: {
-      name: "Volume & Average Volume",
-      category: "technical",
-      formula: "Average Volume = Sum of volume over last 30 days ÷ 30",
-      whyEn: "Helps you judge how much real interest is behind a price move — a change on unusually high volume is often considered more meaningful.",
-      whyUr: "Isse pata chalta hai ke price move ke peeche kitni asal dilchaspi hai — zyada volume ke saath price change ko aksar zyada ahem samjha jaata hai.",
-      short: "Today's trading activity vs the recent daily average.",
-      en: "How many shares traded today, compared to the recent 30-day daily average. The app reports one of four 'Activity Level' outcomes: Very High — today's volume is more than 50% above the average, suggesting unusually strong interest (buying or selling). Above Average — 10% to 50% above the average, somewhat more active than usual. Average — within 10% either side of the average, a normal trading day. Below Average — more than 10% below the average, quieter than usual with less trading interest.",
-      ur: "Aaj kitne shares trade hue, pichle 30 din ki roz ki average se moqabla karte hue. App char 'Activity Level' nateejon mein se ek dikhati hai: Very High — aaj ka volume average se 50% se zyada ho, yani ghair-mamuli tor par zyada dilchaspi (khareedari ya farokht). Above Average — average se 10% se 50% zyada, mamool se thora zyada active. Average — average ke 10% ke aas-paas, ek mamooli trading din. Below Average — average se 10% se zyada kam, mamool se khaamosh, kam dilchaspi ke sath."
+    "volume": {
+      "veryHighUp": {
+        "en": "Very high activity with the price moving up — this is a strong buying trend, but don't chase the price.",
+        "ur": "Bohot zyada activity ke sath price upar ja rahi hai — mazboot khareedari ka rujhan hai, lekin peechay bhaag kar (chase) na khareeden.",
+        "urdu": "بہت زیادہ ایکٹیویٹی کے ساتھ قیمت اوپر جا رہی ہے — مضبوط خریداری کا رجحان ہے، لیکن پیچھے بھاگ کر نہ خریدیں۔"
+      },
+      "veryHighDown": {
+        "en": "Very high activity with the price falling — selling pressure is strong, be cautious about new buying for now.",
+        "ur": "Bohot zyada activity ke sath price neeche ja rahi hai — bikwali ka dabao zyada hai, filhaal nayi khareedari se ehtiyat karein.",
+        "urdu": "بہت زیادہ ایکٹیویٹی کے ساتھ قیمت نیچے جا رہی ہے — بکواڑی کا دباؤ زیادہ ہے، فی الحال نئی خریداری سے احتیاط کریں۔"
+      },
+      "aboveAvgUp": {
+        "en": "Above-average activity with the price up — buyer interest is rising, do your research before taking a position.",
+        "ur": "Aam se zyada activity ke sath price upar hai — khareedaron ka interest badh raha hai, position lene se pehle apni tehqeeq karein.",
+        "urdu": "معمول سے زیادہ ایکٹیویٹی کے ساتھ قیمت اوپر ہے — خریداروں کی دلچسپی بڑھ رہی ہے، پوزیشن لینے سے پہلے اپنی تحقیق کریں۔"
+      },
+      "aboveAvgDown": {
+        "en": "Above-average activity with the price down — selling pressure is visible, be cautious.",
+        "ur": "Aam se zyada activity ke sath price neeche hai — bikwali ka dabao dikh raha hai, ehtiyat rakhein.",
+        "urdu": "معمول سے زیادہ ایکٹیویٹی کے ساتھ قیمت نیچے ہے — بکواڑی کا دباؤ نظر آ رہا ہے، احتیاط رکھیں۔"
+      },
+      "belowAvg": {
+        "en": "Activity is below average — there's no strong trend visible for now, don't rush.",
+        "ur": "Aam se kam activity hai — filhaal koi mazboot rujhan nazar nahi aa raha, jaldbazi na karein.",
+        "urdu": "معمول سے کم ایکٹیویٹی ہے — فی الحال کوئی مضبوط رجحان نظر نہیں آ رہا، جلد بازی نہ کریں۔"
+      },
+      "average": {
+        "en": "Trading activity is normal — there's no strong signal to buy or to sell.",
+        "ur": "Aam ma'amool ki trading activity hai — na khareedne ka koi khaas ishara hai, na bechne ka.",
+        "urdu": "عام معمول کی ٹریڈنگ ایکٹیویٹی ہے — نہ خریدنے کا کوئی خاص اشارہ ہے، نہ بیچنے کا۔"
+      }
     },
-    support_resistance: {
-      name: "Support & Resistance",
-      category: "technical",
-      formula: "Support = Lowest closing price in the recent period\nResistance = Highest closing price in the recent period",
-      whyEn: "Helps you spot likely price levels to watch for a bounce or a breakout, useful for planning entries and exits.",
-      whyUr: "Isse aapko woh price levels pata chalte hain jahan bounce ya breakout ki umeed rakhi ja sakti hai, jo entry/exit plan karne mein kaam aata hai.",
-      short: "Price levels where the stock has often paused or reversed before.",
-      en: "Support is a price level the stock has historically had trouble falling below; resistance is a level it has had trouble rising above. The app also shows the current price's 'Position' relative to these: Near Resistance — current price is within about 2% of the resistance level, meaning it may struggle to rise further without a stronger push. Near Support — current price is within about 2% of the support level, meaning it may find buyers there and bounce. Mid-Range — current price is comfortably between the two, not close to either level right now.",
-      ur: "Support woh price level hai jahan se stock aam tor par neeche girne mein mushkil mehsoos karta hai; resistance woh level hai jahan se upar jaane mein mushkil hoti hai. App current price ki 'Position' bhi dikhati hai in levels ke muqable mein: Near Resistance — current price resistance level ke taqreeban 2% ke andar hai, yani bagair zyada zor ke aage badhna mushkil ho sakta hai. Near Support — current price support level ke taqreeban 2% ke andar hai, yani wahan khareedar mil kar price wapas upar ja sakti hai. Mid-Range — current price aaram se in dono levels ke darmiyan hai, filhaal kisi ke bhi qareeb nahin."
+    "priceLevel": {
+      "nearResistance": {
+        "en": "Price is near resistance — a pullback from here is possible, be cautious.",
+        "ur": "Price resistance ke qareeb hai — yahan se wapsi (pullback) ka imkaan hai, ehtiyat rakhein.",
+        "urdu": "قیمت مزاحمت کے قریب ہے — یہاں سے واپسی کا امکان ہے، احتیاط رکھیں۔"
+      },
+      "nearSupport": {
+        "en": "Price is near support — this could be a bounce opportunity, but also watch the risk of support breaking.",
+        "ur": "Price support ke qareeb hai — yeh bounce ka mauka ho sakta hai, lekin support toot'ne ka risk bhi dhyan mein rakhein.",
+        "urdu": "قیمت سپورٹ کے قریب ہے — یہ باؤنس کا موقع ہو سکتا ہے، لیکن سپورٹ ٹوٹنے کا رسک بھی ذہن میں رکھیں۔"
+      },
+      "midRange": {
+        "en": "Price is between support and resistance — there's no clear signal for now, waiting is better.",
+        "ur": "Price support aur resistance ke darmiyan hai — filhaal koi wazeh signal nahi, intezar behtar hai.",
+        "urdu": "قیمت سپورٹ اور مزاحمت کے درمیان ہے — فی الحال کوئی واضح اشارہ نہیں، انتظار بہتر ہے۔"
+      }
     },
-    "52week": {
-      name: "52-Week High / Low",
-      category: "technical",
-      formula: "52-Week High/Low = Highest / Lowest closing price in the last ~252 trading days",
-      whyEn: "Helps you see whether today's price is near its yearly extremes, giving context on how 'cheap' or 'expensive' it looks versus its own history.",
-      whyUr: "Isse pata chalta hai ke aaj ki price saal ki intihaon ke kitne qareeb hai, jo yeh samajhne mein madad karta hai ke price abhi 'sasti' hai ya 'mehngi'.",
-      short: "The highest and lowest price this stock has reached in the past year.",
-      en: "The highest and lowest price the stock has reached in the past year. Useful for seeing how today's price compares to its yearly range.",
-      ur: "Pichle ek saal mein stock ki sabse zyada aur sabse kam pahunchi hui price. Isse pata chalta hai ke aaj ki price saal bhar ki range ke muqable mein kahan khadi hai."
+    "pivot": {
+      "above": {
+        "en": "Price is trading above today's pivot — today's bias is considered bullish (upward).",
+        "ur": "Price aaj ke pivot se upar trade kar rahi hai — aaj ka rujhan bullish (upar ki taraf) samjha jaata hai.",
+        "urdu": "قیمت آج کے پیوٹ سے اوپر ٹریڈ کر رہی ہے — آج کا رجحان تیزی کی طرف سمجھا جاتا ہے۔"
+      },
+      "below": {
+        "en": "Price is trading below today's pivot — today's bias is considered bearish (downward).",
+        "ur": "Price aaj ke pivot se neeche trade kar rahi hai — aaj ka rujhan bearish (neeche ki taraf) samjha jaata hai.",
+        "urdu": "قیمت آج کے پیوٹ سے نیچے ٹریڈ کر رہی ہے — آج کا رجحان مندی کی طرف سمجھا جاتا ہے۔"
+      },
+      "at": {
+        "en": "Price is exactly at the pivot — the direction isn't clear yet, either way is possible.",
+        "ur": "Price bilkul aaj ke pivot par hai — rujhan abhi wazeh nahi, dono taraf ka imkaan hai.",
+        "urdu": "قیمت بالکل آج کے پیوٹ پر ہے — رجحان ابھی واضح نہیں، دونوں طرف کا امکان ہے۔"
+      }
     },
-    pe_ratio: {
-      name: "P/E Ratio (Price-to-Earnings)",
-      category: "fundamental",
-      formula: "P/E Ratio = Share Price ÷ Earnings Per Share (EPS)",
-      whyEn: "Helps you judge whether a stock is expensive or cheap relative to its actual earnings, and to compare it against other companies.",
-      whyUr: "Isse aap andaza laga sakte hain ke stock apni asal kamai (earnings) ke muqable mein mehnga hai ya sasta, aur doosri companies se muqabla kar sakte hain.",
-      short: "Share price divided by earnings per share — how expensive the stock is relative to its profit.",
-      en: "The share price divided by the company's earnings per share (EPS). A high P/E can mean the market expects strong future growth (or that the stock is overpriced); a low P/E can mean it's undervalued (or that growth is expected to be weak).",
-      ur: "Share ki price ko company ki earnings per share (EPS) se taqseem kar ke nikala jaata hai. Zyada P/E ka matlab ho sakta hai ke market ko aage acha growth ki tawaqqo hai (ya phir stock mehnga hai); kam P/E ka matlab ho sakta hai stock sasta hai (ya growth kam tawaqqo ki hai)."
-    },
-    eps: {
-      name: "EPS (Earnings Per Share)",
-      category: "fundamental",
-      formula: "EPS = Net Profit ÷ Total Number of Shares Outstanding",
-      whyEn: "Helps you see how profitable the company is on a per-share basis, useful for comparing companies of different sizes.",
-      whyUr: "Isse pata chalta hai ke company har share ke hisaab se kitni munafa-bakhsh hai, jo alag size ki companies ka muqabla karne mein madadgar hai.",
-      short: "The company's profit divided by its total number of shares.",
-      en: "The company's total profit divided by the number of shares outstanding. It shows how much profit is attributable to each individual share.",
-      ur: "Company ka kul munafa, uske total shares ki tadaad se taqseem kiya jaata hai. Yeh dikhata hai ke har ek share ke hisse mein kitna munafa aata hai."
-    },
-    dividend_yield: {
-      name: "Dividend Yield",
-      category: "fundamental",
-      formula: "Dividend Yield = (Annual Dividend per Share ÷ Share Price) × 100",
-      whyEn: "Helps you see how much regular cash income you might earn from holding the stock, useful if you're investing for income rather than just price growth.",
-      whyUr: "Isse pata chalta hai ke stock rakhne se aapko kitni regular cash income mil sakti hai, khaas tor par agar aap sirf price barhne ke bajaye income ke liye invest kar rahe hon.",
-      short: "Annual dividend paid, as a percentage of the share price.",
-      en: "The annual dividend payment expressed as a percentage of the current share price. It shows how much cash return you'd get from dividends alone, relative to the price you'd pay for the stock.",
-      ur: "Saalana dividend (munafa jo company shareholders ko deti hai) ko current share price ka percentage bana kar dikhaya jaata hai. Isse pata chalta hai ke sirf dividend se kitna return mil sakta hai, stock ki price ke muqable mein."
-    },
-    market_cap: {
-      name: "Market Capitalization",
-      category: "fundamental",
-      formula: "Market Cap = Share Price × Total Number of Shares Outstanding",
-      whyEn: "Helps you understand the overall size of the company, since large and small companies often behave very differently in the market.",
-      whyUr: "Isse company ka overall size samajh aata hai, kyunke badi aur choti companies market mein aksar bohot mukhtalif tareeqe se react karti hain.",
-      short: "The total value of the company — share price × total shares.",
-      en: "The total market value of a company, calculated as the share price multiplied by the total number of shares outstanding. It's used to gauge the overall size of the company.",
-      ur: "Company ki kul market value — share price ko total shares ki tadaad se guna kar ke nikali jaati hai. Isse company ke overall size (bade ya chhote hone) ka andaza hota hai."
-    },
-    book_value: {
-      name: "Book Value (per Share)",
-      category: "fundamental",
-      formula: "Book Value per Share = (Total Assets − Total Liabilities) ÷ Total Shares Outstanding",
-      whyEn: "Helps you get a rough sense of what the company might be worth if it were shut down and its assets sold off — a 'floor' reference for the stock's value.",
-      whyUr: "Isse ek moti-moti andaza milta hai ke agar company band ho jaye aur uske assets bech diye jayen to uski qeemat kya banegi — stock ki qeemat ke liye ek 'floor' reference.",
-      short: "The company's net worth (assets minus liabilities) divided by its shares.",
-      en: "The company's total assets minus its total liabilities, divided by the number of shares outstanding. It's a rough estimate of what each share would be worth if the company were liquidated.",
-      ur: "Company ke kul assets (jaidad) mein se uski kul liabilities (qarz/zimmedariyan) nikal kar, jo bache usay shares ki tadaad se taqseem kiya jaata hai. Yeh andazan batata hai ke agar company band ho jaye to har share ki qeemat kya banegi."
-    },
-    payout_ratio: {
-      name: "Dividend Payout Ratio",
-      category: "fundamental",
-      formula: "Payout Ratio = (Total Dividends Paid ÷ Net Profit) × 100",
-      whyEn: "Helps you judge whether a company's dividend payments are sustainable, or if it's paying out more than it can comfortably afford.",
-      whyUr: "Isse pata chalta hai ke company ka dividend dena barqarar rakhne layak hai ya woh apni haisiyat se zyada de rahi hai.",
-      short: "How much of the company's profit is paid out as dividends, as a percentage.",
-      en: "The percentage of a company's earnings that it pays out to shareholders as dividends, rather than keeping as retained earnings for reinvestment. A very high payout ratio can sometimes be harder to sustain.",
-      ur: "Company apne munafe ka kitna hissa (percentage mein) shareholders ko dividend ke tor par de rahi hai, uske muqable mein kitna hissa apne paas (reinvestment ke liye) rakh rahi hai. Bohot zyada payout ratio kabhi kabhi lambe arse tak barqarar rakhna mushkil ho sakta hai."
-    },
-    pivot_points: {
-      name: "Pivot Points (Pivot, R1/R2, S1/S2)",
-      category: "technical",
-      formula: "Pivot = (High + Low + Close) ÷ 3\nR1 = (2 × Pivot) − Low\nR2 = Pivot + (High − Low)\nS1 = (2 × Pivot) − High\nS2 = Pivot − (High − Low)",
-      whyEn: "Helps intraday traders identify likely levels where the price could reverse or break through during the trading day.",
-      whyUr: "Isse intraday traders ko un levels ka andaza hota hai jahan din ke dauran price palat sakti hai ya break kar sakti hai.",
-      short: "Levels calculated from High, Low and Close, used to guess where price may pause today.",
-      en: "A set of price levels calculated from the previous session's High, Low and Close: a central Pivot, two Resistance levels above it (R1, R2), and two Support levels below it (S1, S2). Intraday traders often watch these as likely turning points for the day.",
-      ur: "Pichle session ki High, Low aur Close se nikale gaye price levels: ek darmiyani Pivot, uske upar do Resistance levels (R1, R2), aur neeche do Support levels (S1, S2). Intraday traders in ko aksar din ke mumkin 'mor' (turning points) ke tor par dekhte hain."
+    "label": {
+      "en": "Suggested action:",
+      "ur": "Suggested action:",
+      "urdu": "تجویز کردہ عمل:"
     }
-  };
-  let glossaryLang = "en";
+  }
+};
+  // Shared across the "Study" glossary AND the Analysis tab's "Suggested
+  // action" lines, so picking a language once applies everywhere. Persisted
+  // so the choice survives closing and reopening the app.
+  let glossaryLang = (function () {
+    try { return localStorage.getItem("kmi30_lang") || "en"; } catch (e) { return "en"; }
+  })();
+  function setAppLang(lang) {
+    glossaryLang = lang;
+    try { localStorage.setItem("kmi30_lang", lang); } catch (e) {}
+  }
+  // Picks the right-language string from a {en, ur, urdu} triple, falling
+  // back sensibly if a language is missing.
+  function pickLang(triple) {
+    if (!triple) return "";
+    if (glossaryLang === "en") return triple.en || "";
+    if (glossaryLang === "urdu") return triple.urdu || triple.ur || "";
+    return triple.ur || "";
+  }
 
   // Loads glossary.json from GitHub at runtime and, if it's there and valid,
   // REPLACES the built-in GLOSSARY above with it — so editing that one text
@@ -1152,6 +1391,9 @@
   let trendSortDir = "desc"; // most recent date first by default
 
   function buildOneDTable(ticksChrono) {
+    if (!ticksChrono || ticksChrono.length === 0) {
+      return `<div class="placeholder-text" style="padding:12px 4px;">No data available yet — load this stock's live price first.</div>`;
+    }
     const keyFn = { time: t => t[0], price: t => t[1], volume: t => t[2] }[oneDSortCol] || (t => t[0]);
     const sorted = ticksChrono.slice().sort((a, b) => oneDSortDir === "asc" ? keyFn(a) - keyFn(b) : keyFn(b) - keyFn(a));
     const arrow = (col) => oneDSortCol === col ? (oneDSortDir === "asc" ? " ▲" : " ▼") : "";
@@ -1222,6 +1464,9 @@
   }
 
   function buildTrendTable(rows) {
+    if (!rows || rows.length === 0) {
+      return `<div class="placeholder-text" style="padding:12px 4px;">No data available for this period.</div>`;
+    }
     const keyFn = TREND_SORT_KEYS[trendSortCol] || TREND_SORT_KEYS.date;
     const sorted = rows.slice().sort((a, b) => {
       const va = keyFn(a), vb = keyFn(b);
@@ -1697,31 +1942,64 @@
       el.innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Not enough history yet for analysis — at least ~1 month of data is needed, ideally 1 year.</div>`;
       return;
     }
+    const ACT = GLOSSARY._actions || {};
+    const ACT_TREND = ACT.trend || {};
+    const ACT_RSI = ACT.rsi || {};
+    const ACT_BB = ACT.bollinger || {};
+    const ACT_ATR = ACT.atr || {};
+    const ACT_VOL = ACT.volume || {};
+    const ACT_PL = ACT.priceLevel || {};
+    const ACT_PIVOT = ACT.pivot || {};
     const trendUp = a.sma50 && a.sma200 ? (a.last.close > a.sma50 && a.sma50 > a.sma200) : null;
     const trendDown = a.sma50 && a.sma200 ? (a.last.close < a.sma50 && a.sma50 < a.sma200) : null;
     const trendLabel = trendUp ? "▲ Uptrend" : trendDown ? "▼ Downtrend" : "• Mixed / Sideways";
     const trendDir = trendUp ? "up" : trendDown ? "down" : "";
+    const trendAction = pickLang(trendUp ? ACT_TREND.up : trendDown ? ACT_TREND.down : ACT_TREND.mixed);
 
     const rsiLabel = a.rsi === null ? "–" : a.rsi.toFixed(0) + (a.rsi > 70 ? " (Overbought)" : a.rsi < 30 ? " (Oversold)" : " (Neutral)");
     const rsiDir = a.rsi === null ? "" : a.rsi > 70 ? "down" : a.rsi < 30 ? "up" : "";
+    const rsiAction = a.rsi === null ? "" : pickLang(a.rsi > 70 ? ACT_RSI.overbought : a.rsi < 30 ? ACT_RSI.oversold : ACT_RSI.neutral);
 
     const volDiffPct = a.avgVolume ? ((a.todayVolume - a.avgVolume) / a.avgVolume) * 100 : 0;
     const volLabel = a.avgVolume ? `${volDiffPct >= 0 ? "+" : ""}${volDiffPct.toFixed(0)}% vs 30-day avg` : "–";
     const volLevel = !a.avgVolume ? "–" : volDiffPct > 50 ? "Very High" : volDiffPct > 10 ? "Above Average" : volDiffPct < -10 ? "Below Average" : "Average";
     const volLevelDir = !a.avgVolume ? "" : volDiffPct > 10 ? "up" : volDiffPct < -10 ? "down" : "";
+    const priceUpToday = a.last.change > 0;
+    const volAction = !a.avgVolume ? "" : pickLang(
+      volDiffPct > 50 ? (priceUpToday ? ACT_VOL.veryHighUp : ACT_VOL.veryHighDown)
+      : volDiffPct > 10 ? (priceUpToday ? ACT_VOL.aboveAvgUp : ACT_VOL.aboveAvgDown)
+      : volDiffPct < -10 ? ACT_VOL.belowAvg
+      : ACT_VOL.average
+    );
 
-    let bbLabel = "–", bbDir = "";
+    let bbLabel = "–", bbDir = "", bbAction = "";
     if (a.bb) {
-      if (a.last.close > a.bb.upper) { bbLabel = "Above Upper Band (Expensive)"; bbDir = "down"; }
-      else if (a.last.close < a.bb.lower) { bbLabel = "Below Lower Band (Cheap)"; bbDir = "up"; }
-      else if (a.last.close > a.bb.mid) { bbLabel = "Upper Half (Pricier)"; bbDir = ""; }
-      else { bbLabel = "Lower Half (Cheaper)"; bbDir = ""; }
+      if (a.last.close > a.bb.upper) {
+        bbLabel = "Above Upper Band (Expensive)"; bbDir = "down";
+        bbAction = pickLang(ACT_BB.aboveUpper);
+      } else if (a.last.close < a.bb.lower) {
+        bbLabel = "Below Lower Band (Cheap)"; bbDir = "up";
+        bbAction = pickLang(ACT_BB.belowLower);
+      } else if (a.last.close > a.bb.mid) {
+        bbLabel = "Upper Half (Pricier)"; bbDir = "";
+        bbAction = pickLang(ACT_BB.upperHalf);
+      } else {
+        bbLabel = "Lower Half (Cheaper)"; bbDir = "";
+        bbAction = pickLang(ACT_BB.lowerHalf);
+      }
     }
 
-    let atrLevel = "–";
+    let atrLevel = "–", atrAction = "";
     if (a.atr) {
       const atrPct = (a.atr / a.last.close) * 100;
-      atrLevel = (atrPct > 2.5 ? "High" : atrPct < 1 ? "Low" : "Moderate") + ` Volatility (${atrPct.toFixed(1)}% of price)`;
+      if (atrPct > 2.5) {
+        atrLevel = "High"; atrAction = pickLang(ACT_ATR.high);
+      } else if (atrPct < 1) {
+        atrLevel = "Low"; atrAction = pickLang(ACT_ATR.low);
+      } else {
+        atrLevel = "Moderate"; atrAction = pickLang(ACT_ATR.moderate);
+      }
+      atrLevel += ` Volatility (${atrPct.toFixed(1)}% of price)`;
     }
 
     // Uses today's own live session High/Low/current-price (not yesterday's,
@@ -1729,13 +2007,37 @@
     // once this stock's live data has loaded.
     const liveStock = lastStockData[trendSymbol];
     const pivots = liveStock ? computePivotPoints(liveStock.high, liveStock.low, liveStock.current[1]) : null;
+    let pivotStatus = "", pivotDir = "", pivotAction = "";
+    if (pivots && liveStock) {
+      const curPrice = liveStock.current[1];
+      if (curPrice > pivots.pivot) {
+        pivotStatus = "Above Pivot (Bullish Bias)"; pivotDir = "up";
+        pivotAction = pickLang(ACT_PIVOT.above);
+      } else if (curPrice < pivots.pivot) {
+        pivotStatus = "Below Pivot (Bearish Bias)"; pivotDir = "down";
+        pivotAction = pickLang(ACT_PIVOT.below);
+      } else {
+        pivotStatus = "At Pivot"; pivotDir = "";
+        pivotAction = pickLang(ACT_PIVOT.at);
+      }
+    }
 
-    let levelNote = "–", levelDir = "";
+    let levelNote = "–", levelDir = "", levelAction = "";
     const distToRes = Math.abs(a.resistance - a.last.close) / a.last.close * 100;
     const distToSup = Math.abs(a.last.close - a.support) / a.last.close * 100;
-    if (distToRes < 2) { levelNote = "Near Resistance"; levelDir = "down"; }
-    else if (distToSup < 2) { levelNote = "Near Support"; levelDir = "up"; }
-    else { levelNote = "Mid-Range"; levelDir = ""; }
+    if (distToRes < 2) {
+      levelNote = "Near Resistance"; levelDir = "down";
+      levelAction = pickLang(ACT_PL.nearResistance);
+    } else if (distToSup < 2) {
+      levelNote = "Near Support"; levelDir = "up";
+      levelAction = pickLang(ACT_PL.nearSupport);
+    } else {
+      levelNote = "Mid-Range"; levelDir = "";
+      levelAction = pickLang(ACT_PL.midRange);
+    }
+
+    const actionLabel = pickLang(ACT.label) || "Suggested action:";
+    const rtlAttr = glossaryLang === "urdu" ? ' dir="rtl" lang="ur"' : "";
 
     el.innerHTML = `
       <div class="placeholder-text" style="margin-bottom:14px;">Based on ~1 year of price history. These are calculations, not guarantees — always do your own research before trading.</div>
@@ -1754,6 +2056,7 @@
           <div class="analysis-label">Status</div>
           <div class="analysis-value ${trendDir}">${trendLabel}</div>
         </div>
+        <div class="analysis-action"${rtlAttr}><b>${actionLabel}</b> ${trendAction}</div>
       </div>
 
       <div class="analysis-section">
@@ -1762,6 +2065,7 @@
           <div class="analysis-label">RSI (14) ${infoIcon("rsi")}</div>
           <div class="analysis-value ${rsiDir}">${rsiLabel}</div>
         </div>
+        ${rsiAction ? `<div class="analysis-action"${rtlAttr}><b>${actionLabel}</b> ${rsiAction}</div>` : ""}
       </div>
 
       <div class="analysis-section">
@@ -1782,6 +2086,8 @@
           <div class="analysis-label">Volatility Level</div>
           <div class="analysis-value">${atrLevel}</div>
         </div>
+        ${bbAction ? `<div class="analysis-action"${rtlAttr}><b>${actionLabel}</b> ${bbAction}</div>` : ""}
+        ${atrAction ? `<div class="analysis-action"${rtlAttr}><b>${actionLabel}</b> ${atrAction}</div>` : ""}
       </div>
 
       <div class="analysis-section">
@@ -1798,6 +2104,7 @@
           <div class="analysis-label">Activity Level</div>
           <div class="analysis-value ${volLevelDir}">${volLevel}</div>
         </div>
+        ${volAction ? `<div class="analysis-action"${rtlAttr}><b>${actionLabel}</b> ${volAction}</div>` : ""}
       </div>
 
       <div class="analysis-section">
@@ -1822,6 +2129,7 @@
           <div class="analysis-label">Current Position</div>
           <div class="analysis-value ${levelDir}">${levelNote}</div>
         </div>
+        ${levelAction ? `<div class="analysis-action"${rtlAttr}><b>${actionLabel}</b> ${levelAction}</div>` : ""}
       </div>
 
       <div class="analysis-section">
@@ -1847,7 +2155,12 @@
             <div class="analysis-label">Support 2 (S2)</div>
             <div class="analysis-value">Rs${pivots.s2.toFixed(2)}</div>
           </div>
+          <div class="analysis-row">
+            <div class="analysis-label">Status</div>
+            <div class="analysis-value ${pivotDir}">${pivotStatus}</div>
+          </div>
           <div class="placeholder-text" style="margin-top:8px;">Based on today's session so far, not yesterday's full close.</div>
+          ${pivotAction ? `<div class="analysis-action"${rtlAttr}><b>${actionLabel}</b> ${pivotAction}</div>` : ""}
         ` : `<div class="placeholder-text">Load this stock's live price first to see today's pivot levels.</div>`}
       </div>
     `;
@@ -1856,9 +2169,10 @@
   function renderGlossary() {
     const el = document.getElementById("glossaryList");
     const knownHeadings = {
-      technical: { en: "Technical Analysis Terms", ur: "Technical Analysis ki Terms" },
-      fundamental: { en: "Fundamental Analysis Terms", ur: "Fundamental Analysis ki Terms" }
+      technical: { en: "Technical Analysis Terms", ur: "Technical Analysis ki Terms", urdu: "تکنیکی تجزیے کی اصطلاحات" },
+      fundamental: { en: "Fundamental Analysis Terms", ur: "Fundamental Analysis ki Terms", urdu: "بنیادی تجزیے کی اصطلاحات" }
     };
+    const isUrdu = glossaryLang === "urdu";
     // Derived from whatever's actually in GLOSSARY right now (built-in or
     // replaced by glossary.json), so a newly added category in that file
     // still gets its own heading automatically.
@@ -1870,28 +2184,31 @@
     const categories = categoryKeys.map(key => ({
       key,
       heading: knownHeadings[key]
-        ? (glossaryLang === "en" ? knownHeadings[key].en : knownHeadings[key].ur)
+        ? (glossaryLang === "en" ? knownHeadings[key].en : glossaryLang === "urdu" ? knownHeadings[key].urdu : knownHeadings[key].ur)
         : key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ")
     }));
     el.innerHTML = categories.map(cat => {
       const keys = Object.keys(GLOSSARY).filter(k => (GLOSSARY[k].category || "other") === cat.key);
       const terms = keys.map(key => {
         const g = GLOSSARY[key];
+        const name = glossaryLang === "en" ? g.name : glossaryLang === "urdu" ? (g.nameUrdu || g.name) : g.name;
+        const def = glossaryLang === "en" ? g.en : glossaryLang === "urdu" ? (g.urdu || g.ur) : g.ur;
         const formulaHtml = g.formula
-          ? `<div class="glossary-formula">${(glossaryLang === "en" ? "Formula: " : "Formula: ") + g.formula.replace(/\n/g, "<br>")}</div>`
+          ? `<div class="glossary-formula">${(glossaryLang === "en" ? "Formula: " : glossaryLang === "urdu" ? "فارمولا: " : "Formula: ") + g.formula.replace(/\n/g, "<br>")}</div>`
           : "";
+        const whyText = glossaryLang === "en" ? g.whyEn : glossaryLang === "urdu" ? (g.whyUrdu || g.whyUr) : g.whyUr;
         const whyHtml = (g.whyEn || g.whyUr)
-          ? `<div class="glossary-why"><b>${glossaryLang === "en" ? "Why check this?" : "Isay kyun dekhte hain?"}</b> ${glossaryLang === "en" ? g.whyEn : g.whyUr}</div>`
+          ? `<div class="glossary-why"><b>${glossaryLang === "en" ? "Why check this?" : glossaryLang === "urdu" ? "یہ کیوں دیکھیں؟" : "Isay kyun dekhte hain?"}</b> ${whyText}</div>`
           : "";
         return `
-          <div class="glossary-term" id="glossary-${key}">
-            <div class="glossary-term-name">${g.name}</div>
-            <div class="glossary-term-def">${glossaryLang === "en" ? g.en : g.ur}</div>
+          <div class="glossary-term" id="glossary-${key}"${isUrdu ? ' dir="rtl" lang="ur"' : ""}>
+            <div class="glossary-term-name">${name}</div>
+            <div class="glossary-term-def">${def}</div>
             ${formulaHtml}
             ${whyHtml}
           </div>`;
       }).join("");
-      return `<div class="glossary-section-heading">${cat.heading}</div>${terms}`;
+      return `<div class="glossary-section-heading"${isUrdu ? ' dir="rtl" lang="ur"' : ""}>${cat.heading}</div>${terms}`;
     }).join("");
   }
 
@@ -1899,6 +2216,9 @@
 
   function wireGlossary() {
     document.getElementById("studyBtn").addEventListener("click", async () => {
+      document.getElementById("glossaryLangEn").classList.toggle("active", glossaryLang === "en");
+      document.getElementById("glossaryLangUr").classList.toggle("active", glossaryLang === "ur");
+      document.getElementById("glossaryLangUrdu").classList.toggle("active", glossaryLang === "urdu");
       renderGlossary();
       document.getElementById("glossaryOverlay").classList.add("open");
       await loadRemoteGlossary();
@@ -1908,15 +2228,24 @@
       document.getElementById("glossaryOverlay").classList.remove("open");
     });
     document.getElementById("glossaryLangEn").addEventListener("click", () => {
-      glossaryLang = "en";
+      setAppLang("en");
       document.getElementById("glossaryLangEn").classList.add("active");
       document.getElementById("glossaryLangUr").classList.remove("active");
+      document.getElementById("glossaryLangUrdu").classList.remove("active");
       renderGlossary();
     });
     document.getElementById("glossaryLangUr").addEventListener("click", () => {
-      glossaryLang = "ur";
+      setAppLang("ur");
       document.getElementById("glossaryLangUr").classList.add("active");
       document.getElementById("glossaryLangEn").classList.remove("active");
+      document.getElementById("glossaryLangUrdu").classList.remove("active");
+      renderGlossary();
+    });
+    document.getElementById("glossaryLangUrdu").addEventListener("click", () => {
+      setAppLang("urdu");
+      document.getElementById("glossaryLangUrdu").classList.add("active");
+      document.getElementById("glossaryLangEn").classList.remove("active");
+      document.getElementById("glossaryLangUr").classList.remove("active");
       renderGlossary();
     });
     document.getElementById("analysisTabContent").addEventListener("click", (e) => {
@@ -2000,7 +2329,7 @@
       const cardEl = document.querySelector("#trendOverlay .settings-card");
       if (trendDetailsOpen) {
         tableEl.innerHTML = trendPeriod === "1D"
-          ? buildOneDTable(lastStockData[trendSymbol].ticksChrono)
+          ? buildOneDTable((lastStockData[trendSymbol] && lastStockData[trendSymbol].ticksChrono))
           : buildTrendTable(trendCurrentRows);
         tableEl.style.display = "block";
         exportBtn.style.display = "block";
@@ -2044,7 +2373,7 @@
         const col = sort1d.getAttribute("data-sort1d");
         if (oneDSortCol === col) oneDSortDir = oneDSortDir === "asc" ? "desc" : "asc";
         else { oneDSortCol = col; oneDSortDir = "desc"; }
-        document.getElementById("trendTable").innerHTML = buildOneDTable(lastStockData[trendSymbol].ticksChrono);
+        document.getElementById("trendTable").innerHTML = buildOneDTable((lastStockData[trendSymbol] && lastStockData[trendSymbol].ticksChrono));
         return;
       }
       const headerCell = e.target.closest("[data-sort-col]");
