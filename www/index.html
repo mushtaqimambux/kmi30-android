@@ -94,6 +94,7 @@
   .stock {
     background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
     margin-bottom: 6px; overflow: hidden; font-size: var(--card-font-size, 14px);
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
   }
   .stock-head {
     display: flex; flex-direction: column;
@@ -138,6 +139,10 @@
   .holding-line-detail.down { color: var(--down); }
   .holding-line-remove {
     flex-shrink: 0; background: none; border: 1px solid var(--down); color: var(--down);
+    border-radius: 6px; padding: 4px 9px; font-size: 13px;
+  }
+  .holding-line-edit {
+    flex-shrink: 0; background: none; border: 1px solid var(--accent2); color: var(--accent2);
     border-radius: 6px; padding: 4px 9px; font-size: 13px;
   }
   .change.flat { color: var(--dim); }
@@ -290,7 +295,7 @@
     <button id="clearSearchBtn" style="display:none; position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--dim); font-size:16px; line-height:1; padding:4px; cursor:pointer;">✕</button>
   </div>
   <button class="toolbar-icon-btn" id="sortMenuBtn" title="Sort">⇅</button>
-  <button class="toolbar-icon-btn" id="holdingsBtn" title="My Holdings">💼</button>
+  <button class="toolbar-icon-btn" id="holdingsBtn" title="Portfolio">💼</button>
   <button class="toolbar-icon-btn" id="expandAllBtn" title="Expand/collapse all">⤢</button>
   <button class="toolbar-icon-btn" id="reloadAllBtn" title="Reload all">↻</button>
 </div>
@@ -316,7 +321,7 @@
 <div class="overlay" id="holdingsOverlay">
   <div class="settings-card">
     <button class="close-btn" id="closeHoldingsBtn">✕</button>
-    <div class="settings-title">My Holdings</div>
+    <div class="settings-title">Portfolio</div>
     <div style="display:flex; gap:8px; margin-bottom:12px;">
       <div class="secondary-btn" id="addHoldingBtn" style="flex:1;">+ Add Holding</div>
       <div class="secondary-btn" id="toggleHoldingsEditBtn" style="flex:1;">Edit</div>
@@ -451,6 +456,12 @@
 <div class="overlay" id="trendOverlay">
   <div class="settings-card">
     <button class="close-btn" id="closeTrendBtn">✕</button>
+    <button class="close-btn" id="analysisLangBtn" style="right:44px; font-size:18px; display:none;" title="Language">🌐</button>
+    <div id="analysisLangMenu" style="display:none; position:absolute; top:44px; right:14px; z-index:10; background:var(--card); border:1px solid var(--card-border); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.35); overflow:hidden;">
+      <div class="pinned-row" data-analysis-lang="en" style="padding:10px 16px; cursor:pointer;">English</div>
+      <div class="pinned-row" data-analysis-lang="ur" style="padding:10px 16px; cursor:pointer;">Roman Urdu</div>
+      <div class="pinned-row" data-analysis-lang="urdu" style="padding:10px 16px; cursor:pointer;">اردو</div>
+    </div>
     <div class="settings-title" id="trendTitle">Trend</div>
     <div class="period-tabs" id="trendSubTabsRow" style="display:none; margin-bottom:10px;">
       <button class="period-tab active" id="chartSubTabBtn" data-subtab="chart" style="flex:1;">📈 Chart</button>
@@ -1657,7 +1668,7 @@
       document.getElementById("trendChart").innerHTML = `<div class="placeholder-text" style="padding:20px 4px;">Load this stock first to see today's chart</div>`;
       return;
     }
-    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="chartScroll">${build1DSvg(s.ticksChrono, oneDayZoom)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • tap for price • swipe to scroll</div>`;
+    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="chartScroll">${build1DSvg(s.ticksChrono, oneDayZoom)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • drag to see price • swipe to scroll</div>`;
     if (trendDetailsOpen) {
       document.getElementById("trendTable").innerHTML = buildOneDTable(s.ticksChrono);
     }
@@ -1693,7 +1704,7 @@
       stepX = eodStepX;
     }
 
-    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="chartScroll">${buildTrendSvg(rows, chartType, stepX)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • tap for price • swipe to scroll</div>`;
+    document.getElementById("trendChart").innerHTML = `<div class="trend-scroll" id="chartScroll">${buildTrendSvg(rows, chartType, stepX)}</div><div class="placeholder-text" style="text-align:center; margin-top:4px;">Pinch to zoom • drag to see price • swipe to scroll</div>`;
     if (trendDetailsOpen) {
       document.getElementById("trendTable").innerHTML = buildTrendTable(rows);
     }
@@ -1797,37 +1808,48 @@
   // A quick single tap on the chart shows the exact price (and time/date)
   // at that spot in a small popup.
   function wireChartTapTooltip(stableParent, containerId) {
-    let sx = 0, sy = 0, st = 0, tapping = false, activeCount = 0;
+    let scrubbing = false, activeCount = 0;
+    let pendingClientX = null, rafScheduled = false;
+
     function isInContainer(target) {
       const c = document.getElementById(containerId);
       return !!(c && c.contains(target));
     }
+
+    // Only one tooltip update per animation frame, always using the latest
+    // finger position — so dragging your finger left/right keeps the price
+    // popup live and smooth, instead of needing to lift and tap again for
+    // every new point.
+    function applyScrub() {
+      rafScheduled = false;
+      if (pendingClientX === null || !scrubbing) return;
+      const container = document.getElementById(containerId);
+      if (container && lastChartGeom) showChartTooltip(pendingClientX, container);
+    }
+
     stableParent.addEventListener("pointerdown", (e) => {
       if (e.pointerType !== "touch") return;
       activeCount++;
-      if (activeCount > 1) { tapping = false; return; }
+      if (activeCount > 1) { scrubbing = false; return; }
       if (isInContainer(e.target)) {
-        tapping = true;
-        sx = e.clientX; sy = e.clientY; st = Date.now();
+        scrubbing = true;
+        pendingClientX = e.clientX;
+        if (!rafScheduled) { rafScheduled = true; requestAnimationFrame(applyScrub); }
       } else {
-        tapping = false;
+        scrubbing = false;
       }
     });
     stableParent.addEventListener("pointermove", (e) => {
-      if (!tapping) return;
-      if (Math.abs(e.clientX - sx) > 8 || Math.abs(e.clientY - sy) > 8) tapping = false;
+      if (!scrubbing) return;
+      pendingClientX = e.clientX;
+      if (!rafScheduled) { rafScheduled = true; requestAnimationFrame(applyScrub); }
     });
     function onUp(e) {
       if (e.pointerType === "touch") activeCount = Math.max(0, activeCount - 1);
-      if (!tapping) return;
-      tapping = false;
-      if (Date.now() - st > 500) return;
-      const container = document.getElementById(containerId);
-      if (!container || !lastChartGeom) return;
-      showChartTooltip(e.clientX, container);
+      scrubbing = false;
     }
     stableParent.addEventListener("pointerup", onUp);
-    stableParent.addEventListener("pointercancel", () => { tapping = false; activeCount = Math.max(0, activeCount - 1); });
+    stableParent.addEventListener("pointercancel", () => { scrubbing = false; activeCount = Math.max(0, activeCount - 1); });
   }
 
   function showChartTooltip(clientX, container) {
@@ -2306,12 +2328,25 @@
     document.getElementById("analysisSubTabBtn").classList.toggle("active", !isChart);
     document.getElementById("chartTabContent").style.display = isChart ? "" : "none";
     document.getElementById("analysisTabContent").style.display = isChart ? "none" : "block";
+    document.getElementById("analysisLangBtn").style.display = isChart ? "none" : "block";
+    document.getElementById("analysisLangMenu").style.display = "none";
     if (!isChart) renderAnalysisTab();
   }
 
   function wireTrendPanel() {
     document.getElementById("closeTrendBtn").addEventListener("click", () => {
       document.getElementById("trendOverlay").classList.remove("open");
+    });
+    document.getElementById("analysisLangBtn").addEventListener("click", () => {
+      const menu = document.getElementById("analysisLangMenu");
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
+    });
+    document.getElementById("analysisLangMenu").addEventListener("click", (e) => {
+      const row = e.target.closest("[data-analysis-lang]");
+      if (!row) return;
+      glossaryLang = row.getAttribute("data-analysis-lang");
+      document.getElementById("analysisLangMenu").style.display = "none";
+      renderAnalysisTab();
     });
     document.getElementById("chartSubTabBtn").addEventListener("click", () => selectTrendSubTab("chart"));
     document.getElementById("analysisSubTabBtn").addEventListener("click", () => selectTrendSubTab("analysis"));
@@ -2530,7 +2565,7 @@
           </label>
         </div>
         <div class="detail-section">
-          <div class="detail-label">My Holdings</div>
+          <div class="detail-label">Portfolio</div>
           ${holdings[s.symbol] ? `<div>${holdings[s.symbol].shares} shares @ Rs${holdings[s.symbol].buyPrice.toFixed(2)}</div>` : ""}
           <div style="display:flex; gap:8px; margin-top:6px;">
             ${holdings[s.symbol] ? `
@@ -2832,7 +2867,10 @@
         <div class="holding-line-row">
           <span class="holding-line-sym">${sym}</span>
           <span class="holding-line-detail ${dir}">${p.shares} @ ${p.buyPrice.toFixed(2)} → ${sign}Rs${p.pl.toFixed(2)} (${sign}${p.plPct.toFixed(1)}%)</span>
-          ${holdingsEditMode ? `<button class="holding-line-remove" data-holding-remove="${sym}">✕</button>` : ""}
+          ${holdingsEditMode ? `
+            <button class="holding-line-edit" data-holding-edit="${sym}">Edit</button>
+            <button class="holding-line-remove" data-holding-remove="${sym}">✕</button>
+          ` : ""}
         </div>`;
     }).join("");
     const totalPl = totalCurrent - totalInvested;
@@ -3015,6 +3053,11 @@
       renderHoldingsList();
     });
     document.getElementById("holdingsList").addEventListener("click", (e) => {
+      const editBtn = e.target.closest("[data-holding-edit]");
+      if (editBtn) {
+        openHoldingsPanelFor(editBtn.getAttribute("data-holding-edit"));
+        return;
+      }
       const removeBtn = e.target.closest("[data-holding-remove]");
       if (!removeBtn) return;
       const sym = removeBtn.getAttribute("data-holding-remove");
@@ -3176,9 +3219,12 @@
     if (hour < settings.endHour) return;
     const today = todayKey();
     if (localStorage.getItem("kmi30_last_export") === today) return;
-    exportDailyRecord(today).then(() => {
-      localStorage.setItem("kmi30_last_export", today);
-    }).catch(() => {});
+    // Extra safety: never mark today as exported if price data hasn't
+    // actually loaded yet (e.g. this runs again 3 seconds later) — this is
+    // exactly what caused blank records to get saved and locked in before.
+    if (Object.keys(lastStockData).length === 0) return;
+    isSavingRecord = true;
+    verifyAndExportDailyRecord(today);
   }
 
   // ---------- History (previous days' records) ----------
@@ -3209,6 +3255,50 @@
       }, reject);
     });
   }
+
+  function readRawRecordText(dateStr) {
+    return new Promise((resolve, reject) => {
+      const path = cordova.file.externalDataDirectory + "KMI30-Records/KMI30_" + dateStr + ".csv";
+      window.resolveLocalFileSystemURL(path, (fileEntry) => {
+        fileEntry.file((file) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsText(file);
+        }, reject);
+      }, reject);
+    });
+  }
+
+  let isSavingRecord = false;
+
+  // Writes the record, then reads the file straight back and compares it
+  // byte-for-byte against what was meant to be saved — only once they truly
+  // match does this mark today as done and tell the person it's safe to
+  // close the app. If they don't match (a partial/failed write), it retries
+  // instead of silently accepting a bad save.
+  async function verifyAndExportDailyRecord(dateStr, attempt) {
+    attempt = attempt || 1;
+    const expectedCsv = buildCsv(dateStr);
+    try {
+      await writeCsvToRecordFile(dateStr, expectedCsv);
+      const actualCsv = await readRawRecordText(dateStr);
+      if (actualCsv === expectedCsv) {
+        localStorage.setItem("kmi30_last_export", dateStr);
+        isSavingRecord = false;
+        alert(`✅ Successful — today's (${dateStr}) record has been backed up.`);
+        return;
+      }
+      throw new Error("mismatch");
+    } catch (e) {
+      if (attempt < 5) {
+        setTimeout(() => verifyAndExportDailyRecord(dateStr, attempt + 1), 1500);
+      } else {
+        isSavingRecord = false; // stop retrying forever; next heartbeat will try again
+      }
+    }
+  }
+
 
   function historyRowHtml(rec) {
     const changeNum = parseFloat(rec.Change);
@@ -3713,7 +3803,7 @@
         card.style.width = cardWidth + "px";
         card.style.zIndex = "999";
         card.style.pointerEvents = "none";
-      }, 3000);
+      }, 1500);
     }
 
     function onTouchMove(e) {
@@ -3787,7 +3877,7 @@
     }, true);
   }
 
-  function init() {
+  async function init() {
     listEl.innerHTML = getAllSymbols().map(emptyCardHtml).join("");
     document.querySelectorAll(".stock").forEach(attachCardListeners);
     populateHourSelects();
@@ -3806,7 +3896,11 @@
     wireUpdateOverlay();
     updatePinButtons();
     applySort();
-    loadAllParallel();
+    // Wait for the actual price data to arrive before the first end-of-day
+    // export check — otherwise that check ran on empty data (nothing had
+    // loaded yet) and saved a blank record, permanently marking today as
+    // "already exported" before the real numbers ever showed up.
+    await loadAllParallel();
     heartbeat();
     updateLiveClock();
     setInterval(heartbeat, 3000);
@@ -3822,6 +3916,16 @@
   // actual APK, since it depends on the native HTTP plugin.
   if (window.cordova) {
     document.addEventListener("deviceready", init, false);
+    // Block the hardware back button from exiting the app while today's
+    // record is mid-save, so it can never be interrupted partway through.
+    document.addEventListener("backbutton", (e) => {
+      if (isSavingRecord) {
+        e.preventDefault();
+        alert("Data save ho raha hai — thoda intezar karein, khud band ho jayega jab safalta se save ho jaye.");
+        return;
+      }
+      if (navigator.app && navigator.app.exitApp) navigator.app.exitApp();
+    }, false);
   } else {
     document.addEventListener("DOMContentLoaded", init);
   }
