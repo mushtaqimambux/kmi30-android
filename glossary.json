@@ -2,7 +2,7 @@
   "sma": {
     "name": "Moving Average (50-day / 200-day)",
     "nameUrdu": "متحرک اوسط (٥٠ دن / ٢٠٠ دن)",
-    "category": "technical",
+    "category": "trend_indicators",
     "formula": "Moving Average = Sum of closing prices over the period ÷ Number of days",
     "short": "Average price over the last 50/200 days — shows the overall trend direction.",
     "shortUr": "Pichle 50/200 dinon ki average price — stock ka overall rukh (trend) dikhati hai.",
@@ -17,7 +17,7 @@
   "rsi": {
     "name": "RSI (Relative Strength Index)",
     "nameUrdu": "آر ایس آئی (رفتار ناپنے کا پیمانہ)",
-    "category": "technical",
+    "category": "momentum_indicators",
     "formula": "RSI = 100 − ( 100 ÷ (1 + Average Gain ÷ Average Loss) ), over 14 days",
     "short": "A 0-100 score measuring how fast price has been rising or falling — above 70 means overbought, below 30 means oversold.",
     "shortUr": "0 se 100 tak ka number jo yeh naapta hai ke qeemat kitni tezi se badh/ghat rahi hai — 70 se upar 'overbought', 30 se neeche 'oversold'.",
@@ -32,7 +32,7 @@
   "bollinger": {
     "name": "Bollinger Bands",
     "nameUrdu": "بولنجر بینڈز (قیمت کی حد بندی)",
-    "category": "technical",
+    "category": "volatility_indicators",
     "formula": "Upper Band = 20-day MA + (2 × Standard Deviation)\nLower Band = 20-day MA − (2 × Standard Deviation)",
     "short": "The price's normal trading range (like a lane a car usually stays within) — near the top edge may mean pricier, near the bottom cheaper.",
     "shortUr": "Qeemat ki normal 'lane' (jaisay gaari apni lane mein chalti hai) — upar wali hadd ke qareeb ho to mehnga, neeche wali hadd ke qareeb ho to sasta.",
@@ -47,7 +47,7 @@
   "atr": {
     "name": "ATR (Average True Range)",
     "nameUrdu": "اے ٹی آر (اوسط روزانہ حرکت)",
-    "category": "technical",
+    "category": "volatility_indicators",
     "formula": "ATR = Average of the daily price change over the last 14 days",
     "short": "The average daily price movement — higher means more volatile (bigger up-down swings).",
     "shortUr": "Roz ki average qeemat ki harkat — jitna zyada, utna hi zyada utaar-chadhav.",
@@ -62,7 +62,7 @@
   "volume": {
     "name": "Volume & Average Volume",
     "nameUrdu": "حجم اور اوسط حجم",
-    "category": "technical",
+    "category": "volume",
     "formula": "Average Volume = Sum of volume over last 30 days ÷ 30",
     "short": "Today's trading activity (how many shares changed hands) vs the recent daily average.",
     "shortUr": "Aaj kitni khareed-o-farokht hui (kitne shares haath badle), pichle dinon ki average se moqabla.",
@@ -77,7 +77,7 @@
   "support_resistance": {
     "name": "Support & Resistance",
     "nameUrdu": "سپورٹ اور ریزسٹنس (سہارا اور رکاوٹ)",
-    "category": "technical",
+    "category": "price_levels",
     "formula": "Support = Lowest closing price in the recent period\nResistance = Highest closing price in the recent period",
     "short": "Price levels where the stock has often paused or reversed before — support is a 'floor', resistance is a 'ceiling'.",
     "shortUr": "Woh qeemat levels jahan stock pehle bhi ruka ya palta hai — support 'farsh' jaisa hai, resistance 'chhat' jaisi.",
@@ -92,7 +92,7 @@
   "52week": {
     "name": "52-Week High / Low",
     "nameUrdu": "٥٢ ہفتوں کی بلند ترین / پست ترین قیمت",
-    "category": "technical",
+    "category": "price_levels",
     "formula": "52-Week High/Low = Highest / Lowest closing price in the last ~252 trading days",
     "short": "The highest and lowest price this stock has reached in the past year.",
     "shortUr": "Pichle ek saal mein stock ki sabse zyada aur sabse kam pahunchi hui qeemat.",
@@ -107,7 +107,7 @@
   "pivot_points": {
     "name": "Pivot Points (Pivot, R1/R2, S1/S2)",
     "nameUrdu": "پیوٹ پوائنٹس (متوقع موڑ کے مقامات)",
-    "category": "technical",
+    "category": "trend_indicators",
     "formula": "Pivot = (High + Low + Close) ÷ 3\nR1 = (2 × Pivot) − Low\nR2 = Pivot + (High − Low)\nS1 = (2 × Pivot) − High\nS2 = Pivot − (High − Low)",
     "short": "Levels calculated from High, Low and Close, used to guess where price may pause or turn today.",
     "shortUr": "High, Low aur Close se nikale gaye levels, jinse andaza lagaya jaata hai ke aaj qeemat kahan ruk ya palat sakti hai.",
@@ -122,7 +122,7 @@
   "pe_ratio": {
     "name": "P/E Ratio (Price-to-Earnings)",
     "nameUrdu": "پی ای ریشو (قیمت اور کمائی کا تناسب)",
-    "category": "fundamental",
+    "category": "valuation",
     "formula": "P/E Ratio = Share Price ÷ Earnings Per Share (EPS)",
     "short": "Share price divided by earnings per share — how expensive the stock is relative to its actual profit.",
     "shortUr": "Share ki qeemat ko har share ki kamai se taqseem kiya jaata hai — stock apne asal munafe ke muqable mein kitna mehnga hai.",
@@ -137,7 +137,7 @@
   "eps": {
     "name": "EPS (Earnings Per Share)",
     "nameUrdu": "ای پی ایس (فی حصہ کمائی)",
-    "category": "fundamental",
+    "category": "profitability",
     "formula": "EPS = Net Profit ÷ Total Number of Shares Outstanding",
     "short": "The company's profit divided by its total number of shares.",
     "shortUr": "Company ka munafa uske total shares ki tadaad se taqseem kiya jaata hai.",
@@ -152,7 +152,7 @@
   "dividend_yield": {
     "name": "Dividend Yield",
     "nameUrdu": "ڈیویڈنڈ یِیلڈ (منافع کی شرح)",
-    "category": "fundamental",
+    "category": "dividends",
     "formula": "Dividend Yield = (Annual Dividend per Share ÷ Share Price) × 100",
     "short": "Annual dividend paid, as a percentage of the share price.",
     "shortUr": "Saalana dividend (naqad munafa), share ki qeemat ka percentage bana kar.",
@@ -167,7 +167,7 @@
   "market_cap": {
     "name": "Market Capitalization",
     "nameUrdu": "مارکیٹ کیپیٹلائزیشن (کمپنی کی مجموعی مالیت)",
-    "category": "fundamental",
+    "category": "valuation",
     "formula": "Market Cap = Share Price × Total Number of Shares Outstanding",
     "short": "The total value of the company — share price × total shares.",
     "shortUr": "Company ki kul qeemat — share price ko total shares se guna kar ke.",
@@ -182,7 +182,7 @@
   "book_value": {
     "name": "Book Value (per Share)",
     "nameUrdu": "بک ویلیو (فی حصہ کاغذی مالیت)",
-    "category": "fundamental",
+    "category": "financial_health",
     "formula": "Book Value per Share = (Total Assets − Total Liabilities) ÷ Total Shares Outstanding",
     "short": "The company's net worth (what it owns minus what it owes) divided by its shares.",
     "shortUr": "Company ki asal haisiyat (jo malik hai us mein se jo qarz hai woh nikal kar), shares ki tadaad se taqseem.",
@@ -197,7 +197,7 @@
   "payout_ratio": {
     "name": "Dividend Payout Ratio",
     "nameUrdu": "ڈیویڈنڈ پے آؤٹ ریشو (منافع دینے کی شرح)",
-    "category": "fundamental",
+    "category": "dividends",
     "formula": "Payout Ratio = (Total Dividends Paid ÷ Net Profit) × 100",
     "short": "How much of the company's profit is paid out as dividends, as a percentage.",
     "shortUr": "Company apne munafe ka kitna hissa dividend (naqad) ke tor par de rahi hai, percentage mein.",
@@ -209,150 +209,124 @@
     "whyUr": "Isse pata chalta hai ke company ka dividend dena barqarar rakhne layak hai ya woh apni haisiyat se zyada de rahi hai.",
     "whyUrdu": "اس سے پتا چلتا ہے کہ کمپنی کا ڈیویڈنڈ دینا برقرار رکھنے کے قابل ہے یا وہ اپنی حیثیت سے زیادہ دے رہی ہے۔"
   },
-  "_actions": {
-    "trend": {
-      "up": {
-        "en": "Trend is upward — dips may be worth buying, but do your own research first.",
-        "ur": "Trend upward hai — dips par khareedari dekhi ja sakti hai, lekin apni tehqeeq zaroor karein.",
-        "urdu": "رجحان اوپر کی طرف ہے — گراوٹ پر خریداری دیکھی جا سکتی ہے، لیکن اپنی تحقیق ضرور کریں۔"
-      },
-      "down": {
-        "en": "Trend is downward — caution is advised before taking a new position right now.",
-        "ur": "Trend downward hai — is waqt naye position lene se ehtiyat behtar hai.",
-        "urdu": "رجحان نیچے کی طرف ہے — اس وقت نئی پوزیشن لینے سے احتیاط بہتر ہے۔"
-      },
-      "mixed": {
-        "en": "No clear direction — waiting, or buying only a small amount cautiously, is better for now.",
-        "ur": "Sungin rukh nahi mil raha — filhaal intezar ya sirf ehtiyat ke saath thodi quantity mein khareedna behtar hai.",
-        "urdu": "واضح رخ نہیں مل رہا — فی الحال انتظار یا صرف احتیاط کے ساتھ تھوڑی مقدار میں خریدنا بہتر ہے۔"
-      }
-    },
-    "rsi": {
-      "overbought": {
-        "en": "The stock has been heavily bought (overbought) — be cautious with new buying, a correction is possible.",
-        "ur": "Stock zyada khareeda ja chuka hai (overbought) — nayi khareedari mein ehtiyat karein, correction ka imkaan hai.",
-        "urdu": "اسٹاک زیادہ خریدا جا چکا ہے (overbought) — نئی خریداری میں احتیاط کریں، کریکشن کا امکان ہے۔"
-      },
-      "oversold": {
-        "en": "The stock has been heavily sold (oversold) — this could be a good buying opportunity.",
-        "ur": "Stock zyada becha ja chuka hai (oversold) — yeh khareedari ka acha mauka ho sakta hai.",
-        "urdu": "اسٹاک زیادہ بیچا جا چکا ہے (oversold) — یہ خریداری کا اچھا موقع ہو سکتا ہے۔"
-      },
-      "neutral": {
-        "en": "Neither hot nor cold — there's basically no harm in buying, but do check the other factors too.",
-        "ur": "Na zyada garam na thanda — khareedne mein bunyadi taur par harj nahi, baaki factors bhi zaroor dekh lein.",
-        "urdu": "نہ زیادہ گرم نہ ٹھنڈا — خریدنے میں بنیادی طور پر کوئی حرج نہیں، باقی factors بھی ضرور دیکھ لیں۔"
-      }
-    },
-    "bollinger": {
-      "aboveUpper": {
-        "en": "Price has moved above its upper band — it may be expensive right now, buy cautiously or wait.",
-        "ur": "Price apne upper band se upar hai — filhaal mehnga ho sakta hai, ehtiyat se khareeden ya intezar karein.",
-        "urdu": "قیمت اپنے اوپری بینڈ سے اوپر ہے — فی الحال مہنگی ہو سکتی ہے، احتیاط سے خریدیں یا انتظار کریں۔"
-      },
-      "belowLower": {
-        "en": "Price has dropped below its lower band — this could be a cheap buying opportunity.",
-        "ur": "Price apne lower band se neeche hai — yeh khareedari ka sasta mauka ho sakta hai.",
-        "urdu": "قیمت اپنے نچلے بینڈ سے نیچے ہے — یہ خریداری کا سستا موقع ہو سکتا ہے۔"
-      },
-      "upperHalf": {
-        "en": "Price is in the upper half of its range — a bit pricier, buy thoughtfully.",
-        "ur": "Price apni range ke upper hisse mein hai — thora mehnga hai, soch samajh kar khareeden.",
-        "urdu": "قیمت اپنی رینج کے اوپری حصے میں ہے — تھوڑا مہنگا ہے، سوچ سمجھ کر خریدیں۔"
-      },
-      "lowerHalf": {
-        "en": "Price is in the lower half of its range — this may be a better range to buy in.",
-        "ur": "Price apni range ke neeche hisse mein hai — khareedne ke liye yeh behtar range ho sakti hai.",
-        "urdu": "قیمت اپنی رینج کے نچلے حصے میں ہے — خریدنے کے لیے یہ بہتر رینج ہو سکتی ہے۔"
-      }
-    },
-    "atr": {
-      "high": {
-        "en": "The price is making big daily swings — risk is higher, keep position size small or use a stop-loss.",
-        "ur": "Price mein roz bade utaar-chadhav aa rahe hain — risk zyada hai, position size chhoti rakhein ya stop-loss zaroor lagayen.",
-        "urdu": "قیمت میں روز بڑے اتار چڑھاؤ آ رہے ہیں — رسک زیادہ ہے، پوزیشن سائز چھوٹا رکھیں یا اسٹاپ لاس ضرور لگائیں۔"
-      },
-      "moderate": {
-        "en": "This is a fairly typical amount of daily movement — normal risk management is enough.",
-        "ur": "Aam si daily movement hai — mamool ke risk management ke sath trade kiya ja sakta hai.",
-        "urdu": "عام سی روزانہ حرکت ہے — معمول کے رسک مینجمنٹ کے ساتھ ٹریڈ کیا جا سکتا ہے۔"
-      },
-      "low": {
-        "en": "The price is barely moving day to day — a big move is unlikely for now.",
-        "ur": "Price bohot kam move kar rahi hai — filhaal koi bara move ka imkaan kam hai.",
-        "urdu": "قیمت بہت کم حرکت کر رہی ہے — فی الحال کوئی بڑا موو کا امکان کم ہے۔"
-      }
-    },
-    "volume": {
-      "veryHighUp": {
-        "en": "Very high activity with the price moving up — this is a strong buying trend, but don't chase the price.",
-        "ur": "Bohot zyada activity ke sath price upar ja rahi hai — mazboot khareedari ka rujhan hai, lekin peechay bhaag kar (chase) na khareeden.",
-        "urdu": "بہت زیادہ ایکٹیویٹی کے ساتھ قیمت اوپر جا رہی ہے — مضبوط خریداری کا رجحان ہے، لیکن پیچھے بھاگ کر نہ خریدیں۔"
-      },
-      "veryHighDown": {
-        "en": "Very high activity with the price falling — selling pressure is strong, be cautious about new buying for now.",
-        "ur": "Bohot zyada activity ke sath price neeche ja rahi hai — bikwali ka dabao zyada hai, filhaal nayi khareedari se ehtiyat karein.",
-        "urdu": "بہت زیادہ ایکٹیویٹی کے ساتھ قیمت نیچے جا رہی ہے — بکواڑی کا دباؤ زیادہ ہے، فی الحال نئی خریداری سے احتیاط کریں۔"
-      },
-      "aboveAvgUp": {
-        "en": "Above-average activity with the price up — buyer interest is rising, do your research before taking a position.",
-        "ur": "Aam se zyada activity ke sath price upar hai — khareedaron ka interest badh raha hai, position lene se pehle apni tehqeeq karein.",
-        "urdu": "معمول سے زیادہ ایکٹیویٹی کے ساتھ قیمت اوپر ہے — خریداروں کی دلچسپی بڑھ رہی ہے، پوزیشن لینے سے پہلے اپنی تحقیق کریں۔"
-      },
-      "aboveAvgDown": {
-        "en": "Above-average activity with the price down — selling pressure is visible, be cautious.",
-        "ur": "Aam se zyada activity ke sath price neeche hai — bikwali ka dabao dikh raha hai, ehtiyat rakhein.",
-        "urdu": "معمول سے زیادہ ایکٹیویٹی کے ساتھ قیمت نیچے ہے — بکواڑی کا دباؤ نظر آ رہا ہے، احتیاط رکھیں۔"
-      },
-      "belowAvg": {
-        "en": "Activity is below average — there's no strong trend visible for now, don't rush.",
-        "ur": "Aam se kam activity hai — filhaal koi mazboot rujhan nazar nahi aa raha, jaldbazi na karein.",
-        "urdu": "معمول سے کم ایکٹیویٹی ہے — فی الحال کوئی مضبوط رجحان نظر نہیں آ رہا، جلد بازی نہ کریں۔"
-      },
-      "average": {
-        "en": "Trading activity is normal — there's no strong signal to buy or to sell.",
-        "ur": "Aam ma'amool ki trading activity hai — na khareedne ka koi khaas ishara hai, na bechne ka.",
-        "urdu": "عام معمول کی ٹریڈنگ ایکٹیویٹی ہے — نہ خریدنے کا کوئی خاص اشارہ ہے، نہ بیچنے کا۔"
-      }
-    },
-    "priceLevel": {
-      "nearResistance": {
-        "en": "Price is near resistance — a pullback from here is possible, be cautious.",
-        "ur": "Price resistance ke qareeb hai — yahan se wapsi (pullback) ka imkaan hai, ehtiyat rakhein.",
-        "urdu": "قیمت مزاحمت کے قریب ہے — یہاں سے واپسی کا امکان ہے، احتیاط رکھیں۔"
-      },
-      "nearSupport": {
-        "en": "Price is near support — this could be a bounce opportunity, but also watch the risk of support breaking.",
-        "ur": "Price support ke qareeb hai — yeh bounce ka mauka ho sakta hai, lekin support toot'ne ka risk bhi dhyan mein rakhein.",
-        "urdu": "قیمت سپورٹ کے قریب ہے — یہ باؤنس کا موقع ہو سکتا ہے، لیکن سپورٹ ٹوٹنے کا رسک بھی ذہن میں رکھیں۔"
-      },
-      "midRange": {
-        "en": "Price is between support and resistance — there's no clear signal for now, waiting is better.",
-        "ur": "Price support aur resistance ke darmiyan hai — filhaal koi wazeh signal nahi, intezar behtar hai.",
-        "urdu": "قیمت سپورٹ اور مزاحمت کے درمیان ہے — فی الحال کوئی واضح اشارہ نہیں، انتظار بہتر ہے۔"
-      }
-    },
-    "pivot": {
-      "above": {
-        "en": "Price is trading above today's pivot — today's bias is considered bullish (upward).",
-        "ur": "Price aaj ke pivot se upar trade kar rahi hai — aaj ka rujhan bullish (upar ki taraf) samjha jaata hai.",
-        "urdu": "قیمت آج کے پیوٹ سے اوپر ٹریڈ کر رہی ہے — آج کا رجحان تیزی کی طرف سمجھا جاتا ہے۔"
-      },
-      "below": {
-        "en": "Price is trading below today's pivot — today's bias is considered bearish (downward).",
-        "ur": "Price aaj ke pivot se neeche trade kar rahi hai — aaj ka rujhan bearish (neeche ki taraf) samjha jaata hai.",
-        "urdu": "قیمت آج کے پیوٹ سے نیچے ٹریڈ کر رہی ہے — آج کا رجحان مندی کی طرف سمجھا جاتا ہے۔"
-      },
-      "at": {
-        "en": "Price is exactly at the pivot — the direction isn't clear yet, either way is possible.",
-        "ur": "Price bilkul aaj ke pivot par hai — rujhan abhi wazeh nahi, dono taraf ka imkaan hai.",
-        "urdu": "قیمت بالکل آج کے پیوٹ پر ہے — رجحان ابھی واضح نہیں، دونوں طرف کا امکان ہے۔"
-      }
-    },
-    "label": {
-      "en": "Suggested action:",
-      "ur": "Suggested action:",
-      "urdu": "تجویز کردہ عمل:"
-    }
+  "dividend_per_share": {
+    "name": "Dividend Per Share (Rs.)",
+    "nameUrdu": "فی حصہ ڈیویڈنڈ (روپے)",
+    "category": "dividends",
+    "formula": "Dividend Per Share = Total Dividend Paid ÷ Total Shares Outstanding",
+    "short": "The actual rupee amount of dividend paid for each share, in real currency (not a percentage).",
+    "shortUr": "Har share ke liye actual rupay mein dividend, percentage mein nahin.",
+    "shortUrdu": "ہر حصے کے لیے اصل روپوں میں ڈیویڈنڈ، فیصد میں نہیں۔",
+    "en": "The actual rupee amount a company pays out per share as dividend, in real currency — this is the raw figure Dividend Yield is calculated from (Dividend Yield just expresses this as a % of the share price).",
+    "ur": "Company har share ke liye asal mein kitne rupay dividend deti hai — yeh woh raw (bunyadi) number hai jis se Dividend Yield nikala jaata hai (Dividend Yield isi ko share ki qeemat ka % bana kar dikhata hai).",
+    "urdu": "کمپنی ہر حصے کے لیے اصل میں کتنے روپے ڈیویڈنڈ دیتی ہے — یہ وہ بنیادی نمبر ہے جس سے ڈیویڈنڈ یِیلڈ نکالا جاتا ہے۔",
+    "whyEn": "Helps you see the actual cash amount you'd receive per share, in real rupees, rather than a percentage.",
+    "whyUr": "Isse pata chalta hai ke aapko har share par asal mein kitne rupay milenge, percentage ki bajaye.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ آپ کو ہر حصے پر اصل میں کتنے روپے ملیں گے، فیصد کی بجائے۔"
+  },
+  "gross_profit_margin": {
+    "name": "Gross Profit Margin (%)",
+    "nameUrdu": "مجموعی منافع کا تناسب (فیصد)",
+    "category": "profitability",
+    "formula": "Gross Profit Margin = (Revenue − Cost of Goods Sold) ÷ Revenue × 100",
+    "short": "What % of sales money is left after paying only the direct cost of making the product.",
+    "shortUr": "Sales ke paison ka kitna % bacha rehta hai sirf product banane ki seedhi lagat nikaalne ke baad.",
+    "shortUrdu": "فروخت کے پیسوں کا کتنا فیصد بچا رہتا ہے صرف پروڈکٹ بنانے کی براہ راست لاگت نکالنے کے بعد۔",
+    "en": "The percentage of revenue (sales) left over after subtracting only the direct cost of producing the goods (raw material, direct labor), before other expenses like rent, salaries, or marketing. A higher gross margin means more room to cover those other costs and still profit.",
+    "ur": "Revenue (sales) mein se sirf product banane ki seedhi lagat (kacha maal, seedhi mazdoori) nikaalne ke baad jo percentage bachta hai, woh gross profit margin hai — is mein abhi kiraya, tankhwahein, ya marketing jaisi doosri lagatein shamil nahin. Zyada gross margin ka matlab hai ke in doosri lagaton ko cover karne aur phir bhi munafa kamane ki zyada gunjaish hai.",
+    "urdu": "آمدنی میں سے صرف پروڈکٹ بنانے کی براہ راست لاگت (خام مال، براہ راست مزدوری) نکالنے کے بعد جو فیصد بچتا ہے، وہ گراس پرافٹ مارجن ہے۔ زیادہ گراس مارجن کا مطلب ہے کہ باقی اخراجات پورے کر کے بھی منافع کمانے کی زیادہ گنجائش ہے۔",
+    "whyEn": "Helps you see how efficiently a company produces its goods, before other business costs come into play.",
+    "whyUr": "Isse pata chalta hai ke company apna product kitni kifayat se banati hai, baaki business lagaton se pehle.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ کمپنی اپنی پروڈکٹ کتنی کفایت سے بناتی ہے، باقی کاروباری اخراجات سے پہلے۔"
+  },
+  "net_profit_margin": {
+    "name": "Net Profit Margin (%)",
+    "nameUrdu": "خالص منافع کا تناسب (فیصد)",
+    "category": "profitability",
+    "formula": "Net Profit Margin = Net Profit ÷ Revenue × 100",
+    "short": "What % of every rupee of sales actually ends up as final profit, after ALL expenses.",
+    "shortUr": "Har rupay ki sales mein se kitna % asal mein aakhir mein munafe ke tor par bachta hai, SAARI lagaton ke baad.",
+    "shortUrdu": "ہر روپے کی فروخت میں سے کتنا فیصد اصل میں آخر میں منافع کے طور پر بچتا ہے، تمام اخراجات کے بعد۔",
+    "en": "The percentage of revenue left as actual profit after subtracting ALL costs and expenses — production, salaries, rent, interest, taxes, everything. This is the 'bottom line' margin, and is always lower than Gross Profit Margin since it accounts for more.",
+    "ur": "Revenue mein se SAARI lagatein aur kharche (production, tankhwahein, kiraya, sood, taxes, sab kuch) nikaalne ke baad jo percentage asal munafe ke tor par bachta hai, woh net profit margin hai. Yeh hamesha Gross Profit Margin se kam hota hai, kyunke is mein zyada cheezein shaamil hoti hain.",
+    "urdu": "آمدنی میں سے تمام لاگتیں اور اخراجات (پیداوار، تنخواہیں، کرایہ، سود، ٹیکس، سب کچھ) نکالنے کے بعد جو فیصد اصل منافع کے طور پر بچتا ہے، وہ نیٹ پرافٹ مارجن ہے۔",
+    "whyEn": "Helps you see the company's real, overall profitability after every single expense is accounted for.",
+    "whyUr": "Isse company ki asal, poori munafa-bakhshi pata chalti hai, har ek kharche ko shamil karne ke baad.",
+    "whyUrdu": "اس سے کمپنی کی اصل، مجموعی منافع بخشی پتا چلتی ہے، ہر ایک خرچے کو شامل کرنے کے بعد۔"
+  },
+  "price_to_book": {
+    "name": "Price/Book Ratio",
+    "nameUrdu": "قیمت اور بک ویلیو کا تناسب",
+    "category": "valuation",
+    "formula": "Price/Book Ratio = Share Price ÷ Book Value Per Share",
+    "short": "Share price divided by Book Value — how many times its 'paper worth' the market is charging.",
+    "shortUr": "Share price ko Book Value se taqseem kiya jaata hai — market uski 'kaghazi qeemat' ka kitna guna charge kar raha hai.",
+    "shortUrdu": "شیئر کی قیمت کو بک ویلیو سے تقسیم کیا جاتا ہے — مارکیٹ اس کی 'کاغذی قیمت' کا کتنا گنا وصول کر رہی ہے۔",
+    "en": "The current share price divided by its Book Value Per Share (see the Book Value entry). A ratio above 1 means the market values the company at more than its accounting 'paper worth'; below 1 can suggest the stock is undervalued (or that the market expects trouble ahead).",
+    "ur": "Current share price ko uski Book Value Per Share se taqseem kar ke nikala jaata hai (Book Value wali entry dekhein). 1 se upar ratio ka matlab hai market company ko uski accounting 'kaghazi qeemat' se zyada samajhti hai; 1 se neeche ho to iska matlab ho sakta hai stock sasta hai (ya market ko aage koi masla nazar aa raha hai).",
+    "urdu": "موجودہ شیئر کی قیمت کو اس کی بک ویلیو فی شیئر سے تقسیم کر کے نکالا جاتا ہے۔ ١ سے اوپر تناسب کا مطلب ہے مارکیٹ کمپنی کو اس کی کاغذی قیمت سے زیادہ سمجھتی ہے؛ ١ سے نیچے ہو تو اسٹاک سستا سمجھا جا سکتا ہے۔",
+    "whyEn": "Helps you judge if a stock is priced reasonably compared to what the company would be worth on paper.",
+    "whyUr": "Isse andaza hota hai ke stock ki qeemat munasib hai ya nahin, company ki 'kaghazi' qeemat ke muqable mein.",
+    "whyUrdu": "اس سے اندازہ ہوتا ہے کہ اسٹاک کی قیمت مناسب ہے یا نہیں، کمپنی کی کاغذی قیمت کے مقابلے میں۔"
+  },
+  "price_to_sales": {
+    "name": "Price to Sales Ratio",
+    "nameUrdu": "قیمت اور فروخت کا تناسب",
+    "category": "valuation",
+    "formula": "Price to Sales Ratio = Market Capitalization ÷ Total Revenue (Sales)",
+    "short": "How much the market values the company compared to just its total sales (revenue), ignoring profit.",
+    "shortUr": "Market company ki qeemat uski total sales (revenue) ke muqable mein kitni laga rahi hai, munafe ko nazar-andaaz karte hue.",
+    "shortUrdu": "مارکیٹ کمپنی کی قیمت اس کی کل فروخت کے مقابلے میں کتنی لگا رہی ہے، منافع کو نظر انداز کرتے ہوئے۔",
+    "en": "Market Capitalization divided by total revenue (sales). Unlike P/E Ratio, this ignores profit entirely and just compares valuation to sales volume — useful for companies with little or no current profit, where a P/E Ratio wouldn't make sense.",
+    "ur": "Market Capitalization ko total revenue (sales) se taqseem kiya jaata hai. P/E Ratio ke bar-aks, yeh munafe ko bilkul nazar-andaaz kar ke sirf valuation ko sales ke hajam se moqabla karta hai — un companies ke liye useful hai jinka abhi kam ya koi munafa nahin, jahan P/E Ratio ka koi mafhoom nahin banta.",
+    "urdu": "مارکیٹ کیپیٹلائزیشن کو کل آمدنی (فروخت) سے تقسیم کیا جاتا ہے۔ پی ای ریشو کے برعکس، یہ منافع کو مکمل طور پر نظر انداز کر کے صرف مالیت کا فروخت کے حجم سے موازنہ کرتا ہے۔",
+    "whyEn": "Useful for valuing companies with little or no profit yet, where P/E Ratio doesn't work.",
+    "whyUr": "Un companies ki qeemat lagane ke liye useful hai jinka abhi kam ya koi munafa nahin, jahan P/E Ratio kaam nahin karta.",
+    "whyUrdu": "ان کمپنیوں کی قیمت لگانے کے لیے مفید ہے جن کا ابھی کم یا کوئی منافع نہیں، جہاں پی ای ریشو کام نہیں کرتا۔"
+  },
+  "current_ratio": {
+    "name": "Current Ratio (Times)",
+    "nameUrdu": "کرنٹ ریشو (فوری ادائیگی کی صلاحیت)",
+    "category": "financial_health",
+    "formula": "Current Ratio = Current Assets ÷ Current Liabilities",
+    "short": "Can the company pay its bills due within a year using what it owns that turns to cash within a year?",
+    "shortUr": "Kya company apne is saal ke bill, is saal cash ban sakne wali cheezon se ada kar sakti hai?",
+    "shortUrdu": "کیا کمپنی اپنے اس سال کے بل، اس سال نقد بننے والی چیزوں سے ادا کر سکتی ہے؟",
+    "en": "Current Assets (cash, inventory, and anything that turns into cash within a year) divided by Current Liabilities (bills and debts due within a year). A ratio above 1 means the company can, in principle, cover its short-term obligations; well below 1 can be a warning sign of cash-flow trouble.",
+    "ur": "Current Assets (cash, stock/inventory, aur woh sab kuch jo ek saal ke andar cash ban sakta hai) ko Current Liabilities (woh bill aur qarz jo ek saal ke andar dena hai) se taqseem kiya jaata hai. 1 se upar ratio ka matlab hai company usool ke tor par apni short-term zimmedariyan pura kar sakti hai; 1 se kaafi neeche ho to yeh cash-flow ki mushkil ka ishara ho sakta hai.",
+    "urdu": "کرنٹ ایسٹس (نقد، اسٹاک، اور وہ سب کچھ جو ایک سال میں نقد بن سکتا ہے) کو کرنٹ لائبلٹیز (وہ بل اور قرض جو ایک سال میں دینا ہے) سے تقسیم کیا جاتا ہے۔ ١ سے اوپر تناسب کا مطلب ہے کمپنی اپنی قلیل مدتی ذمہ داریاں پوری کر سکتی ہے۔",
+    "whyEn": "Helps you judge whether a company can comfortably pay its near-term bills without financial strain.",
+    "whyUr": "Isse andaza hota hai ke company apne qareebi (near-term) bill bagair mushkil ke ada kar sakti hai ya nahin.",
+    "whyUrdu": "اس سے اندازہ ہوتا ہے کہ کمپنی اپنے قریبی بل بغیر مشکل کے ادا کر سکتی ہے یا نہیں۔"
+  },
+  "debt_to_equity": {
+    "name": "Long Term Debt to Equity",
+    "nameUrdu": "طویل مدتی قرض اور سرمائے کا تناسب",
+    "category": "financial_health",
+    "formula": "Debt to Equity = Long Term Debt ÷ Shareholders' Equity",
+    "short": "How much the company owes in long-term loans compared to what shareholders have put in.",
+    "shortUr": "Company ke lambe arse ke qarz, shareholders ke lagaye hue sarmaye ke muqable mein kitne hain.",
+    "shortUrdu": "کمپنی کے طویل مدتی قرض، حصص داروں کے لگائے ہوئے سرمائے کے مقابلے میں کتنے ہیں۔",
+    "en": "Long-term debt (loans due beyond a year) divided by shareholders' equity (the money shareholders have invested, plus retained profit). A higher ratio means the company relies more on borrowed money than its own funds, which can mean more risk (interest to pay) but sometimes also more growth potential.",
+    "ur": "Lamba arsa wala qarz (ek saal se aage ada hone wale loans) ko shareholders' equity (jo paisa shareholders ne laga rakha hai, plus jo munafa company ne apne paas rakh liya) se taqseem kiya jaata hai. Zyada ratio ka matlab hai company apne paison se zyada udhaar par bharosa karti hai, jo zyada risk (sood dena) ka sabab ban sakta hai, lekin kabhi kabhi zyada growth ka moqa bhi.",
+    "urdu": "طویل مدتی قرض کو حصص داروں کے سرمائے سے تقسیم کیا جاتا ہے۔ زیادہ تناسب کا مطلب ہے کمپنی اپنے پیسوں سے زیادہ ادھار پر بھروسہ کرتی ہے، جو زیادہ خطرہ بن سکتا ہے۔",
+    "whyEn": "Helps you judge how much financial risk a company is carrying from borrowed money versus its own funds.",
+    "whyUr": "Isse andaza hota hai ke company udhaar liye paison se kitna financial risk utha rahi hai, apne paison ke muqable mein.",
+    "whyUrdu": "اس سے اندازہ ہوتا ہے کہ کمپنی ادھار لیے پیسوں سے کتنا مالی خطرہ اٹھا رہی ہے، اپنے پیسوں کے مقابلے میں۔"
+  },
+  "interest_cover": {
+    "name": "Interest Cover (Times)",
+    "nameUrdu": "سود ادا کرنے کی صلاحیت",
+    "category": "financial_health",
+    "formula": "Interest Cover = Operating Profit ÷ Interest Expense",
+    "short": "How many times over the company could pay its interest bill from its operating profit.",
+    "shortUr": "Company apna sood (interest) ka bill apne operating munafe se kitni dafa ada kar sakti hai.",
+    "shortUrdu": "کمپنی اپنا سود کا بل اپنے آپریٹنگ منافع سے کتنی دفعہ ادا کر سکتی ہے۔",
+    "en": "Operating profit divided by the interest expense the company must pay on its debt. A higher number means the company earns comfortably more than enough to cover its interest payments; a low number (close to 1) is a warning sign it may struggle to service its debt.",
+    "ur": "Operating munafa ko us sood (interest) se taqseem kiya jaata hai jo company ko apne qarz par dena hai. Zyada number ka matlab hai company apne sood ki adaigi se kaafi zyada kama rahi hai; kam number (1 ke qareeb) khabardar karta hai ke company apne qarz ka sood dene mein mushkil mehsoos kar sakti hai.",
+    "urdu": "آپریٹنگ منافع کو اس سود سے تقسیم کیا جاتا ہے جو کمپنی کو اپنے قرض پر دینا ہے۔ زیادہ نمبر کا مطلب ہے کمپنی اپنے سود کی ادائیگی سے کافی زیادہ کما رہی ہے؛ کم نمبر خبردار کرتا ہے کہ کمپنی کو قرض کا سود دینے میں مشکل ہو سکتی ہے۔",
+    "whyEn": "Helps you judge how safely a company can keep up with its debt interest payments from its regular earnings.",
+    "whyUr": "Isse andaza hota hai ke company apni mamooli kamai se apne qarz ka sood kitni surakhshit tareeqe se de sakti hai.",
+    "whyUrdu": "اس سے اندازہ ہوتا ہے کہ کمپنی اپنی معمول کی کمائی سے اپنے قرض کا سود کتنے محفوظ طریقے سے دے سکتی ہے۔"
   }
 }
