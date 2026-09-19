@@ -328,5 +328,166 @@
     "whyEn": "Helps you judge how safely a company can keep up with its debt interest payments from its regular earnings.",
     "whyUr": "Isse andaza hota hai ke company apni mamooli kamai se apne qarz ka sood kitni surakhshit tareeqe se de sakti hai.",
     "whyUrdu": "اس سے اندازہ ہوتا ہے کہ کمپنی اپنی معمول کی کمائی سے اپنے قرض کا سود کتنے محفوظ طریقے سے دے سکتی ہے۔"
+  },
+  "robust_avg_iqr": {
+    "name": "Robust Avg (IQR)",
+    "nameUrdu": "مضبوط اوسط (آؤٹ لائیر سے پاک)",
+    "category": "trend_indicators",
+    "formula": "Sort all closing prices; Q1 = 25th percentile, Q3 = 75th percentile, IQR = Q3 − Q1\nKeep only prices within [Q1 − 1.5×IQR, Q3 + 1.5×IQR]\nRobust Avg = Average of the remaining (non-outlier) prices",
+    "short": "The average closing price after removing unusually high or low outlier days.",
+    "shortUr": "Average closing price, ghair-mamuli (outlier) upar/neeche wale din nikalne ke baad.",
+    "shortUrdu": "اوسط بند ہونے والی قیمت، غیر معمولی طور پر اوپر یا نیچے والے دن نکالنے کے بعد۔",
+    "en": "A normal average can get skewed by just one or two unusual days — a sudden spike or crash from news, a one-off event, etc. This method first works out the stock's 'normal' price range using its own recent history (quartiles), removes any days that fall well outside that range as outliers, and only then averages what's left. This works best for a stock trading sideways/mixed around a stable level; for a stock in a clear uptrend or downtrend, this line will simply sit somewhere in the middle of that trend rather than mean much, since there's no single 'stable level' for it to represent.",
+    "ur": "Ek mamooli average sirf ek ya do ghair-mamuli dinon (jaise news se achanak spike ya crash) ki wajah se 'kheench' (skew) ho sakta hai. Yeh tareeqa pehle stock ki apni haal hi ki history se uski 'normal' range nikalta hai (quartiles ke zariye), jo bhi din is range se kaafi bahar hon unhe outlier samajh kar nikal deta hai, aur phir sirf bache hue dinon ka average leta hai. Yeh un stocks ke liye zyada kaam ka hai jo kisi ek sthir (stable) level ke ird-gird sideways/mixed chal rahe hon; jo stock saaf uptrend ya downtrend mein ho, uske liye yeh line sirf trend ke darmiyan kahin aa kar tik jayegi, kyunke koi ek 'sthir level' hi maujood nahin hota jise yeh represent kar sake.",
+    "urdu": "ایک عام اوسط صرف ایک یا دو غیر معمولی دنوں (جیسے خبر سے اچانک اضافہ یا کمی) کی وجہ سے متاثر ہو سکتی ہے۔ یہ طریقہ پہلے اسٹاک کی اپنی حالیہ تاریخ سے اس کی نارمل رینج نکالتا ہے، جو بھی دن اس رینج سے کافی باہر ہوں انہیں آؤٹ لائیر سمجھ کر نکال دیتا ہے، اور پھر صرف بچے ہوئے دنوں کی اوسط لیتا ہے۔ یہ ان اسٹاکس کے لیے زیادہ کارآمد ہے جو کسی ایک مستحکم سطح کے ارد گرد چل رہے ہوں؛ جو اسٹاک صاف رجحان میں ہو، اس کے لیے یہ لائن صرف رجحان کے درمیان کہیں آ کر ٹک جائے گی۔",
+    "whyEn": "Helps you see a stock's 'typical' price without a couple of unusual days skewing the picture — but keep in mind it's most meaningful for a stock trading sideways, not one in a clear trend.",
+    "whyUr": "Isse stock ki 'typical' (aam) qeemat pata chalti hai bina ek-do ghair-mamuli dinon ke asar ke — lekin yaad rahe yeh un stocks ke liye zyada maani rakhta hai jo sideways chal rahe hon, na ke saaf trend mein.",
+    "whyUrdu": "اس سے اسٹاک کی معمول کی قیمت پتا چلتی ہے بغیر ایک دو غیر معمولی دنوں کے اثر کے — لیکن یاد رہے یہ ان اسٹاکس کے لیے زیادہ معنی رکھتا ہے جو سائیڈ ویز چل رہے ہوں، نہ کہ صاف رجحان میں۔"
+  },
+  "_actions": {
+    "label": {
+      "en": "Suggested action:",
+      "ur": "Tajweez kardah amal:",
+      "urdu": "تجویز کردہ عمل:"
+    },
+    "trend": {
+      "up": {
+        "en": "Trend is upward — dips may be worth buying, but do your own research first.",
+        "ur": "Rukh upar ki taraf hai — girawat par kharidna faida-mand ho sakta hai, lekin pehle apni tehqeeq zaroor karein.",
+        "urdu": "رخ اوپر کی طرف ہے — گراوٹ پر خریدنا فائدہ مند ہو سکتا ہے، لیکن پہلے اپنی تحقیق ضرور کریں۔"
+      },
+      "down": {
+        "en": "Trend is downward — caution is warranted; some wait for a clear reversal before buying.",
+        "ur": "Rukh neeche ki taraf hai — ehtiyaat zaroori hai; kuch log kharidne se pehle saaf palte (reversal) ka intezar karte hain.",
+        "urdu": "رخ نیچے کی طرف ہے — احتیاط ضروری ہے؛ کچھ لوگ خریدنے سے پہلے صاف پلٹے کا انتظار کرتے ہیں۔"
+      },
+      "mixed": {
+        "en": "No clear direction yet — often better to wait for a clearer signal before acting.",
+        "ur": "Abhi koi saaf rukh nahin — aksar behtar hota hai ke amal karne se pehle zyada saaf ishare ka intezar karein.",
+        "urdu": "ابھی کوئی صاف رخ نہیں — اکثر بہتر ہوتا ہے کہ عمل کرنے سے پہلے زیادہ صاف اشارے کا انتظار کریں۔"
+      }
+    },
+    "rsi": {
+      "overbought": {
+        "en": "Overbought — the stock has risen fast and may be due for a pullback; risky to chase here.",
+        "ur": "Overbought — stock tezi se upar gaya hai aur wapas neeche aa sakta hai; yahan peecha karna risky hai.",
+        "urdu": "زیادہ خریدا گیا — اسٹاک تیزی سے اوپر گیا ہے اور واپس نیچے آ سکتا ہے؛ یہاں پیچھا کرنا خطرناک ہے۔"
+      },
+      "oversold": {
+        "en": "Oversold — the stock has fallen fast and may be due for a bounce, but confirm with other signals.",
+        "ur": "Oversold — stock tezi se neeche gaya hai aur wapas uchhal sakta hai, lekin doosre ishare bhi check karein.",
+        "urdu": "زیادہ بیچا گیا — اسٹاک تیزی سے نیچے گیا ہے اور واپس اچھل سکتا ہے، لیکن دوسرے اشارے بھی چیک کریں۔"
+      },
+      "neutral": {
+        "en": "No strong momentum signal either way right now.",
+        "ur": "Filhaal koi mazboot momentum ka ishara nahin, na idhar na udhar.",
+        "urdu": "فی الحال کوئی مضبوط اشارہ نہیں، نہ ادھر نہ ادھر۔"
+      }
+    },
+    "bollinger": {
+      "aboveUpper": {
+        "en": "Price has pushed above its normal range — often seen as pricier/potentially overbought.",
+        "ur": "Qeemat apni normal range se upar chali gayi hai — aksar mehngi/potentially overbought samjhi jaati hai.",
+        "urdu": "قیمت اپنی نارمل رینج سے اوپر چلی گئی ہے — اکثر مہنگی سمجھی جاتی ہے۔"
+      },
+      "belowLower": {
+        "en": "Price has dropped below its normal range — often seen as cheaper/potentially oversold.",
+        "ur": "Qeemat apni normal range se neeche chali gayi hai — aksar sasti/potentially oversold samjhi jaati hai.",
+        "urdu": "قیمت اپنی نارمل رینج سے نیچے چلی گئی ہے — اکثر سستی سمجھی جاتی ہے۔"
+      },
+      "upperHalf": {
+        "en": "Price is on the pricier side of its normal range, but still within it.",
+        "ur": "Qeemat apni normal range ke mehnge hisse mein hai, magar range ke andar hi hai.",
+        "urdu": "قیمت اپنی نارمل رینج کے مہنگے حصے میں ہے، مگر رینج کے اندر ہی ہے۔"
+      },
+      "lowerHalf": {
+        "en": "Price is on the cheaper side of its normal range, but still within it.",
+        "ur": "Qeemat apni normal range ke saste hisse mein hai, magar range ke andar hi hai.",
+        "urdu": "قیمت اپنی نارمل رینج کے سستے حصے میں ہے، مگر رینج کے اندر ہی ہے۔"
+      }
+    },
+    "atr": {
+      "high": {
+        "en": "High volatility — bigger daily swings and higher risk; consider a wider stop-loss.",
+        "ur": "Zyada volatility — bade roz ke jhatke aur zyada risk; wider stop-loss par ghor karein.",
+        "urdu": "زیادہ اتار چڑھاؤ — بڑے روزانہ جھٹکے اور زیادہ خطرہ؛ وسیع اسٹاپ لاس پر غور کریں۔"
+      },
+      "moderate": {
+        "en": "A fairly typical amount of daily movement for this stock.",
+        "ur": "Is stock ke liye roz ki harkat ek aam si miqdaar mein hai.",
+        "urdu": "اس اسٹاک کے لیے روز کی حرکت ایک عام سی مقدار میں ہے۔"
+      },
+      "low": {
+        "en": "Low volatility — the price tends to move very little day to day.",
+        "ur": "Kam volatility — qeemat roz-marra bohot kam hilti hai.",
+        "urdu": "کم اتار چڑھاؤ — قیمت روزمرہ بہت کم ہلتی ہے۔"
+      }
+    },
+    "volume": {
+      "veryHighUp": {
+        "en": "Very high volume on a rising price — often a sign of strong buying interest.",
+        "ur": "Badhti qeemat ke sath bohot zyada volume — aksar mazboot khareedari ki dilchaspi ka ishara.",
+        "urdu": "بڑھتی قیمت کے ساتھ بہت زیادہ حجم — اکثر مضبوط خریداری کی دلچسپی کا اشارہ۔"
+      },
+      "veryHighDown": {
+        "en": "Very high volume on a falling price — often a sign of strong selling pressure.",
+        "ur": "Girti qeemat ke sath bohot zyada volume — aksar mazboot farokht ke dabao ka ishara.",
+        "urdu": "گرتی قیمت کے ساتھ بہت زیادہ حجم — اکثر مضبوط فروخت کے دباؤ کا اشارہ۔"
+      },
+      "aboveAvgUp": {
+        "en": "Above-average volume on a rising price — supportive of the move.",
+        "ur": "Badhti qeemat ke sath average se zyada volume — is move ki hemayat karta hai.",
+        "urdu": "بڑھتی قیمت کے ساتھ اوسط سے زیادہ حجم — اس حرکت کی حمایت کرتا ہے۔"
+      },
+      "aboveAvgDown": {
+        "en": "Above-average volume on a falling price — supportive of the downside move.",
+        "ur": "Girti qeemat ke sath average se zyada volume — neeche wale move ki hemayat karta hai.",
+        "urdu": "گرتی قیمت کے ساتھ اوسط سے زیادہ حجم — نیچے والی حرکت کی حمایت کرتا ہے۔"
+      },
+      "belowAvg": {
+        "en": "Below-average volume — quieter than usual, weaker conviction behind the current price.",
+        "ur": "Average se kam volume — mamool se khaamosh, current qeemat ke peeche kam yaqeen.",
+        "urdu": "اوسط سے کم حجم — معمول سے خاموش، موجودہ قیمت کے پیچھے کم یقین۔"
+      },
+      "average": {
+        "en": "A normal trading day, volume-wise.",
+        "ur": "Volume ke lihaz se ek mamooli trading din.",
+        "urdu": "حجم کے لحاظ سے ایک معمولی تجارتی دن۔"
+      }
+    },
+    "priceLevel": {
+      "nearResistance": {
+        "en": "Near resistance — the price may struggle to rise further without a stronger push.",
+        "ur": "Resistance ke qareeb — bagair zyada zor ke aage badhna mushkil ho sakta hai.",
+        "urdu": "رکاوٹ کے قریب — بغیر زیادہ زور کے آگے بڑھنا مشکل ہو سکتا ہے۔"
+      },
+      "nearSupport": {
+        "en": "Near support — the price may find buyers here and bounce, but it can also break through.",
+        "ur": "Support ke qareeb — yahan khareedaar mil kar qeemat wapas upar ja sakti hai, lekin toot bhi sakti hai.",
+        "urdu": "سہارے کے قریب — یہاں خریدار مل کر قیمت واپس اوپر جا سکتی ہے، لیکن ٹوٹ بھی سکتی ہے۔"
+      },
+      "midRange": {
+        "en": "Comfortably between support and resistance — no immediate level pressure either way.",
+        "ur": "Aaram se support aur resistance ke darmiyan — filhaal kisi taraf koi foori dabao nahin.",
+        "urdu": "آرام سے سہارے اور رکاوٹ کے درمیان — فی الحال کسی طرف کوئی فوری دباؤ نہیں۔"
+      }
+    },
+    "pivot": {
+      "above": {
+        "en": "Price is above the pivot — a bullish bias for the session so far.",
+        "ur": "Qeemat pivot se upar hai — is session ke liye ab tak bullish (upar wala) rujhan.",
+        "urdu": "قیمت پیوٹ سے اوپر ہے — اس سیشن کے لیے اب تک اوپر کا رجحان۔"
+      },
+      "below": {
+        "en": "Price is below the pivot — a bearish bias for the session so far.",
+        "ur": "Qeemat pivot se neeche hai — is session ke liye ab tak bearish (neeche wala) rujhan.",
+        "urdu": "قیمت پیوٹ سے نیچے ہے — اس سیشن کے لیے اب تک نیچے کا رجحان۔"
+      },
+      "at": {
+        "en": "Price is right at the pivot — no clear bias yet.",
+        "ur": "Qeemat bilkul pivot par hai — abhi koi saaf rujhan nahin.",
+        "urdu": "قیمت بالکل پیوٹ پر ہے — ابھی کوئی صاف رجحان نہیں۔"
+      }
+    }
   }
 }
