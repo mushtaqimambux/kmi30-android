@@ -84,6 +84,11 @@
     background: var(--btn-bg); border: 1px solid var(--card-border); border-radius: 9px;
     padding: 9px 10px; margin-bottom: 8px;
   }
+  .add-symbol-form-box {
+    background: var(--btn-bg); border: 1px solid var(--card-border); border-radius: 12px;
+    padding: 14px; margin-bottom: 18px;
+  }
+  .add-symbol-status-ok { color: var(--accent); font-weight: 700; }
   .pinned-sym { font-weight: 700; font-size: 14px; }
   .pinned-actions { display: flex; gap: 6px; }
   .pinned-actions .toolbar-btn { padding: 5px 10px; font-size: 13px; }
@@ -133,7 +138,7 @@
   .holding-line-sym { font-weight: 700; flex-shrink: 0; }
   .holding-line-detail {
     font-family: var(--mono); font-size: 0.85em; color: var(--dim); flex: 1;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    white-space: normal; word-break: break-word;
   }
   .holding-line-detail.up { color: var(--accent); }
   .holding-line-detail.down { color: var(--down); }
@@ -189,6 +194,22 @@
   }
   .primary-btn { background: var(--accent); color: #0a1510; font-weight: 700; border: none; }
   .secondary-btn { background: var(--btn-bg); color: var(--text); }
+  .research-filter-btn.active { background: var(--accent); color: #0a1510; font-weight: 700; }
+  .filter-row { font-size: 13.5px; line-height: 1.9; margin-bottom: 2px; }
+  .filter-desc { font-size: 12px; color: var(--dim); margin-bottom: 12px; line-height: 1.4; }
+  sup.tag-buy, sup.tag-sell, sup.tag-neutral {
+    font-size: 9.5px; font-weight: 700; padding: 1px 4px; border-radius: 4px; margin-left: 2px; vertical-align: super;
+  }
+  sup.tag-buy { background: var(--accent); color: #0a1510; }
+  sup.tag-sell { background: var(--down); color: #fff; }
+  sup.tag-neutral { background: var(--btn-bg); color: var(--dim); border: 1px solid var(--card-border); }
+  .filter-link {
+    color: var(--accent2); text-decoration: underline; cursor: pointer; padding: 2px 1px;
+  }
+  .filter-link.active {
+    color: #0a1510; background: var(--accent); text-decoration: none; font-weight: 700;
+    padding: 2px 6px; border-radius: 5px;
+  }
   .close-btn {
     position: absolute; top: 14px; right: 14px; background: none; border: none; color: var(--dim); font-size: 16px; cursor: pointer;
   }
@@ -253,6 +274,17 @@
   .glossary-term { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--card-border); }
   .glossary-term:last-child { border-bottom: none; }
   .glossary-term-name { font-size: 14.5px; font-weight: 700; margin-bottom: 5px; }
+  .glossary-term-header {
+    cursor: pointer; padding: 4px 0; position: relative;
+  }
+  .glossary-term-header::after {
+    content: "▸"; position: absolute; right: 0; top: 4px; color: var(--dim); font-size: 13px;
+    transition: transform 0.15s;
+  }
+  .glossary-term-header.open::after { transform: rotate(90deg); }
+  .glossary-term-header .glossary-term-name { padding-right: 20px; }
+  .glossary-term-short { font-size: 12.5px; color: var(--dim); line-height: 1.4; }
+  .glossary-term-body { margin-top: 8px; }
   .glossary-section-heading {
     font-size: 15px; font-weight: 700; color: var(--accent2); margin: 16px 0 10px;
     padding-bottom: 6px; border-bottom: 2px solid var(--accent2);
@@ -281,6 +313,7 @@
     <h1>KMI-30</h1>
     <div style="display:flex; gap:8px;">
       <button class="icon-btn" id="studyBtn" aria-label="Study">📖</button>
+      <button class="icon-btn" id="openAddSymbolBtn" aria-label="Add Custom Symbol">🏷️</button>
       <button class="icon-btn" id="historyBtn" aria-label="History">📅</button>
       <button class="icon-btn" id="settingsBtn" aria-label="Settings">⚙</button>
     </div>
@@ -295,9 +328,14 @@
     <button id="clearSearchBtn" style="display:none; position:absolute; right:6px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--dim); font-size:16px; line-height:1; padding:4px; cursor:pointer;">✕</button>
   </div>
   <button class="toolbar-icon-btn" id="sortMenuBtn" title="Sort">⇅</button>
+  <button class="toolbar-icon-btn" id="filterMenuBtn" title="Filter">🔬</button>
   <button class="toolbar-icon-btn" id="holdingsBtn" title="Portfolio">💼</button>
   <button class="toolbar-icon-btn" id="expandAllBtn" title="Expand/collapse all">⤢</button>
   <button class="toolbar-icon-btn" id="reloadAllBtn" title="Reload all">↻</button>
+</div>
+<div id="activeFilterBar" style="display:none; align-items:center; justify-content:space-between; background:var(--btn-bg); border:1px solid var(--card-border); border-radius:9px; padding:8px 12px; margin:0 12px 8px; font-size:13px;">
+  <span id="activeFilterText"></span>
+  <span id="clearFilterBtn" style="cursor:pointer; color:var(--down); font-weight:700;">✕ Clear</span>
 </div>
 
 <div class="overlay" id="sortMenuOverlay">
@@ -401,21 +439,63 @@
       <div class="secondary-btn" id="checkUpdatesNowBtn" style="margin-top:8px;">Download Updated App</div>
     </div>
 
-    <div class="settings-row">
-      <label>Add a custom stock symbol</label>
-      <div style="display:flex; gap:8px;">
-        <input type="text" id="customSymbolInput" placeholder="e.g. PIOC" style="flex:1; text-transform:uppercase;" />
-        <div class="secondary-btn" id="addCustomSymbolBtn" style="flex:0 0 auto; padding:9px 16px;">Add</div>
-      </div>
-      <input type="text" id="customSymbolNameInput" placeholder="Company name (leave blank to auto-detect)" style="margin-top:8px; width:100%;" />
-      <div id="customSymbolsList" style="margin-top:10px;"></div>
-    </div>
-
     <div class="settings-actions">
       <div class="secondary-btn" id="exportNowBtn">Export Data in CSV</div>
       <div class="primary-btn" id="saveSettingsBtn">Save</div>
     </div>
     <div style="text-align:center; color:var(--dim); font-size:11px; margin-top:14px;">App version: v__VERSION__</div>
+  </div>
+</div>
+
+<div class="overlay" id="researchOverlay">
+  <div class="settings-card" style="max-height:90vh; display:flex; flex-direction:column;">
+    <button class="close-btn" id="closeResearchBtn">✕</button>
+    <button class="close-btn" id="filterLangBtn" style="right:44px; font-size:18px;" title="Language">🌐</button>
+    <div id="filterLangMenu" style="display:none; position:absolute; top:44px; right:14px; z-index:10; background:var(--card); border:1px solid var(--card-border); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.35); overflow:hidden;">
+      <div class="pinned-row" data-filter-lang="en" style="padding:10px 16px; cursor:pointer;">English</div>
+      <div class="pinned-row" data-filter-lang="ur" style="padding:10px 16px; cursor:pointer;">Roman Urdu</div>
+      <div class="pinned-row" data-filter-lang="urdu" style="padding:10px 16px; cursor:pointer;">اردو</div>
+    </div>
+    <div class="settings-title">🔬 Filter Stocks By…</div>
+    <div style="overflow-y:auto; flex:1;">
+      <div class="filter-row"><b>Trend</b> <span class="info-icon" data-filter-info="trend">i</span>: <span class="filter-link research-filter-btn" data-research-filter="trend:uptrend">Uptrend</span> | <span class="filter-link research-filter-btn" data-research-filter="trend:downtrend">Downtrend</span> | <span class="filter-link research-filter-btn" data-research-filter="trend:mixed">Mixed/Sideways</span></div>
+      <div class="filter-desc" id="filterDesc-trend" style="display:none;"></div>
+      <div class="filter-row"><b>RSI</b> <span class="info-icon" data-filter-info="rsi">i</span>: <span class="filter-link research-filter-btn" data-research-filter="rsi:overbought">Overbought</span> | <span class="filter-link research-filter-btn" data-research-filter="rsi:oversold">Oversold</span> | <span class="filter-link research-filter-btn" data-research-filter="rsi:neutral">Neutral</span></div>
+      <div class="filter-desc" id="filterDesc-rsi" style="display:none;"></div>
+      <div class="filter-row"><b>Volatility</b> <span class="info-icon" data-filter-info="volatility">i</span>: <span class="filter-link research-filter-btn" data-research-filter="volatility:high">High</span> | <span class="filter-link research-filter-btn" data-research-filter="volatility:moderate">Moderate</span> | <span class="filter-link research-filter-btn" data-research-filter="volatility:low">Low</span></div>
+      <div class="filter-desc" id="filterDesc-volatility" style="display:none;"></div>
+      <div class="filter-row"><b>Volume</b> <span class="info-icon" data-filter-info="volumeActivity">i</span>: <span class="filter-link research-filter-btn" data-research-filter="volumeActivity:very_high">V. High</span> | <span class="filter-link research-filter-btn" data-research-filter="volumeActivity:above_average">Above Avg</span> | <span class="filter-link research-filter-btn" data-research-filter="volumeActivity:average">Avg</span> | <span class="filter-link research-filter-btn" data-research-filter="volumeActivity:below_average">Below Avg</span></div>
+      <div class="filter-desc" id="filterDesc-volumeActivity" style="display:none;"></div>
+      <div class="filter-row"><b>Position</b> <span class="info-icon" data-filter-info="position">i</span>: <span class="filter-link research-filter-btn" data-research-filter="position:near_resistance">Near Resistance</span> | <span class="filter-link research-filter-btn" data-research-filter="position:near_support">Near Support</span> | <span class="filter-link research-filter-btn" data-research-filter="position:mid_range">Mid-Range</span></div>
+      <div class="filter-desc" id="filterDesc-position" style="display:none;"></div>
+      <div class="filter-row"><b>Bollinger</b> <span class="info-icon" data-filter-info="bollinger">i</span>: <span class="filter-link research-filter-btn" data-research-filter="bollinger:above_upper">Above Upper</span> | <span class="filter-link research-filter-btn" data-research-filter="bollinger:upper_half">Upper Half</span> | <span class="filter-link research-filter-btn" data-research-filter="bollinger:lower_half">Lower Half</span> | <span class="filter-link research-filter-btn" data-research-filter="bollinger:below_lower">Below Lower</span></div>
+      <div class="filter-desc" id="filterDesc-bollinger" style="display:none;"></div>
+    </div>
+    <div style="font-size:11.5px; color:var(--dim); margin:8px 0 10px; line-height:1.5;">
+      Tap one option per category. ⚠️ Short-term technical analysis only. <span id="ltNoticeToggle" style="cursor:pointer; text-decoration:underline; color:var(--accent2); white-space:nowrap;">Show more</span>
+      <span id="ltNoticeFull" style="display:none;">For long-term investing, look at <b>Fundamentals</b> instead (P/E Ratio, EPS, Dividend Yield, Debt-to-Equity, etc. — see Study).</span>
+    </div>
+    <div id="researchLiveCount" style="font-size:13px; font-weight:700; color:var(--accent); margin-bottom:10px;"></div>
+    <div class="primary-btn" id="applyResearchFiltersBtn" style="text-align:center;">Apply Filters</div>
+  </div>
+</div>
+
+<div class="overlay" id="addSymbolOverlay">
+  <div class="settings-card">
+    <button class="close-btn" id="closeAddSymbolBtn">✕</button>
+    <div class="settings-title">Add Custom Stock Symbol</div>
+    <div class="add-symbol-form-box">
+      <div style="display:flex; gap:8px; align-items:center; position:relative;">
+        <input type="text" id="customSymbolInput" placeholder="Symbol" autocomplete="off" style="flex:0 0 78px; min-width:0; text-transform:uppercase;" />
+        <input type="text" id="customSymbolNameInput" placeholder="Company name" autocomplete="off" style="flex:1; min-width:0;" />
+        <div class="primary-btn" id="addCustomSymbolBtn" style="flex:0 0 auto; padding:9px 16px;">Add</div>
+        <div id="addSymbolSuggestions" style="display:none; position:absolute; left:0; right:0; top:100%; z-index:5; background:var(--btn-bg); border:1px solid var(--card-border); border-radius:9px; margin-top:4px; max-height:220px; overflow-y:auto;"></div>
+      </div>
+      <div id="customSymbolNameStatus" style="font-size:12.5px; color:var(--dim); margin-top:6px;"></div>
+
+    </div>
+    <div class="settings-title" style="font-size:14px; margin-bottom:10px;">Your Custom Symbols</div>
+    <div id="customSymbolsList" style="max-height:40vh; overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -469,33 +549,43 @@
     </div>
 
     <div id="chartTabContent">
-      <div class="period-tabs" id="periodTabs">
-        <button class="period-tab" data-period="1D">1D</button>
-        <button class="period-tab" data-period="1M">1M</button>
-        <button class="period-tab" data-period="6M">6M</button>
-        <button class="period-tab" data-period="YTD">YTD</button>
-        <button class="period-tab" data-period="1Y">1Y</button>
-        <button class="period-tab" data-period="3Y">3Y</button>
-        <button class="period-tab" data-period="5Y">5Y</button>
-        <button class="period-tab" data-period="custom">Custom</button>
-        <span id="customDateRangeRow" style="display:none; align-items:center; gap:4px;">
-          <input type="date" id="customFromDateInput" style="width:96px; padding:5px 4px; font-size:12px;" />
-          <span style="color:var(--dim); font-size:12px;">to</span>
-          <input type="date" id="customToDateInput" style="width:96px; padding:5px 4px; font-size:12px;" />
-          <div class="secondary-btn" id="applyCustomRangeBtn" style="padding:6px 10px; font-size:12px;">Go</div>
-        </span>
-      </div>
-      <div class="trend-legend">
-        <label class="trend-legend-item"><input type="checkbox" id="showCloseCheck" checked /><span class="dot" style="background:var(--accent);"></span><span id="closeLabelText">Close</span></label>
-        <label class="trend-legend-item" id="trendLegendOpen"><input type="checkbox" id="showOpenCheck" checked /><span class="dot" style="background:var(--accent2);"></span> Open</label>
-        <label class="trend-legend-item" id="trendLegendAvgClose"><input type="checkbox" id="showAvgCloseCheck" /><span class="dot" style="background:var(--accent); opacity:0.6;"></span> Avg Close</label>
-        <label class="trend-legend-item" id="trendLegendAvgOpen"><input type="checkbox" id="showAvgOpenCheck" /><span class="dot" style="background:var(--accent2); opacity:0.6;"></span> Avg Open</label>
+      <div class="period-tabs" id="periodTabs" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; position:relative;">
+        <select id="periodSelect" class="toolbar-select" style="flex:0 0 auto; width:auto;">
+          <option value="1D">1D</option>
+          <option value="1W">1W</option>
+          <option value="2W">2W</option>
+          <option value="3W">3W</option>
+          <option value="1M">1M</option>
+          <option value="2M">2M</option>
+          <option value="3M">3M</option>
+          <option value="4M">4M</option>
+          <option value="1Y">1Y</option>
+          <option value="2Y">2Y</option>
+          <option value="3Y">3Y</option>
+          <option value="4Y">4Y</option>
+          <option value="5Y">5Y</option>
+          <option value="custom">Custom</option>
+        </select>
+        <button class="secondary-btn" id="linesMenuBtn" style="padding:8px 14px; flex:0 0 auto;">Lines ▾</button>
+        <div id="linesMenu" style="display:none; position:absolute; top:100%; left:0; z-index:10; background:var(--card); border:1px solid var(--card-border); border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.35); padding:10px 12px; margin-top:4px; min-width:190px;">
+          <label class="trend-legend-item" style="display:flex; margin-bottom:8px;"><input type="checkbox" id="showCloseCheck" checked /><span class="dot" style="background:var(--accent);"></span><span id="closeLabelText">Close</span></label>
+          <label class="trend-legend-item" id="trendLegendOpen" style="display:flex; margin-bottom:8px;"><input type="checkbox" id="showOpenCheck" checked /><span class="dot" style="background:var(--accent2);"></span> Open</label>
+          <label class="trend-legend-item" id="trendLegendAvgClose" style="display:flex; margin-bottom:8px;"><input type="checkbox" id="showAvgCloseCheck" /><span class="dot" style="background:var(--accent); opacity:0.6;"></span> Avg Close</label>
+          <label class="trend-legend-item" id="trendLegendAvgOpen" style="display:flex; margin-bottom:8px;"><input type="checkbox" id="showAvgOpenCheck" /><span class="dot" style="background:var(--accent2); opacity:0.6;"></span> Avg Open</label>
+          <label class="trend-legend-item" id="trendLegendRobustAvg" style="display:flex;"><input type="checkbox" id="showRobustAvgCheck" /><span class="dot" style="background:#c9a227;"></span> Robust Avg(IQR)</label>
+        </div>
         <select id="trendChartType" class="toolbar-select" style="flex:0 0 auto; width:auto;">
           <option value="line">Line</option>
           <option value="area">Area</option>
           <option value="bar">Bar (Open-Close)</option>
         </select>
         <label id="fitToScreenLabel" class="auto-sort-label"><input type="checkbox" id="fitToScreenCheck" checked /> Fit to screen</label>
+        <span id="customDateRangeRow" style="display:none; align-items:center; gap:4px; flex-basis:100%;">
+          <input type="date" id="customFromDateInput" style="width:120px; padding:5px 4px; font-size:12px;" />
+          <span style="color:var(--dim); font-size:12px;">to (optional)</span>
+          <input type="date" id="customToDateInput" style="width:120px; padding:5px 4px; font-size:12px;" />
+          <div class="secondary-btn" id="applyCustomRangeBtn" style="padding:6px 10px; font-size:12px;">Go</div>
+        </span>
       </div>
       <div id="trendChart" style="position:relative;"></div>
       <div id="chartTooltip" class="chart-tooltip" style="display:none;"></div>
@@ -618,23 +708,55 @@
   // referenced by third-party PSX data tools) to power its own symbol
   // search. If it responds in a shape we don't recognise, we just fall
   // back to whatever name the person typed in manually — nothing breaks.
-  async function lookupCompanyName(symbol) {
-    if (!window.cordova) return "";
+  let allPsxSymbolsCache = null;
+  async function getAllPsxSymbols() {
+    if (allPsxSymbolsCache) return allPsxSymbolsCache;
+    if (!window.cordova) return [];
     try {
       const res = await new Promise((resolve, reject) => {
         cordova.plugin.http.get("https://dps.psx.com.pk/symbols", {}, {}, resolve, reject);
       });
       const list = JSON.parse(res.data);
       const arr = Array.isArray(list) ? list : (list.data || list.symbols || []);
-      const hit = arr.find(row => {
-        const sym = (row.symbol || row.Symbol || row.SYMBOL || "").toUpperCase();
-        return sym === symbol;
-      });
-      if (!hit) return "";
-      return hit.name || hit.Name || hit.companyName || hit.NAME || "";
+      allPsxSymbolsCache = arr.map(row => ({
+        symbol: (row.symbol || row.Symbol || row.SYMBOL || "").toUpperCase(),
+        name: row.name || row.Name || row.companyName || row.NAME || ""
+      })).filter(r => r.symbol);
+      return allPsxSymbolsCache;
     } catch (e) {
-      return "";
+      return [];
     }
+  }
+
+  // Ranked search across the full PSX symbol list by either symbol code or
+  // company name, excluding symbols already in this app's list (the point
+  // here is finding ones to ADD).
+  function rankPsxMatches(query, list) {
+    const q = query.trim().toUpperCase();
+    if (!q) return [];
+    const already = getAllSymbols();
+    return list
+      .filter(r => !already.includes(r.symbol))
+      .map(r => {
+        const nameUp = r.name.toUpperCase();
+        let score = -1;
+        if (r.symbol === q) score = 100;
+        else if (r.symbol.startsWith(q)) score = 80;
+        else if (r.symbol.includes(q)) score = 60;
+        else if (nameUp.startsWith(q)) score = 50;
+        else if (nameUp.includes(q)) score = 30;
+        return { symbol: r.symbol, name: r.name, score };
+      })
+      .filter(r => r.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8);
+  }
+
+  async function lookupCompanyName(symbol) {
+    if (!window.cordova) return "";
+    const list = await getAllPsxSymbols();
+    const hit = list.find(r => r.symbol === symbol);
+    return hit ? hit.name : "";
   }
 
   function getAllSymbols() {
@@ -912,6 +1034,26 @@
 
     const avgClose = rows.reduce((s, r) => s + r.close, 0) / rows.length;
     const avgOpen = rows.reduce((s, r) => s + r.open, 0) / rows.length;
+
+    // Robust Avg(IQR): sorts closing prices, finds the "normal" range using
+    // quartiles, drops anything outside it (outlier days — spikes, one-off
+    // news, etc.), and averages what's left — so a couple of unusual days
+    // don't skew the typical price the way a plain average can.
+    function percentile(sortedArr, p) {
+      const idx = (sortedArr.length - 1) * p;
+      const lo = Math.floor(idx), hi = Math.ceil(idx);
+      if (lo === hi) return sortedArr[lo];
+      return sortedArr[lo] + (sortedArr[hi] - sortedArr[lo]) * (idx - lo);
+    }
+    const sortedCloses = rows.map(r => r.close).slice().sort((a, b) => a - b);
+    const q1 = percentile(sortedCloses, 0.25);
+    const q3 = percentile(sortedCloses, 0.75);
+    const iqr = q3 - q1;
+    const filteredCloses = sortedCloses.filter(v => v >= q1 - 1.5 * iqr && v <= q3 + 1.5 * iqr);
+    const robustAvg = filteredCloses.length
+      ? filteredCloses.reduce((s, v) => s + v, 0) / filteredCloses.length
+      : avgClose;
+
     const avgLinesSvg = `
       ${showAvgCloseLine ? `
         <line x1="${padSide}" y1="${yFor(avgClose).toFixed(1)}" x2="${(width - padSide).toFixed(1)}" y2="${yFor(avgClose).toFixed(1)}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.75" />
@@ -920,6 +1062,10 @@
       ${showAvgOpenLine ? `
         <line x1="${padSide}" y1="${yFor(avgOpen).toFixed(1)}" x2="${(width - padSide).toFixed(1)}" y2="${yFor(avgOpen).toFixed(1)}" stroke="var(--accent2)" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.75" />
         <text x="${padSide + 4}" y="${(yFor(avgOpen) + 12).toFixed(1)}" font-size="9" font-weight="bold" fill="var(--accent2)">Avg Open: ${avgOpen.toFixed(2)}</text>
+      ` : ""}
+      ${showRobustAvgLine ? `
+        <line x1="${padSide}" y1="${yFor(robustAvg).toFixed(1)}" x2="${(width - padSide).toFixed(1)}" y2="${yFor(robustAvg).toFixed(1)}" stroke="#c9a227" stroke-width="1.5" stroke-dasharray="2,3" opacity="0.85" />
+        <text x="${padSide + 4}" y="${(yFor(robustAvg) - 4).toFixed(1)}" font-size="9" font-weight="bold" fill="#c9a227">Robust Avg(IQR): ${robustAvg.toFixed(2)}</text>
       ` : ""}
     `;
 
@@ -936,7 +1082,7 @@
   "sma": {
     "name": "Moving Average (50-day / 200-day)",
     "nameUrdu": "متحرک اوسط (٥٠ دن / ٢٠٠ دن)",
-    "category": "technical",
+    "category": "trend_indicators",
     "formula": "Moving Average = Sum of closing prices over the period ÷ Number of days",
     "short": "Average price over the last 50/200 days — shows the overall trend direction.",
     "shortUr": "Pichle 50/200 dinon ki average price — stock ka overall rukh (trend) dikhati hai.",
@@ -951,7 +1097,7 @@
   "rsi": {
     "name": "RSI (Relative Strength Index)",
     "nameUrdu": "آر ایس آئی (رفتار ناپنے کا پیمانہ)",
-    "category": "technical",
+    "category": "momentum_indicators",
     "formula": "RSI = 100 − ( 100 ÷ (1 + Average Gain ÷ Average Loss) ), over 14 days",
     "short": "A 0-100 score measuring how fast price has been rising or falling — above 70 means overbought, below 30 means oversold.",
     "shortUr": "0 se 100 tak ka number jo yeh naapta hai ke qeemat kitni tezi se badh/ghat rahi hai — 70 se upar 'overbought', 30 se neeche 'oversold'.",
@@ -966,7 +1112,7 @@
   "bollinger": {
     "name": "Bollinger Bands",
     "nameUrdu": "بولنجر بینڈز (قیمت کی حد بندی)",
-    "category": "technical",
+    "category": "volatility_indicators",
     "formula": "Upper Band = 20-day MA + (2 × Standard Deviation)\nLower Band = 20-day MA − (2 × Standard Deviation)",
     "short": "The price's normal trading range (like a lane a car usually stays within) — near the top edge may mean pricier, near the bottom cheaper.",
     "shortUr": "Qeemat ki normal 'lane' (jaisay gaari apni lane mein chalti hai) — upar wali hadd ke qareeb ho to mehnga, neeche wali hadd ke qareeb ho to sasta.",
@@ -981,7 +1127,7 @@
   "atr": {
     "name": "ATR (Average True Range)",
     "nameUrdu": "اے ٹی آر (اوسط روزانہ حرکت)",
-    "category": "technical",
+    "category": "volatility_indicators",
     "formula": "ATR = Average of the daily price change over the last 14 days",
     "short": "The average daily price movement — higher means more volatile (bigger up-down swings).",
     "shortUr": "Roz ki average qeemat ki harkat — jitna zyada, utna hi zyada utaar-chadhav.",
@@ -996,7 +1142,7 @@
   "volume": {
     "name": "Volume & Average Volume",
     "nameUrdu": "حجم اور اوسط حجم",
-    "category": "technical",
+    "category": "volume",
     "formula": "Average Volume = Sum of volume over last 30 days ÷ 30",
     "short": "Today's trading activity (how many shares changed hands) vs the recent daily average.",
     "shortUr": "Aaj kitni khareed-o-farokht hui (kitne shares haath badle), pichle dinon ki average se moqabla.",
@@ -1011,7 +1157,7 @@
   "support_resistance": {
     "name": "Support & Resistance",
     "nameUrdu": "سپورٹ اور ریزسٹنس (سہارا اور رکاوٹ)",
-    "category": "technical",
+    "category": "price_levels",
     "formula": "Support = Lowest closing price in the recent period\nResistance = Highest closing price in the recent period",
     "short": "Price levels where the stock has often paused or reversed before — support is a 'floor', resistance is a 'ceiling'.",
     "shortUr": "Woh qeemat levels jahan stock pehle bhi ruka ya palta hai — support 'farsh' jaisa hai, resistance 'chhat' jaisi.",
@@ -1026,7 +1172,7 @@
   "52week": {
     "name": "52-Week High / Low",
     "nameUrdu": "٥٢ ہفتوں کی بلند ترین / پست ترین قیمت",
-    "category": "technical",
+    "category": "price_levels",
     "formula": "52-Week High/Low = Highest / Lowest closing price in the last ~252 trading days",
     "short": "The highest and lowest price this stock has reached in the past year.",
     "shortUr": "Pichle ek saal mein stock ki sabse zyada aur sabse kam pahunchi hui qeemat.",
@@ -1041,7 +1187,7 @@
   "pivot_points": {
     "name": "Pivot Points (Pivot, R1/R2, S1/S2)",
     "nameUrdu": "پیوٹ پوائنٹس (متوقع موڑ کے مقامات)",
-    "category": "technical",
+    "category": "trend_indicators",
     "formula": "Pivot = (High + Low + Close) ÷ 3\nR1 = (2 × Pivot) − Low\nR2 = Pivot + (High − Low)\nS1 = (2 × Pivot) − High\nS2 = Pivot − (High − Low)",
     "short": "Levels calculated from High, Low and Close, used to guess where price may pause or turn today.",
     "shortUr": "High, Low aur Close se nikale gaye levels, jinse andaza lagaya jaata hai ke aaj qeemat kahan ruk ya palat sakti hai.",
@@ -1056,7 +1202,7 @@
   "pe_ratio": {
     "name": "P/E Ratio (Price-to-Earnings)",
     "nameUrdu": "پی ای ریشو (قیمت اور کمائی کا تناسب)",
-    "category": "fundamental",
+    "category": "valuation",
     "formula": "P/E Ratio = Share Price ÷ Earnings Per Share (EPS)",
     "short": "Share price divided by earnings per share — how expensive the stock is relative to its actual profit.",
     "shortUr": "Share ki qeemat ko har share ki kamai se taqseem kiya jaata hai — stock apne asal munafe ke muqable mein kitna mehnga hai.",
@@ -1071,7 +1217,7 @@
   "eps": {
     "name": "EPS (Earnings Per Share)",
     "nameUrdu": "ای پی ایس (فی حصہ کمائی)",
-    "category": "fundamental",
+    "category": "profitability",
     "formula": "EPS = Net Profit ÷ Total Number of Shares Outstanding",
     "short": "The company's profit divided by its total number of shares.",
     "shortUr": "Company ka munafa uske total shares ki tadaad se taqseem kiya jaata hai.",
@@ -1086,7 +1232,7 @@
   "dividend_yield": {
     "name": "Dividend Yield",
     "nameUrdu": "ڈیویڈنڈ یِیلڈ (منافع کی شرح)",
-    "category": "fundamental",
+    "category": "dividends",
     "formula": "Dividend Yield = (Annual Dividend per Share ÷ Share Price) × 100",
     "short": "Annual dividend paid, as a percentage of the share price.",
     "shortUr": "Saalana dividend (naqad munafa), share ki qeemat ka percentage bana kar.",
@@ -1101,7 +1247,7 @@
   "market_cap": {
     "name": "Market Capitalization",
     "nameUrdu": "مارکیٹ کیپیٹلائزیشن (کمپنی کی مجموعی مالیت)",
-    "category": "fundamental",
+    "category": "valuation",
     "formula": "Market Cap = Share Price × Total Number of Shares Outstanding",
     "short": "The total value of the company — share price × total shares.",
     "shortUr": "Company ki kul qeemat — share price ko total shares se guna kar ke.",
@@ -1116,7 +1262,7 @@
   "book_value": {
     "name": "Book Value (per Share)",
     "nameUrdu": "بک ویلیو (فی حصہ کاغذی مالیت)",
-    "category": "fundamental",
+    "category": "financial_health",
     "formula": "Book Value per Share = (Total Assets − Total Liabilities) ÷ Total Shares Outstanding",
     "short": "The company's net worth (what it owns minus what it owes) divided by its shares.",
     "shortUr": "Company ki asal haisiyat (jo malik hai us mein se jo qarz hai woh nikal kar), shares ki tadaad se taqseem.",
@@ -1131,7 +1277,7 @@
   "payout_ratio": {
     "name": "Dividend Payout Ratio",
     "nameUrdu": "ڈیویڈنڈ پے آؤٹ ریشو (منافع دینے کی شرح)",
-    "category": "fundamental",
+    "category": "dividends",
     "formula": "Payout Ratio = (Total Dividends Paid ÷ Net Profit) × 100",
     "short": "How much of the company's profit is paid out as dividends, as a percentage.",
     "shortUr": "Company apne munafe ka kitna hissa dividend (naqad) ke tor par de rahi hai, percentage mein.",
@@ -1143,186 +1289,302 @@
     "whyUr": "Isse pata chalta hai ke company ka dividend dena barqarar rakhne layak hai ya woh apni haisiyat se zyada de rahi hai.",
     "whyUrdu": "اس سے پتا چلتا ہے کہ کمپنی کا ڈیویڈنڈ دینا برقرار رکھنے کے قابل ہے یا وہ اپنی حیثیت سے زیادہ دے رہی ہے۔"
   },
+  "dividend_per_share": {
+    "name": "Dividend Per Share (Rs.)",
+    "nameUrdu": "فی حصہ ڈیویڈنڈ (روپے)",
+    "category": "dividends",
+    "formula": "Dividend Per Share = Total Dividend Paid ÷ Total Shares Outstanding",
+    "short": "The actual rupee amount of dividend paid for each share, in real currency (not a percentage).",
+    "shortUr": "Har share ke liye actual rupay mein dividend, percentage mein nahin.",
+    "shortUrdu": "ہر حصے کے لیے اصل روپوں میں ڈیویڈنڈ، فیصد میں نہیں۔",
+    "en": "The actual rupee amount a company pays out per share as dividend, in real currency — this is the raw figure Dividend Yield is calculated from (Dividend Yield just expresses this as a % of the share price).",
+    "ur": "Company har share ke liye asal mein kitne rupay dividend deti hai — yeh woh raw (bunyadi) number hai jis se Dividend Yield nikala jaata hai (Dividend Yield isi ko share ki qeemat ka % bana kar dikhata hai).",
+    "urdu": "کمپنی ہر حصے کے لیے اصل میں کتنے روپے ڈیویڈنڈ دیتی ہے — یہ وہ بنیادی نمبر ہے جس سے ڈیویڈنڈ یِیلڈ نکالا جاتا ہے۔",
+    "whyEn": "Helps you see the actual cash amount you'd receive per share, in real rupees, rather than a percentage.",
+    "whyUr": "Isse pata chalta hai ke aapko har share par asal mein kitne rupay milenge, percentage ki bajaye.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ آپ کو ہر حصے پر اصل میں کتنے روپے ملیں گے، فیصد کی بجائے۔"
+  },
+  "gross_profit_margin": {
+    "name": "Gross Profit Margin (%)",
+    "nameUrdu": "مجموعی منافع کا تناسب (فیصد)",
+    "category": "profitability",
+    "formula": "Gross Profit Margin = (Revenue − Cost of Goods Sold) ÷ Revenue × 100",
+    "short": "What % of sales money is left after paying only the direct cost of making the product.",
+    "shortUr": "Sales ke paison ka kitna % bacha rehta hai sirf product banane ki seedhi lagat nikaalne ke baad.",
+    "shortUrdu": "فروخت کے پیسوں کا کتنا فیصد بچا رہتا ہے صرف پروڈکٹ بنانے کی براہ راست لاگت نکالنے کے بعد۔",
+    "en": "The percentage of revenue (sales) left over after subtracting only the direct cost of producing the goods (raw material, direct labor), before other expenses like rent, salaries, or marketing. A higher gross margin means more room to cover those other costs and still profit.",
+    "ur": "Revenue (sales) mein se sirf product banane ki seedhi lagat (kacha maal, seedhi mazdoori) nikaalne ke baad jo percentage bachta hai, woh gross profit margin hai — is mein abhi kiraya, tankhwahein, ya marketing jaisi doosri lagatein shamil nahin. Zyada gross margin ka matlab hai ke in doosri lagaton ko cover karne aur phir bhi munafa kamane ki zyada gunjaish hai.",
+    "urdu": "آمدنی میں سے صرف پروڈکٹ بنانے کی براہ راست لاگت (خام مال، براہ راست مزدوری) نکالنے کے بعد جو فیصد بچتا ہے، وہ گراس پرافٹ مارجن ہے۔ زیادہ گراس مارجن کا مطلب ہے کہ باقی اخراجات پورے کر کے بھی منافع کمانے کی زیادہ گنجائش ہے۔",
+    "whyEn": "Helps you see how efficiently a company produces its goods, before other business costs come into play.",
+    "whyUr": "Isse pata chalta hai ke company apna product kitni kifayat se banati hai, baaki business lagaton se pehle.",
+    "whyUrdu": "اس سے پتا چلتا ہے کہ کمپنی اپنی پروڈکٹ کتنی کفایت سے بناتی ہے، باقی کاروباری اخراجات سے پہلے۔"
+  },
+  "net_profit_margin": {
+    "name": "Net Profit Margin (%)",
+    "nameUrdu": "خالص منافع کا تناسب (فیصد)",
+    "category": "profitability",
+    "formula": "Net Profit Margin = Net Profit ÷ Revenue × 100",
+    "short": "What % of every rupee of sales actually ends up as final profit, after ALL expenses.",
+    "shortUr": "Har rupay ki sales mein se kitna % asal mein aakhir mein munafe ke tor par bachta hai, SAARI lagaton ke baad.",
+    "shortUrdu": "ہر روپے کی فروخت میں سے کتنا فیصد اصل میں آخر میں منافع کے طور پر بچتا ہے، تمام اخراجات کے بعد۔",
+    "en": "The percentage of revenue left as actual profit after subtracting ALL costs and expenses — production, salaries, rent, interest, taxes, everything. This is the 'bottom line' margin, and is always lower than Gross Profit Margin since it accounts for more.",
+    "ur": "Revenue mein se SAARI lagatein aur kharche (production, tankhwahein, kiraya, sood, taxes, sab kuch) nikaalne ke baad jo percentage asal munafe ke tor par bachta hai, woh net profit margin hai. Yeh hamesha Gross Profit Margin se kam hota hai, kyunke is mein zyada cheezein shaamil hoti hain.",
+    "urdu": "آمدنی میں سے تمام لاگتیں اور اخراجات (پیداوار، تنخواہیں، کرایہ، سود، ٹیکس، سب کچھ) نکالنے کے بعد جو فیصد اصل منافع کے طور پر بچتا ہے، وہ نیٹ پرافٹ مارجن ہے۔",
+    "whyEn": "Helps you see the company's real, overall profitability after every single expense is accounted for.",
+    "whyUr": "Isse company ki asal, poori munafa-bakhshi pata chalti hai, har ek kharche ko shamil karne ke baad.",
+    "whyUrdu": "اس سے کمپنی کی اصل، مجموعی منافع بخشی پتا چلتی ہے، ہر ایک خرچے کو شامل کرنے کے بعد۔"
+  },
+  "price_to_book": {
+    "name": "Price/Book Ratio",
+    "nameUrdu": "قیمت اور بک ویلیو کا تناسب",
+    "category": "valuation",
+    "formula": "Price/Book Ratio = Share Price ÷ Book Value Per Share",
+    "short": "Share price divided by Book Value — how many times its 'paper worth' the market is charging.",
+    "shortUr": "Share price ko Book Value se taqseem kiya jaata hai — market uski 'kaghazi qeemat' ka kitna guna charge kar raha hai.",
+    "shortUrdu": "شیئر کی قیمت کو بک ویلیو سے تقسیم کیا جاتا ہے — مارکیٹ اس کی 'کاغذی قیمت' کا کتنا گنا وصول کر رہی ہے۔",
+    "en": "The current share price divided by its Book Value Per Share (see the Book Value entry). A ratio above 1 means the market values the company at more than its accounting 'paper worth'; below 1 can suggest the stock is undervalued (or that the market expects trouble ahead).",
+    "ur": "Current share price ko uski Book Value Per Share se taqseem kar ke nikala jaata hai (Book Value wali entry dekhein). 1 se upar ratio ka matlab hai market company ko uski accounting 'kaghazi qeemat' se zyada samajhti hai; 1 se neeche ho to iska matlab ho sakta hai stock sasta hai (ya market ko aage koi masla nazar aa raha hai).",
+    "urdu": "موجودہ شیئر کی قیمت کو اس کی بک ویلیو فی شیئر سے تقسیم کر کے نکالا جاتا ہے۔ ١ سے اوپر تناسب کا مطلب ہے مارکیٹ کمپنی کو اس کی کاغذی قیمت سے زیادہ سمجھتی ہے؛ ١ سے نیچے ہو تو اسٹاک سستا سمجھا جا سکتا ہے۔",
+    "whyEn": "Helps you judge if a stock is priced reasonably compared to what the company would be worth on paper.",
+    "whyUr": "Isse andaza hota hai ke stock ki qeemat munasib hai ya nahin, company ki 'kaghazi' qeemat ke muqable mein.",
+    "whyUrdu": "اس سے اندازہ ہوتا ہے کہ اسٹاک کی قیمت مناسب ہے یا نہیں، کمپنی کی کاغذی قیمت کے مقابلے میں۔"
+  },
+  "price_to_sales": {
+    "name": "Price to Sales Ratio",
+    "nameUrdu": "قیمت اور فروخت کا تناسب",
+    "category": "valuation",
+    "formula": "Price to Sales Ratio = Market Capitalization ÷ Total Revenue (Sales)",
+    "short": "How much the market values the company compared to just its total sales (revenue), ignoring profit.",
+    "shortUr": "Market company ki qeemat uski total sales (revenue) ke muqable mein kitni laga rahi hai, munafe ko nazar-andaaz karte hue.",
+    "shortUrdu": "مارکیٹ کمپنی کی قیمت اس کی کل فروخت کے مقابلے میں کتنی لگا رہی ہے، منافع کو نظر انداز کرتے ہوئے۔",
+    "en": "Market Capitalization divided by total revenue (sales). Unlike P/E Ratio, this ignores profit entirely and just compares valuation to sales volume — useful for companies with little or no current profit, where a P/E Ratio wouldn't make sense.",
+    "ur": "Market Capitalization ko total revenue (sales) se taqseem kiya jaata hai. P/E Ratio ke bar-aks, yeh munafe ko bilkul nazar-andaaz kar ke sirf valuation ko sales ke hajam se moqabla karta hai — un companies ke liye useful hai jinka abhi kam ya koi munafa nahin, jahan P/E Ratio ka koi mafhoom nahin banta.",
+    "urdu": "مارکیٹ کیپیٹلائزیشن کو کل آمدنی (فروخت) سے تقسیم کیا جاتا ہے۔ پی ای ریشو کے برعکس، یہ منافع کو مکمل طور پر نظر انداز کر کے صرف مالیت کا فروخت کے حجم سے موازنہ کرتا ہے۔",
+    "whyEn": "Useful for valuing companies with little or no profit yet, where P/E Ratio doesn't work.",
+    "whyUr": "Un companies ki qeemat lagane ke liye useful hai jinka abhi kam ya koi munafa nahin, jahan P/E Ratio kaam nahin karta.",
+    "whyUrdu": "ان کمپنیوں کی قیمت لگانے کے لیے مفید ہے جن کا ابھی کم یا کوئی منافع نہیں، جہاں پی ای ریشو کام نہیں کرتا۔"
+  },
+  "current_ratio": {
+    "name": "Current Ratio (Times)",
+    "nameUrdu": "کرنٹ ریشو (فوری ادائیگی کی صلاحیت)",
+    "category": "financial_health",
+    "formula": "Current Ratio = Current Assets ÷ Current Liabilities",
+    "short": "Can the company pay its bills due within a year using what it owns that turns to cash within a year?",
+    "shortUr": "Kya company apne is saal ke bill, is saal cash ban sakne wali cheezon se ada kar sakti hai?",
+    "shortUrdu": "کیا کمپنی اپنے اس سال کے بل، اس سال نقد بننے والی چیزوں سے ادا کر سکتی ہے؟",
+    "en": "Current Assets (cash, inventory, and anything that turns into cash within a year) divided by Current Liabilities (bills and debts due within a year). A ratio above 1 means the company can, in principle, cover its short-term obligations; well below 1 can be a warning sign of cash-flow trouble.",
+    "ur": "Current Assets (cash, stock/inventory, aur woh sab kuch jo ek saal ke andar cash ban sakta hai) ko Current Liabilities (woh bill aur qarz jo ek saal ke andar dena hai) se taqseem kiya jaata hai. 1 se upar ratio ka matlab hai company usool ke tor par apni short-term zimmedariyan pura kar sakti hai; 1 se kaafi neeche ho to yeh cash-flow ki mushkil ka ishara ho sakta hai.",
+    "urdu": "کرنٹ ایسٹس (نقد، اسٹاک، اور وہ سب کچھ جو ایک سال میں نقد بن سکتا ہے) کو کرنٹ لائبلٹیز (وہ بل اور قرض جو ایک سال میں دینا ہے) سے تقسیم کیا جاتا ہے۔ ١ سے اوپر تناسب کا مطلب ہے کمپنی اپنی قلیل مدتی ذمہ داریاں پوری کر سکتی ہے۔",
+    "whyEn": "Helps you judge whether a company can comfortably pay its near-term bills without financial strain.",
+    "whyUr": "Isse andaza hota hai ke company apne qareebi (near-term) bill bagair mushkil ke ada kar sakti hai ya nahin.",
+    "whyUrdu": "اس سے اندازہ ہوتا ہے کہ کمپنی اپنے قریبی بل بغیر مشکل کے ادا کر سکتی ہے یا نہیں۔"
+  },
+  "debt_to_equity": {
+    "name": "Long Term Debt to Equity",
+    "nameUrdu": "طویل مدتی قرض اور سرمائے کا تناسب",
+    "category": "financial_health",
+    "formula": "Debt to Equity = Long Term Debt ÷ Shareholders' Equity",
+    "short": "How much the company owes in long-term loans compared to what shareholders have put in.",
+    "shortUr": "Company ke lambe arse ke qarz, shareholders ke lagaye hue sarmaye ke muqable mein kitne hain.",
+    "shortUrdu": "کمپنی کے طویل مدتی قرض، حصص داروں کے لگائے ہوئے سرمائے کے مقابلے میں کتنے ہیں۔",
+    "en": "Long-term debt (loans due beyond a year) divided by shareholders' equity (the money shareholders have invested, plus retained profit). A higher ratio means the company relies more on borrowed money than its own funds, which can mean more risk (interest to pay) but sometimes also more growth potential.",
+    "ur": "Lamba arsa wala qarz (ek saal se aage ada hone wale loans) ko shareholders' equity (jo paisa shareholders ne laga rakha hai, plus jo munafa company ne apne paas rakh liya) se taqseem kiya jaata hai. Zyada ratio ka matlab hai company apne paison se zyada udhaar par bharosa karti hai, jo zyada risk (sood dena) ka sabab ban sakta hai, lekin kabhi kabhi zyada growth ka moqa bhi.",
+    "urdu": "طویل مدتی قرض کو حصص داروں کے سرمائے سے تقسیم کیا جاتا ہے۔ زیادہ تناسب کا مطلب ہے کمپنی اپنے پیسوں سے زیادہ ادھار پر بھروسہ کرتی ہے، جو زیادہ خطرہ بن سکتا ہے۔",
+    "whyEn": "Helps you judge how much financial risk a company is carrying from borrowed money versus its own funds.",
+    "whyUr": "Isse andaza hota hai ke company udhaar liye paison se kitna financial risk utha rahi hai, apne paison ke muqable mein.",
+    "whyUrdu": "اس سے اندازہ ہوتا ہے کہ کمپنی ادھار لیے پیسوں سے کتنا مالی خطرہ اٹھا رہی ہے، اپنے پیسوں کے مقابلے میں۔"
+  },
+  "interest_cover": {
+    "name": "Interest Cover (Times)",
+    "nameUrdu": "سود ادا کرنے کی صلاحیت",
+    "category": "financial_health",
+    "formula": "Interest Cover = Operating Profit ÷ Interest Expense",
+    "short": "How many times over the company could pay its interest bill from its operating profit.",
+    "shortUr": "Company apna sood (interest) ka bill apne operating munafe se kitni dafa ada kar sakti hai.",
+    "shortUrdu": "کمپنی اپنا سود کا بل اپنے آپریٹنگ منافع سے کتنی دفعہ ادا کر سکتی ہے۔",
+    "en": "Operating profit divided by the interest expense the company must pay on its debt. A higher number means the company earns comfortably more than enough to cover its interest payments; a low number (close to 1) is a warning sign it may struggle to service its debt.",
+    "ur": "Operating munafa ko us sood (interest) se taqseem kiya jaata hai jo company ko apne qarz par dena hai. Zyada number ka matlab hai company apne sood ki adaigi se kaafi zyada kama rahi hai; kam number (1 ke qareeb) khabardar karta hai ke company apne qarz ka sood dene mein mushkil mehsoos kar sakti hai.",
+    "urdu": "آپریٹنگ منافع کو اس سود سے تقسیم کیا جاتا ہے جو کمپنی کو اپنے قرض پر دینا ہے۔ زیادہ نمبر کا مطلب ہے کمپنی اپنے سود کی ادائیگی سے کافی زیادہ کما رہی ہے؛ کم نمبر خبردار کرتا ہے کہ کمپنی کو قرض کا سود دینے میں مشکل ہو سکتی ہے۔",
+    "whyEn": "Helps you judge how safely a company can keep up with its debt interest payments from its regular earnings.",
+    "whyUr": "Isse andaza hota hai ke company apni mamooli kamai se apne qarz ka sood kitni surakhshit tareeqe se de sakti hai.",
+    "whyUrdu": "اس سے اندازہ ہوتا ہے کہ کمپنی اپنی معمول کی کمائی سے اپنے قرض کا سود کتنے محفوظ طریقے سے دے سکتی ہے۔"
+  },
+  "robust_avg_iqr": {
+    "name": "Robust Avg (IQR)",
+    "nameUrdu": "مضبوط اوسط (آؤٹ لائیر سے پاک)",
+    "category": "trend_indicators",
+    "formula": "Sort all closing prices; Q1 = 25th percentile, Q3 = 75th percentile, IQR = Q3 − Q1\nKeep only prices within [Q1 − 1.5×IQR, Q3 + 1.5×IQR]\nRobust Avg = Average of the remaining (non-outlier) prices",
+    "short": "The average closing price after removing unusually high or low outlier days.",
+    "shortUr": "Average closing price, ghair-mamuli (outlier) upar/neeche wale din nikalne ke baad.",
+    "shortUrdu": "اوسط بند ہونے والی قیمت، غیر معمولی طور پر اوپر یا نیچے والے دن نکالنے کے بعد۔",
+    "en": "A normal average can get skewed by just one or two unusual days — a sudden spike or crash from news, a one-off event, etc. This method first works out the stock's 'normal' price range using its own recent history (quartiles), removes any days that fall well outside that range as outliers, and only then averages what's left. This works best for a stock trading sideways/mixed around a stable level; for a stock in a clear uptrend or downtrend, this line will simply sit somewhere in the middle of that trend rather than mean much, since there's no single 'stable level' for it to represent.",
+    "ur": "Ek mamooli average sirf ek ya do ghair-mamuli dinon (jaise news se achanak spike ya crash) ki wajah se 'kheench' (skew) ho sakta hai. Yeh tareeqa pehle stock ki apni haal hi ki history se uski 'normal' range nikalta hai (quartiles ke zariye), jo bhi din is range se kaafi bahar hon unhe outlier samajh kar nikal deta hai, aur phir sirf bache hue dinon ka average leta hai. Yeh un stocks ke liye zyada kaam ka hai jo kisi ek sthir (stable) level ke ird-gird sideways/mixed chal rahe hon; jo stock saaf uptrend ya downtrend mein ho, uske liye yeh line sirf trend ke darmiyan kahin aa kar tik jayegi, kyunke koi ek 'sthir level' hi maujood nahin hota jise yeh represent kar sake.",
+    "urdu": "ایک عام اوسط صرف ایک یا دو غیر معمولی دنوں (جیسے خبر سے اچانک اضافہ یا کمی) کی وجہ سے متاثر ہو سکتی ہے۔ یہ طریقہ پہلے اسٹاک کی اپنی حالیہ تاریخ سے اس کی نارمل رینج نکالتا ہے، جو بھی دن اس رینج سے کافی باہر ہوں انہیں آؤٹ لائیر سمجھ کر نکال دیتا ہے، اور پھر صرف بچے ہوئے دنوں کی اوسط لیتا ہے۔ یہ ان اسٹاکس کے لیے زیادہ کارآمد ہے جو کسی ایک مستحکم سطح کے ارد گرد چل رہے ہوں؛ جو اسٹاک صاف رجحان میں ہو، اس کے لیے یہ لائن صرف رجحان کے درمیان کہیں آ کر ٹک جائے گی۔",
+    "whyEn": "Helps you see a stock's 'typical' price without a couple of unusual days skewing the picture — but keep in mind it's most meaningful for a stock trading sideways, not one in a clear trend.",
+    "whyUr": "Isse stock ki 'typical' (aam) qeemat pata chalti hai bina ek-do ghair-mamuli dinon ke asar ke — lekin yaad rahe yeh un stocks ke liye zyada maani rakhta hai jo sideways chal rahe hon, na ke saaf trend mein.",
+    "whyUrdu": "اس سے اسٹاک کی معمول کی قیمت پتا چلتی ہے بغیر ایک دو غیر معمولی دنوں کے اثر کے — لیکن یاد رہے یہ ان اسٹاکس کے لیے زیادہ معنی رکھتا ہے جو سائیڈ ویز چل رہے ہوں، نہ کہ صاف رجحان میں۔"
+  },
   "_actions": {
-    "trend": {
-      "up": {
-        "en": "Trend is upward — dips may be worth buying, but do your own research first.",
-        "ur": "Trend upward hai — dips par khareedari dekhi ja sakti hai, lekin apni tehqeeq zaroor karein.",
-        "urdu": "رجحان اوپر کی طرف ہے — گراوٹ پر خریداری دیکھی جا سکتی ہے، لیکن اپنی تحقیق ضرور کریں۔"
-      },
-      "down": {
-        "en": "Trend is downward — caution is advised before taking a new position right now.",
-        "ur": "Trend downward hai — is waqt naye position lene se ehtiyat behtar hai.",
-        "urdu": "رجحان نیچے کی طرف ہے — اس وقت نئی پوزیشن لینے سے احتیاط بہتر ہے۔"
-      },
-      "mixed": {
-        "en": "No clear direction — waiting, or buying only a small amount cautiously, is better for now.",
-        "ur": "Sungin rukh nahi mil raha — filhaal intezar ya sirf ehtiyat ke saath thodi quantity mein khareedna behtar hai.",
-        "urdu": "واضح رخ نہیں مل رہا — فی الحال انتظار یا صرف احتیاط کے ساتھ تھوڑی مقدار میں خریدنا بہتر ہے۔"
-      }
+  "label": {
+    "en": "Suggested action:",
+    "ur": "Tajweez kardah amal:",
+    "urdu": "تجویز کردہ عمل:"
+  },
+  "trend": {
+    "up": {
+      "en": "Trend is upward — dips may be worth buying, but do your own research first.",
+      "ur": "Rukh upar ki taraf hai — girawat par kharidna faida-mand ho sakta hai, lekin pehle apni tehqeeq zaroor karein.",
+      "urdu": "رخ اوپر کی طرف ہے — گراوٹ پر خریدنا فائدہ مند ہو سکتا ہے، لیکن پہلے اپنی تحقیق ضرور کریں۔"
     },
-    "rsi": {
-      "overbought": {
-        "en": "The stock has been heavily bought (overbought) — be cautious with new buying, a correction is possible.",
-        "ur": "Stock zyada khareeda ja chuka hai (overbought) — nayi khareedari mein ehtiyat karein, correction ka imkaan hai.",
-        "urdu": "اسٹاک زیادہ خریدا جا چکا ہے (overbought) — نئی خریداری میں احتیاط کریں، کریکشن کا امکان ہے۔"
-      },
-      "oversold": {
-        "en": "The stock has been heavily sold (oversold) — this could be a good buying opportunity.",
-        "ur": "Stock zyada becha ja chuka hai (oversold) — yeh khareedari ka acha mauka ho sakta hai.",
-        "urdu": "اسٹاک زیادہ بیچا جا چکا ہے (oversold) — یہ خریداری کا اچھا موقع ہو سکتا ہے۔"
-      },
-      "neutral": {
-        "en": "Neither hot nor cold — there's basically no harm in buying, but do check the other factors too.",
-        "ur": "Na zyada garam na thanda — khareedne mein bunyadi taur par harj nahi, baaki factors bhi zaroor dekh lein.",
-        "urdu": "نہ زیادہ گرم نہ ٹھنڈا — خریدنے میں بنیادی طور پر کوئی حرج نہیں، باقی factors بھی ضرور دیکھ لیں۔"
-      }
+    "down": {
+      "en": "Trend is downward — caution is warranted; some wait for a clear reversal before buying.",
+      "ur": "Rukh neeche ki taraf hai — ehtiyaat zaroori hai; kuch log kharidne se pehle saaf palte (reversal) ka intezar karte hain.",
+      "urdu": "رخ نیچے کی طرف ہے — احتیاط ضروری ہے؛ کچھ لوگ خریدنے سے پہلے صاف پلٹے کا انتظار کرتے ہیں۔"
     },
-    "bollinger": {
-      "aboveUpper": {
-        "en": "Price has moved above its upper band — it may be expensive right now, buy cautiously or wait.",
-        "ur": "Price apne upper band se upar hai — filhaal mehnga ho sakta hai, ehtiyat se khareeden ya intezar karein.",
-        "urdu": "قیمت اپنے اوپری بینڈ سے اوپر ہے — فی الحال مہنگی ہو سکتی ہے، احتیاط سے خریدیں یا انتظار کریں۔"
-      },
-      "belowLower": {
-        "en": "Price has dropped below its lower band — this could be a cheap buying opportunity.",
-        "ur": "Price apne lower band se neeche hai — yeh khareedari ka sasta mauka ho sakta hai.",
-        "urdu": "قیمت اپنے نچلے بینڈ سے نیچے ہے — یہ خریداری کا سستا موقع ہو سکتا ہے۔"
-      },
-      "upperHalf": {
-        "en": "Price is in the upper half of its range — a bit pricier, buy thoughtfully.",
-        "ur": "Price apni range ke upper hisse mein hai — thora mehnga hai, soch samajh kar khareeden.",
-        "urdu": "قیمت اپنی رینج کے اوپری حصے میں ہے — تھوڑا مہنگا ہے، سوچ سمجھ کر خریدیں۔"
-      },
-      "lowerHalf": {
-        "en": "Price is in the lower half of its range — this may be a better range to buy in.",
-        "ur": "Price apni range ke neeche hisse mein hai — khareedne ke liye yeh behtar range ho sakti hai.",
-        "urdu": "قیمت اپنی رینج کے نچلے حصے میں ہے — خریدنے کے لیے یہ بہتر رینج ہو سکتی ہے۔"
-      }
+    "mixed": {
+      "en": "No clear direction yet — often better to wait for a clearer signal before acting.",
+      "ur": "Abhi koi saaf rukh nahin — aksar behtar hota hai ke amal karne se pehle zyada saaf ishare ka intezar karein.",
+      "urdu": "ابھی کوئی صاف رخ نہیں — اکثر بہتر ہوتا ہے کہ عمل کرنے سے پہلے زیادہ صاف اشارے کا انتظار کریں۔"
+    }
+  },
+  "rsi": {
+    "overbought": {
+      "en": "Overbought — the stock has risen fast and may be due for a pullback; risky to chase here.",
+      "ur": "Overbought — stock tezi se upar gaya hai aur wapas neeche aa sakta hai; yahan peecha karna risky hai.",
+      "urdu": "زیادہ خریدا گیا — اسٹاک تیزی سے اوپر گیا ہے اور واپس نیچے آ سکتا ہے؛ یہاں پیچھا کرنا خطرناک ہے۔"
     },
-    "atr": {
-      "high": {
-        "en": "The price is making big daily swings — risk is higher, keep position size small or use a stop-loss.",
-        "ur": "Price mein roz bade utaar-chadhav aa rahe hain — risk zyada hai, position size chhoti rakhein ya stop-loss zaroor lagayen.",
-        "urdu": "قیمت میں روز بڑے اتار چڑھاؤ آ رہے ہیں — رسک زیادہ ہے، پوزیشن سائز چھوٹا رکھیں یا اسٹاپ لاس ضرور لگائیں۔"
-      },
-      "moderate": {
-        "en": "This is a fairly typical amount of daily movement — normal risk management is enough.",
-        "ur": "Aam si daily movement hai — mamool ke risk management ke sath trade kiya ja sakta hai.",
-        "urdu": "عام سی روزانہ حرکت ہے — معمول کے رسک مینجمنٹ کے ساتھ ٹریڈ کیا جا سکتا ہے۔"
-      },
-      "low": {
-        "en": "The price is barely moving day to day — a big move is unlikely for now.",
-        "ur": "Price bohot kam move kar rahi hai — filhaal koi bara move ka imkaan kam hai.",
-        "urdu": "قیمت بہت کم حرکت کر رہی ہے — فی الحال کوئی بڑا موو کا امکان کم ہے۔"
-      }
+    "oversold": {
+      "en": "Oversold — the stock has fallen fast and may be due for a bounce, but confirm with other signals.",
+      "ur": "Oversold — stock tezi se neeche gaya hai aur wapas uchhal sakta hai, lekin doosre ishare bhi check karein.",
+      "urdu": "زیادہ بیچا گیا — اسٹاک تیزی سے نیچے گیا ہے اور واپس اچھل سکتا ہے، لیکن دوسرے اشارے بھی چیک کریں۔"
     },
-    "volume": {
-      "veryHighUp": {
-        "en": "Very high activity with the price moving up — this is a strong buying trend, but don't chase the price.",
-        "ur": "Bohot zyada activity ke sath price upar ja rahi hai — mazboot khareedari ka rujhan hai, lekin peechay bhaag kar (chase) na khareeden.",
-        "urdu": "بہت زیادہ ایکٹیویٹی کے ساتھ قیمت اوپر جا رہی ہے — مضبوط خریداری کا رجحان ہے، لیکن پیچھے بھاگ کر نہ خریدیں۔"
-      },
-      "veryHighDown": {
-        "en": "Very high activity with the price falling — selling pressure is strong, be cautious about new buying for now.",
-        "ur": "Bohot zyada activity ke sath price neeche ja rahi hai — bikwali ka dabao zyada hai, filhaal nayi khareedari se ehtiyat karein.",
-        "urdu": "بہت زیادہ ایکٹیویٹی کے ساتھ قیمت نیچے جا رہی ہے — بکواڑی کا دباؤ زیادہ ہے، فی الحال نئی خریداری سے احتیاط کریں۔"
-      },
-      "aboveAvgUp": {
-        "en": "Above-average activity with the price up — buyer interest is rising, do your research before taking a position.",
-        "ur": "Aam se zyada activity ke sath price upar hai — khareedaron ka interest badh raha hai, position lene se pehle apni tehqeeq karein.",
-        "urdu": "معمول سے زیادہ ایکٹیویٹی کے ساتھ قیمت اوپر ہے — خریداروں کی دلچسپی بڑھ رہی ہے، پوزیشن لینے سے پہلے اپنی تحقیق کریں۔"
-      },
-      "aboveAvgDown": {
-        "en": "Above-average activity with the price down — selling pressure is visible, be cautious.",
-        "ur": "Aam se zyada activity ke sath price neeche hai — bikwali ka dabao dikh raha hai, ehtiyat rakhein.",
-        "urdu": "معمول سے زیادہ ایکٹیویٹی کے ساتھ قیمت نیچے ہے — بکواڑی کا دباؤ نظر آ رہا ہے، احتیاط رکھیں۔"
-      },
-      "belowAvg": {
-        "en": "Activity is below average — there's no strong trend visible for now, don't rush.",
-        "ur": "Aam se kam activity hai — filhaal koi mazboot rujhan nazar nahi aa raha, jaldbazi na karein.",
-        "urdu": "معمول سے کم ایکٹیویٹی ہے — فی الحال کوئی مضبوط رجحان نظر نہیں آ رہا، جلد بازی نہ کریں۔"
-      },
-      "average": {
-        "en": "Trading activity is normal — there's no strong signal to buy or to sell.",
-        "ur": "Aam ma'amool ki trading activity hai — na khareedne ka koi khaas ishara hai, na bechne ka.",
-        "urdu": "عام معمول کی ٹریڈنگ ایکٹیویٹی ہے — نہ خریدنے کا کوئی خاص اشارہ ہے، نہ بیچنے کا۔"
-      }
+    "neutral": {
+      "en": "No strong momentum signal either way right now.",
+      "ur": "Filhaal koi mazboot momentum ka ishara nahin, na idhar na udhar.",
+      "urdu": "فی الحال کوئی مضبوط اشارہ نہیں، نہ ادھر نہ ادھر۔"
+    }
+  },
+  "bollinger": {
+    "aboveUpper": {
+      "en": "Price has pushed above its normal range — often seen as pricier/potentially overbought.",
+      "ur": "Qeemat apni normal range se upar chali gayi hai — aksar mehngi/potentially overbought samjhi jaati hai.",
+      "urdu": "قیمت اپنی نارمل رینج سے اوپر چلی گئی ہے — اکثر مہنگی سمجھی جاتی ہے۔"
     },
-    "priceLevel": {
-      "nearResistance": {
-        "en": "Price is near resistance — a pullback from here is possible, be cautious.",
-        "ur": "Price resistance ke qareeb hai — yahan se wapsi (pullback) ka imkaan hai, ehtiyat rakhein.",
-        "urdu": "قیمت مزاحمت کے قریب ہے — یہاں سے واپسی کا امکان ہے، احتیاط رکھیں۔"
-      },
-      "nearSupport": {
-        "en": "Price is near support — this could be a bounce opportunity, but also watch the risk of support breaking.",
-        "ur": "Price support ke qareeb hai — yeh bounce ka mauka ho sakta hai, lekin support toot'ne ka risk bhi dhyan mein rakhein.",
-        "urdu": "قیمت سپورٹ کے قریب ہے — یہ باؤنس کا موقع ہو سکتا ہے، لیکن سپورٹ ٹوٹنے کا رسک بھی ذہن میں رکھیں۔"
-      },
-      "midRange": {
-        "en": "Price is between support and resistance — there's no clear signal for now, waiting is better.",
-        "ur": "Price support aur resistance ke darmiyan hai — filhaal koi wazeh signal nahi, intezar behtar hai.",
-        "urdu": "قیمت سپورٹ اور مزاحمت کے درمیان ہے — فی الحال کوئی واضح اشارہ نہیں، انتظار بہتر ہے۔"
-      }
+    "belowLower": {
+      "en": "Price has dropped below its normal range — often seen as cheaper/potentially oversold.",
+      "ur": "Qeemat apni normal range se neeche chali gayi hai — aksar sasti/potentially oversold samjhi jaati hai.",
+      "urdu": "قیمت اپنی نارمل رینج سے نیچے چلی گئی ہے — اکثر سستی سمجھی جاتی ہے۔"
     },
-    "pivot": {
-      "above": {
-        "en": "Price is trading above today's pivot — today's bias is considered bullish (upward).",
-        "ur": "Price aaj ke pivot se upar trade kar rahi hai — aaj ka rujhan bullish (upar ki taraf) samjha jaata hai.",
-        "urdu": "قیمت آج کے پیوٹ سے اوپر ٹریڈ کر رہی ہے — آج کا رجحان تیزی کی طرف سمجھا جاتا ہے۔"
-      },
-      "below": {
-        "en": "Price is trading below today's pivot — today's bias is considered bearish (downward).",
-        "ur": "Price aaj ke pivot se neeche trade kar rahi hai — aaj ka rujhan bearish (neeche ki taraf) samjha jaata hai.",
-        "urdu": "قیمت آج کے پیوٹ سے نیچے ٹریڈ کر رہی ہے — آج کا رجحان مندی کی طرف سمجھا جاتا ہے۔"
-      },
-      "at": {
-        "en": "Price is exactly at the pivot — the direction isn't clear yet, either way is possible.",
-        "ur": "Price bilkul aaj ke pivot par hai — rujhan abhi wazeh nahi, dono taraf ka imkaan hai.",
-        "urdu": "قیمت بالکل آج کے پیوٹ پر ہے — رجحان ابھی واضح نہیں، دونوں طرف کا امکان ہے۔"
-      }
+    "upperHalf": {
+      "en": "Price is on the pricier side of its normal range, but still within it.",
+      "ur": "Qeemat apni normal range ke mehnge hisse mein hai, magar range ke andar hi hai.",
+      "urdu": "قیمت اپنی نارمل رینج کے مہنگے حصے میں ہے، مگر رینج کے اندر ہی ہے۔"
     },
-    "label": {
-      "en": "Suggested action:",
-      "ur": "Suggested action:",
-      "urdu": "تجویز کردہ عمل:"
+    "lowerHalf": {
+      "en": "Price is on the cheaper side of its normal range, but still within it.",
+      "ur": "Qeemat apni normal range ke saste hisse mein hai, magar range ke andar hi hai.",
+      "urdu": "قیمت اپنی نارمل رینج کے سستے حصے میں ہے، مگر رینج کے اندر ہی ہے۔"
+    }
+  },
+  "atr": {
+    "high": {
+      "en": "High volatility — bigger daily swings and higher risk; consider a wider stop-loss.",
+      "ur": "Zyada volatility — bade roz ke jhatke aur zyada risk; wider stop-loss par ghor karein.",
+      "urdu": "زیادہ اتار چڑھاؤ — بڑے روزانہ جھٹکے اور زیادہ خطرہ؛ وسیع اسٹاپ لاس پر غور کریں۔"
+    },
+    "moderate": {
+      "en": "A fairly typical amount of daily movement for this stock.",
+      "ur": "Is stock ke liye roz ki harkat ek aam si miqdaar mein hai.",
+      "urdu": "اس اسٹاک کے لیے روز کی حرکت ایک عام سی مقدار میں ہے۔"
+    },
+    "low": {
+      "en": "Low volatility — the price tends to move very little day to day.",
+      "ur": "Kam volatility — qeemat roz-marra bohot kam hilti hai.",
+      "urdu": "کم اتار چڑھاؤ — قیمت روزمرہ بہت کم ہلتی ہے۔"
+    }
+  },
+  "volume": {
+    "veryHighUp": {
+      "en": "Very high volume on a rising price — often a sign of strong buying interest.",
+      "ur": "Badhti qeemat ke sath bohot zyada volume — aksar mazboot khareedari ki dilchaspi ka ishara.",
+      "urdu": "بڑھتی قیمت کے ساتھ بہت زیادہ حجم — اکثر مضبوط خریداری کی دلچسپی کا اشارہ۔"
+    },
+    "veryHighDown": {
+      "en": "Very high volume on a falling price — often a sign of strong selling pressure.",
+      "ur": "Girti qeemat ke sath bohot zyada volume — aksar mazboot farokht ke dabao ka ishara.",
+      "urdu": "گرتی قیمت کے ساتھ بہت زیادہ حجم — اکثر مضبوط فروخت کے دباؤ کا اشارہ۔"
+    },
+    "aboveAvgUp": {
+      "en": "Above-average volume on a rising price — supportive of the move.",
+      "ur": "Badhti qeemat ke sath average se zyada volume — is move ki hemayat karta hai.",
+      "urdu": "بڑھتی قیمت کے ساتھ اوسط سے زیادہ حجم — اس حرکت کی حمایت کرتا ہے۔"
+    },
+    "aboveAvgDown": {
+      "en": "Above-average volume on a falling price — supportive of the downside move.",
+      "ur": "Girti qeemat ke sath average se zyada volume — neeche wale move ki hemayat karta hai.",
+      "urdu": "گرتی قیمت کے ساتھ اوسط سے زیادہ حجم — نیچے والی حرکت کی حمایت کرتا ہے۔"
+    },
+    "belowAvg": {
+      "en": "Below-average volume — quieter than usual, weaker conviction behind the current price.",
+      "ur": "Average se kam volume — mamool se khaamosh, current qeemat ke peeche kam yaqeen.",
+      "urdu": "اوسط سے کم حجم — معمول سے خاموش، موجودہ قیمت کے پیچھے کم یقین۔"
+    },
+    "average": {
+      "en": "A normal trading day, volume-wise.",
+      "ur": "Volume ke lihaz se ek mamooli trading din.",
+      "urdu": "حجم کے لحاظ سے ایک معمولی تجارتی دن۔"
+    }
+  },
+  "priceLevel": {
+    "nearResistance": {
+      "en": "Near resistance — the price may struggle to rise further without a stronger push.",
+      "ur": "Resistance ke qareeb — bagair zyada zor ke aage badhna mushkil ho sakta hai.",
+      "urdu": "رکاوٹ کے قریب — بغیر زیادہ زور کے آگے بڑھنا مشکل ہو سکتا ہے۔"
+    },
+    "nearSupport": {
+      "en": "Near support — the price may find buyers here and bounce, but it can also break through.",
+      "ur": "Support ke qareeb — yahan khareedaar mil kar qeemat wapas upar ja sakti hai, lekin toot bhi sakti hai.",
+      "urdu": "سہارے کے قریب — یہاں خریدار مل کر قیمت واپس اوپر جا سکتی ہے، لیکن ٹوٹ بھی سکتی ہے۔"
+    },
+    "midRange": {
+      "en": "Comfortably between support and resistance — no immediate level pressure either way.",
+      "ur": "Aaram se support aur resistance ke darmiyan — filhaal kisi taraf koi foori dabao nahin.",
+      "urdu": "آرام سے سہارے اور رکاوٹ کے درمیان — فی الحال کسی طرف کوئی فوری دباؤ نہیں۔"
+    }
+  },
+  "pivot": {
+    "above": {
+      "en": "Price is above the pivot — a bullish bias for the session so far.",
+      "ur": "Qeemat pivot se upar hai — is session ke liye ab tak bullish (upar wala) rujhan.",
+      "urdu": "قیمت پیوٹ سے اوپر ہے — اس سیشن کے لیے اب تک اوپر کا رجحان۔"
+    },
+    "below": {
+      "en": "Price is below the pivot — a bearish bias for the session so far.",
+      "ur": "Qeemat pivot se neeche hai — is session ke liye ab tak bearish (neeche wala) rujhan.",
+      "urdu": "قیمت پیوٹ سے نیچے ہے — اس سیشن کے لیے اب تک نیچے کا رجحان۔"
+    },
+    "at": {
+      "en": "Price is right at the pivot — no clear bias yet.",
+      "ur": "Qeemat bilkul pivot par hai — abhi koi saaf rujhan nahin.",
+      "urdu": "قیمت بالکل پیوٹ پر ہے — ابھی کوئی صاف رجحان نہیں۔"
     }
   }
+}
 };
-  // Shared across the "Study" glossary AND the Analysis tab's "Suggested
-  // action" lines, so picking a language once applies everywhere. Persisted
-  // so the choice survives closing and reopening the app.
-  let glossaryLang = (function () {
-    try { return localStorage.getItem("kmi30_lang") || "en"; } catch (e) { return "en"; }
-  })();
-  function setAppLang(lang) {
-    glossaryLang = lang;
-    try { localStorage.setItem("kmi30_lang", lang); } catch (e) {}
-  }
-  // Picks the right-language string from a {en, ur, urdu} triple, falling
-  // back sensibly if a language is missing.
-  function pickLang(triple) {
-    if (!triple) return "";
-    if (glossaryLang === "en") return triple.en || "";
-    if (glossaryLang === "urdu") return triple.urdu || triple.ur || "";
-    return triple.ur || "";
-  }
 
-  // Loads glossary.json from GitHub at runtime and, if it's there and valid,
-  // REPLACES the built-in GLOSSARY above with it — so editing that one text
-  // file on GitHub and committing updates the Study page's content with no
-  // APK rebuild needed at all. If the fetch fails (offline, browser preview,
-  // bad JSON), the built-in GLOSSARY above is kept as a safe fallback.
-  const GLOSSARY_URL = "https://raw.githubusercontent.com/mushtaqimambux/kmi30-android/main/glossary.json";
+  let glossaryLang = "en";
+
+  // Loads glossary.json bundled locally inside the APK (www/glossary.json —
+  // shipped with the app, not fetched over the network) and, if it's there
+  // and valid, REPLACES the built-in GLOSSARY above with it. This is what
+  // lets editing that one file and rebuilding update Study/Filter content,
+  // while keeping everything working offline with no network dependency.
   let glossaryLoaded = false;
-  async function loadRemoteGlossary() {
-    if (glossaryLoaded || !window.cordova) return;
+  async function loadBundledGlossary() {
+    if (glossaryLoaded) return;
     try {
-      const res = await new Promise((resolve, reject) => {
-        cordova.plugin.http.get(GLOSSARY_URL, {}, {}, resolve, reject);
-      });
-      const remote = JSON.parse(res.data);
+      const res = await fetch("glossary.json");
+      const remote = await res.json();
       if (remote && typeof remote === "object" && Object.keys(remote).length > 0) {
         Object.keys(GLOSSARY).forEach(k => delete GLOSSARY[k]);
         Object.assign(GLOSSARY, remote);
@@ -1333,64 +1595,121 @@
     }
   }
 
-  // ---------- Analysis calculations (all from the same EOD rows already
-  // fetched for the chart — no extra data source needed) ----------
-  function computeSMA(rows, period) {
-    if (rows.length < period) return null;
-    const slice = rows.slice(rows.length - period);
-    return slice.reduce((sum, r) => sum + r.close, 0) / period;
+  const FILTER_CATEGORY_GLOSSARY_KEY = {
+    trend: "sma", rsi: "rsi", volatility: "atr",
+    volumeActivity: "volume", position: "support_resistance", bollinger: "bollinger"
+  };
+
+  // Reuses the Study page's own text (glossary.json) for these short blurbs
+  // rather than a second, separately-maintained copy — one source of truth.
+  function renderFilterCategoryDescriptions() {
+    Object.keys(FILTER_CATEGORY_GLOSSARY_KEY).forEach(cat => {
+      const g = GLOSSARY[FILTER_CATEGORY_GLOSSARY_KEY[cat]];
+      const el = document.getElementById("filterDesc-" + cat);
+      if (el && g) el.textContent = glossaryLang === "en" ? g.short : glossaryLang === "urdu" ? (g.shortUrdu || g.short) : (g.shortUr || g.short);
+    });
   }
 
-  function computeRSI(rows, period) {
-    if (rows.length < period + 1) return null;
-    const slice = rows.slice(rows.length - period - 1);
-    let gains = 0, losses = 0;
-    for (let i = 1; i < slice.length; i++) {
-      const diff = slice[i].close - slice[i - 1].close;
-      if (diff >= 0) gains += diff; else losses -= diff;
+  let activeStockFilters = []; // [{category, value, label}, ...]
+  let activeFilterMatches = null; // cached symbol list from the last scan, re-applied after every refresh
+  const classificationCache = {}; // symbol -> classifyAnalysisBasic() result (or null), so re-checking
+                                   // as the person taps different filters on the picker doesn't refetch data
+  let liveCountGeneration = 0; // bumped on every filter-picker change; a stale in-flight count run checks
+                                // this and stops early instead of overwriting a newer result
+
+  async function getSymbolClassification(sym) {
+    if (sym in classificationCache) return classificationCache[sym];
+    try {
+      const raw = await getEodRawRows(sym);
+      const rows = normalizeEodRows(raw, 365);
+      const a = computeAnalysis(rows);
+      classificationCache[sym] = a ? classifyAnalysisBasic(a) : null;
+    } catch (e) {
+      classificationCache[sym] = null;
     }
-    const avgGain = gains / period, avgLoss = losses / period;
-    if (avgLoss === 0) return 100;
-    const rs = avgGain / avgLoss;
-    return 100 - (100 / (1 + rs));
+    return classificationCache[sym];
   }
 
-  function computeBollinger(rows, period) {
-    if (rows.length < period) return null;
-    const slice = rows.slice(rows.length - period);
-    const mean = slice.reduce((sum, r) => sum + r.close, 0) / period;
-    const variance = slice.reduce((sum, r) => sum + Math.pow(r.close - mean, 2), 0) / period;
-    const sd = Math.sqrt(variance);
-    return { mid: mean, upper: mean + 2 * sd, lower: mean - 2 * sd };
-  }
-
-  function computeATR(rows, period) {
-    if (rows.length < period + 1) return null;
-    const slice = rows.slice(rows.length - period - 1);
-    let sumRange = 0;
-    for (let i = 1; i < slice.length; i++) {
-      sumRange += Math.abs(slice[i].close - slice[i - 1].close);
+  async function updateLiveFilterCount() {
+    const myGeneration = ++liveCountGeneration;
+    const selectedBtns = Array.from(document.querySelectorAll(".research-filter-btn.active"));
+    const countEl = document.getElementById("researchLiveCount");
+    if (selectedBtns.length === 0) { countEl.textContent = ""; return; }
+    const filters = selectedBtns.map(b => {
+      const [category, value] = b.getAttribute("data-research-filter").split(":");
+      return { category, value };
+    });
+    const symbols = getAllSymbols();
+    let count = 0;
+    for (let i = 0; i < symbols.length; i++) {
+      const c = await getSymbolClassification(symbols[i]);
+      if (myGeneration !== liveCountGeneration) return; // a newer selection change superseded this run
+      if (c && stockMatchesFilters(c, filters)) count++;
+      countEl.textContent = `Checking ${i + 1}/${symbols.length}… ${count} match so far`;
     }
-    return sumRange / period;
+    if (myGeneration !== liveCountGeneration) return;
+    countEl.textContent = `${count} stock${count === 1 ? "" : "s"} currently match${count === 1 ? "es" : ""} this combination.`;
   }
 
-  function computeAnalysis(rows) {
-    if (!rows || rows.length < 30) return null;
-    const last = rows[rows.length - 1];
-    const sma50 = computeSMA(rows, 50);
-    const sma200 = computeSMA(rows, 200);
-    const rsi = computeRSI(rows, 14);
-    const bb = computeBollinger(rows, 20);
-    const atr = computeATR(rows, 14);
-    const recentVolRows = rows.slice(-30);
-    const avgVolume = recentVolRows.reduce((s, r) => s + r.volume, 0) / recentVolRows.length;
-    const periodRows = rows.slice(-252); // ~52 trading weeks
-    const high52 = Math.max(...periodRows.map(r => r.close));
-    const low52 = Math.min(...periodRows.map(r => r.close));
-    const recentForLevels = rows.slice(-60);
-    const resistance = Math.max(...recentForLevels.map(r => r.close));
-    const support = Math.min(...recentForLevels.map(r => r.close));
-    return { last, sma50, sma200, rsi, bb, atr, avgVolume, todayVolume: last.volume, high52, low52, support, resistance };
+  function applyStockFilterToList(matches) {
+    document.querySelectorAll(".stock[data-symbol]").forEach(card => {
+      card.style.display = matches.includes(card.getAttribute("data-symbol")) ? "" : "none";
+    });
+  }
+
+  function clearStockFilter() {
+    activeStockFilters = [];
+    activeFilterMatches = null;
+    document.querySelectorAll(".research-filter-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".stock[data-symbol]").forEach(card => { card.style.display = ""; });
+    document.getElementById("activeFilterBar").style.display = "none";
+  }
+
+  // A stock matches if, for every CATEGORY the person picked at least one
+  // value in, its own value is among those picked (OR within a category,
+  // AND across different categories) — e.g. picking "Overbought" +
+  // "Oversold" together finds stocks at either extreme, while adding
+  // "Low Volatility" on top narrows that further to ones that are also calm.
+  function stockMatchesFilters(c, filters) {
+    const byCategory = {};
+    filters.forEach(f => {
+      if (!byCategory[f.category]) byCategory[f.category] = [];
+      byCategory[f.category].push(f.value);
+    });
+    return Object.keys(byCategory).every(cat => byCategory[cat].includes(c[cat]));
+  }
+
+  async function runResearchFilters() {
+    const selectedBtns = Array.from(document.querySelectorAll(".research-filter-btn.active"));
+    if (selectedBtns.length === 0) { clearStockFilter(); return; }
+    const CATEGORY_NAMES = {
+      trend: "Trend", rsi: "RSI", bollinger: "Bollinger",
+      volatility: "Volatility", volumeActivity: "Volume", position: "Position"
+    };
+    activeStockFilters = selectedBtns.map(b => {
+      const [category, value] = b.getAttribute("data-research-filter").split(":");
+      const catName = CATEGORY_NAMES[category] || category;
+      return { category, value, label: `${catName}: ${b.textContent}` };
+    });
+    document.getElementById("researchOverlay").classList.remove("open");
+
+    const bar = document.getElementById("activeFilterBar");
+    const textEl = document.getElementById("activeFilterText");
+    bar.style.display = "flex";
+    const labelsText = activeStockFilters.map(f => f.label).join(" + ");
+    textEl.textContent = `Scanning stocks for "${labelsText}"…`;
+
+    const symbols = getAllSymbols();
+    const matches = [];
+    for (let i = 0; i < symbols.length; i++) {
+      const sym = symbols[i];
+      const c = await getSymbolClassification(sym);
+      if (c && stockMatchesFilters(c, activeStockFilters)) matches.push(sym);
+      textEl.textContent = `Scanning ${i + 1}/${symbols.length}: ${sym}… (${matches.length} matched so far)`;
+    }
+    activeFilterMatches = matches;
+    applyStockFilterToList(matches);
+    textEl.textContent = `Filter: ${labelsText} (${matches.length} stock${matches.length === 1 ? "" : "s"})`;
   }
 
   // Pivot Points need yesterday's High/Low/Close — PSX's EOD data doesn't
@@ -1539,20 +1858,18 @@
   let showOpenLine = true;
   let showAvgCloseLine = false;
   let showAvgOpenLine = false;
+  let showRobustAvgLine = false;
   let lastChartGeom = null; // shared info so a single tap can find the nearest point
   let oneDSortCol = "time";
   let oneDSortDir = "desc";
 
-  const PERIOD_DAYS = { "1M": 30, "6M": 180, "1Y": 365, "3Y": 1095, "5Y": 1825 };
-
-  function ytdDays() {
-    const now = new Date();
-    const jan1 = new Date(now.getFullYear(), 0, 1);
-    return Math.ceil((now - jan1) / 86400000) + 1;
-  }
+  const PERIOD_DAYS = {
+    "1W": 7, "2W": 14, "3W": 21,
+    "1M": 30, "2M": 60, "3M": 90, "4M": 120,
+    "1Y": 365, "2Y": 730, "3Y": 1095, "4Y": 1460, "5Y": 1825
+  };
 
   function periodToDays(period) {
-    if (period === "YTD") return ytdDays();
     return PERIOD_DAYS[period] || 30;
   }
 
@@ -1890,13 +2207,12 @@
 
   async function selectPeriod(period) {
     trendPeriod = period;
-    document.querySelectorAll(".period-tab").forEach(btn => {
-      btn.classList.toggle("active", btn.getAttribute("data-period") === period);
-    });
+    document.getElementById("periodSelect").value = period;
     const isOneDay = period === "1D";
     const isCustom = period === "custom";
     document.getElementById("trendLegendOpen").style.display = isOneDay ? "none" : "";
     document.getElementById("trendLegendAvgOpen").style.display = isOneDay ? "none" : "";
+    document.getElementById("trendLegendRobustAvg").style.display = isOneDay ? "none" : "";
     document.getElementById("trendLegendAvgClose").style.display = isOneDay ? "none" : "";
     document.getElementById("closeLabelText").textContent = isOneDay ? "Price" : "Close";
     document.getElementById("trendChartType").style.display = isOneDay ? "none" : "";
@@ -1906,7 +2222,6 @@
     document.getElementById("exportTrendCsvBtn").style.display = "none";
     document.getElementById("trendChart").style.display = "";
     document.getElementById("periodTabs").style.display = "flex";
-    document.querySelector("#trendOverlay .trend-legend").style.display = "";
     {
       const cardEl = document.querySelector("#trendOverlay .settings-card");
       cardEl.style.height = ""; cardEl.style.overflowY = ""; cardEl.style.display = ""; cardEl.style.flexDirection = "";
@@ -1931,21 +2246,24 @@
     try {
       if (!trendRawData) trendRawData = await getEodRawRows(trendSymbol);
       if (isCustom) {
-        // Default the pickers to the last 30 days of whatever history is
-        // available, the first time Custom is opened for this stock.
-        const fromInput = document.getElementById("customFromDateInput");
+        // Custom picks ONE day; the chart then shows a fixed lookback
+        // window (90 days) ending on that day — the first time Custom is
+        // opened for this stock, default it to the most recent day we have.
         const toInput = document.getElementById("customToDateInput");
-        if (!fromInput.value || !toInput.value) {
+        if (!toInput.value) {
           const allRows = normalizeEodRows(trendRawData, trendRawData.length);
           if (allRows.length > 0) {
-            const last = allRows[allRows.length - 1].date;
-            const first = allRows[Math.max(0, allRows.length - 30)].date;
-            toInput.value = last.toISOString().slice(0, 10);
-            fromInput.value = first.toISOString().slice(0, 10);
+            toInput.value = allRows[allRows.length - 1].date.toISOString().slice(0, 10);
           }
         }
-        customFromDate = fromInput.value ? new Date(fromInput.value + "T00:00:00") : null;
-        customToDate = toInput.value ? new Date(toInput.value + "T23:59:59") : null;
+        if (toInput.value) {
+          customToDate = new Date(toInput.value + "T23:59:59");
+          customFromDate = new Date(toInput.value + "T00:00:00");
+          customFromDate.setDate(customFromDate.getDate() - 90);
+        } else {
+          customFromDate = null;
+          customToDate = null;
+        }
       }
       renderEodChart(periodToDays(period));
     } catch (e) {
@@ -2048,11 +2366,28 @@
       atrLevel += ` Volatility (${atrPct.toFixed(1)}% of price)`;
     }
 
-    // Uses today's own live session High/Low/current-price (not yesterday's,
-    // since PSX's EOD feed doesn't give us daily High/Low) — only available
-    // once this stock's live data has loaded.
+    // Ideal way: yesterday's saved daily record has real High/Low/Close,
+    // now that we actually keep one (see the daily backup system) — use
+    // that whenever it's available. Only fall back to approximating with
+    // today's own live session High/Low when no saved record exists for
+    // the last trading day (e.g. the app wasn't opened after close then).
+    let pivots = null, pivotBasis = "";
+    const prevDay = previousTradingDayKey(todayKey());
+    if (prevDay) {
+      try {
+        const prevRows = await readDailyRecord(prevDay);
+        const prevRow = prevRows.find(r => r.Symbol === trendSymbol);
+        if (prevRow && prevRow.High && prevRow.Low && prevRow.Close) {
+          pivots = computePivotPoints(parseFloat(prevRow.High), parseFloat(prevRow.Low), parseFloat(prevRow.Close));
+          pivotBasis = `Based on the saved record for ${prevDay} (yesterday's actual close).`;
+        }
+      } catch (e) { /* no saved record for that day — fall through */ }
+    }
     const liveStock = lastStockData[trendSymbol];
-    const pivots = liveStock ? computePivotPoints(liveStock.high, liveStock.low, liveStock.current[1]) : null;
+    if (!pivots && liveStock) {
+      pivots = computePivotPoints(liveStock.high, liveStock.low, liveStock.current[1]);
+      pivotBasis = "Based on today's session so far, not yesterday's saved record (none found for the last trading day).";
+    }
     let pivotStatus = "", pivotDir = "", pivotAction = "";
     if (pivots && liveStock) {
       const curPrice = liveStock.current[1];
@@ -2205,7 +2540,7 @@
             <div class="analysis-label">Status</div>
             <div class="analysis-value ${pivotDir}">${pivotStatus}</div>
           </div>
-          <div class="placeholder-text" style="margin-top:8px;">Based on today's session so far, not yesterday's full close.</div>
+          <div class="placeholder-text" style="margin-top:8px;">${pivotBasis}</div>
           ${pivotAction ? `<div class="analysis-action"${rtlAttr}><b>${actionLabel}</b> ${pivotAction}</div>` : ""}
         ` : `<div class="placeholder-text">Load this stock's live price first to see today's pivot levels.</div>`}
       </div>
@@ -2214,10 +2549,6 @@
 
   function renderGlossary() {
     const el = document.getElementById("glossaryList");
-    const knownHeadings = {
-      technical: { en: "Technical Analysis Terms", ur: "Technical Analysis ki Terms", urdu: "تکنیکی تجزیے کی اصطلاحات" },
-      fundamental: { en: "Fundamental Analysis Terms", ur: "Fundamental Analysis ki Terms", urdu: "بنیادی تجزیے کی اصطلاحات" }
-    };
     const isUrdu = glossaryLang === "urdu";
     // Derived from whatever's actually in GLOSSARY right now (built-in or
     // replaced by glossary.json), so a newly added category in that file
@@ -2229,15 +2560,14 @@
     });
     const categories = categoryKeys.map(key => ({
       key,
-      heading: knownHeadings[key]
-        ? (glossaryLang === "en" ? knownHeadings[key].en : glossaryLang === "urdu" ? knownHeadings[key].urdu : knownHeadings[key].ur)
-        : key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ")
+      heading: key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ")
     }));
     el.innerHTML = categories.map(cat => {
       const keys = Object.keys(GLOSSARY).filter(k => (GLOSSARY[k].category || "other") === cat.key);
       const terms = keys.map(key => {
         const g = GLOSSARY[key];
         const name = glossaryLang === "en" ? g.name : glossaryLang === "urdu" ? (g.nameUrdu || g.name) : g.name;
+        const short = glossaryLang === "en" ? g.short : glossaryLang === "urdu" ? (g.shortUrdu || g.short) : (g.shortUr || g.short);
         const def = glossaryLang === "en" ? g.en : glossaryLang === "urdu" ? (g.urdu || g.ur) : g.ur;
         const formulaHtml = g.formula
           ? `<div class="glossary-formula">${(glossaryLang === "en" ? "Formula: " : glossaryLang === "urdu" ? "فارمولا: " : "Formula: ") + g.formula.replace(/\n/g, "<br>")}</div>`
@@ -2247,28 +2577,48 @@
           ? `<div class="glossary-why"><b>${glossaryLang === "en" ? "Why check this?" : glossaryLang === "urdu" ? "یہ کیوں دیکھیں؟" : "Isay kyun dekhte hain?"}</b> ${whyText}</div>`
           : "";
         return `
-          <div class="glossary-term" id="glossary-${key}"${isUrdu ? ' dir="rtl" lang="ur"' : ""}>
-            <div class="glossary-term-name">${name}</div>
-            <div class="glossary-term-def">${def}</div>
-            ${formulaHtml}
-            ${whyHtml}
+          <div class="glossary-term" id="glossary-${key}">
+            <div class="glossary-term-header" data-glossary-toggle="${key}">
+              <div class="glossary-term-name"${isUrdu ? ' dir="rtl" lang="ur"' : ""}>${name}</div>
+              <div class="glossary-term-short"${isUrdu ? ' dir="rtl" lang="ur"' : ""}>${short || ""}</div>
+            </div>
+            <div class="glossary-term-body" id="glossary-body-${key}" style="display:none;"${isUrdu ? ' dir="rtl" lang="ur"' : ""}>
+              <div class="glossary-term-def">${def}</div>
+              ${formulaHtml}
+              ${whyHtml}
+            </div>
           </div>`;
       }).join("");
-      return `<div class="glossary-section-heading"${isUrdu ? ' dir="rtl" lang="ur"' : ""}>${cat.heading}</div>${terms}`;
+      return `<div class="glossary-section-heading">${cat.heading}</div>${terms}`;
     }).join("");
   }
 
   let pendingGlossaryTerm = null;
 
+  function expandGlossaryTerm(key) {
+    const header = document.querySelector(`#glossary-${key} .glossary-term-header`);
+    const body = document.getElementById("glossary-body-" + key);
+    if (!header || !body) return;
+    header.classList.add("open");
+    body.style.display = "block";
+  }
+
   function wireGlossary() {
-    document.getElementById("studyBtn").addEventListener("click", async () => {
+    document.getElementById("glossaryList").addEventListener("click", (e) => {
+      const header = e.target.closest("[data-glossary-toggle]");
+      if (!header) return;
+      const key = header.getAttribute("data-glossary-toggle");
+      const body = document.getElementById("glossary-body-" + key);
+      const isOpen = body.style.display !== "none";
+      body.style.display = isOpen ? "none" : "block";
+      header.classList.toggle("open", !isOpen);
+    });
+    document.getElementById("studyBtn").addEventListener("click", () => {
       document.getElementById("glossaryLangEn").classList.toggle("active", glossaryLang === "en");
       document.getElementById("glossaryLangUr").classList.toggle("active", glossaryLang === "ur");
       document.getElementById("glossaryLangUrdu").classList.toggle("active", glossaryLang === "urdu");
       renderGlossary();
       document.getElementById("glossaryOverlay").classList.add("open");
-      await loadRemoteGlossary();
-      renderGlossary(); // refresh in place once the latest content (if any) is in
     });
     document.getElementById("closeGlossaryBtn").addEventListener("click", () => {
       document.getElementById("glossaryOverlay").classList.remove("open");
@@ -2316,6 +2666,7 @@
       renderGlossary();
       document.getElementById("glossaryOverlay").classList.add("open");
       setTimeout(() => {
+        expandGlossaryTerm(key);
         const target = document.getElementById("glossary-" + key);
         if (target) target.scrollIntoView({ block: "start" });
       }, 50);
@@ -2350,17 +2701,25 @@
     });
     document.getElementById("chartSubTabBtn").addEventListener("click", () => selectTrendSubTab("chart"));
     document.getElementById("analysisSubTabBtn").addEventListener("click", () => selectTrendSubTab("analysis"));
-    document.getElementById("periodTabs").addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-period]");
-      if (btn) selectPeriod(btn.getAttribute("data-period"));
+    document.getElementById("linesMenuBtn").addEventListener("click", () => {
+      const menu = document.getElementById("linesMenu");
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
     });
+    document.getElementById("periodSelect").addEventListener("change", (e) => selectPeriod(e.target.value));
     document.getElementById("applyCustomRangeBtn").addEventListener("click", () => {
       const fromVal = document.getElementById("customFromDateInput").value;
       const toVal = document.getElementById("customToDateInput").value;
-      if (!fromVal || !toVal) { alert("Pick both a start and end date."); return; }
-      if (fromVal > toVal) { alert("Start date must be before the end date."); return; }
-      customFromDate = new Date(fromVal + "T00:00:00");
+      if (!toVal) { alert("Pick at least an end date."); return; }
+      if (fromVal && fromVal > toVal) { alert("Start date must be before the end date."); return; }
       customToDate = new Date(toVal + "T23:59:59");
+      if (fromVal) {
+        // A real range: both dates given.
+        customFromDate = new Date(fromVal + "T00:00:00");
+      } else {
+        // Just one day picked — show a 90-day lookback ending on it.
+        customFromDate = new Date(toVal + "T00:00:00");
+        customFromDate.setDate(customFromDate.getDate() - 90);
+      }
       renderEodChart(0);
     });
     document.getElementById("trendChartType").addEventListener("change", () => {
@@ -2386,13 +2745,16 @@
       showAvgOpenLine = e.target.checked;
       if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
     });
+    document.getElementById("showRobustAvgCheck").addEventListener("change", (e) => {
+      showRobustAvgLine = e.target.checked;
+      if (trendPeriod !== "1D") renderEodChart(periodToDays(trendPeriod));
+    });
     document.getElementById("trendDetailsBtn").addEventListener("click", () => {
       trendDetailsOpen = !trendDetailsOpen;
       const tableEl = document.getElementById("trendTable");
       const exportBtn = document.getElementById("exportTrendCsvBtn");
       const chartEl = document.getElementById("trendChart");
       const periodTabsEl = document.getElementById("periodTabs");
-      const legendEl = document.querySelector("#trendOverlay .trend-legend");
       const cardEl = document.querySelector("#trendOverlay .settings-card");
       const chartTabContentEl = document.getElementById("chartTabContent");
       if (trendDetailsOpen) {
@@ -2410,7 +2772,6 @@
         // flexed), and the table itself is the flex-growing child so it
         // actually claims that space.
         periodTabsEl.style.display = "none";
-        legendEl.style.display = "none";
         chartEl.style.display = "none";
         cardEl.style.height = "100%";
         cardEl.style.display = "flex";
@@ -2429,7 +2790,6 @@
         exportBtn.style.display = "none";
         document.getElementById("trendDetailsBtn").textContent = "Show details";
         periodTabsEl.style.display = "flex";
-        legendEl.style.display = "";
         chartEl.style.display = "";
         cardEl.style.height = "";
         cardEl.style.display = "";
@@ -2566,7 +2926,12 @@
         </div>
         <div class="detail-section">
           <div class="detail-label">Portfolio</div>
-          ${holdings[s.symbol] ? `<div>${holdings[s.symbol].shares} shares @ Rs${holdings[s.symbol].buyPrice.toFixed(2)}</div>` : ""}
+          ${holdings[s.symbol] ? (() => {
+            const p = holdingPL(s.symbol, s.current[1]);
+            const dir = p.pl >= 0 ? "up" : "down";
+            const sign = p.pl >= 0 ? "+" : "";
+            return `<div class="holding-line-detail ${dir}">${p.shares} @ ${p.buyPrice.toFixed(2)} = ${p.invested.toFixed(2)} → ${p.currentValue.toFixed(2)}  P/L ${sign}${p.pl.toFixed(2)} (${sign}${p.plPct.toFixed(1)}%)</div>`;
+          })() : ""}
           <div style="display:flex; gap:8px; margin-top:6px;">
             ${holdings[s.symbol] ? `
               <button class="toolbar-btn" data-open-holding-panel="${s.symbol}" style="flex:1;">Edit</button>
@@ -2692,6 +3057,11 @@
       return va - vb;
     });
     cards.forEach(c => listEl.appendChild(c));
+    // Central enforcement point — applySort() runs after essentially every
+    // list-changing action (refresh, pin/unpin, sort change), so re-apply
+    // the filter here too: nothing should ever un-hide a filtered-out card,
+    // pinned or not.
+    if (activeFilterMatches) applyStockFilterToList(activeFilterMatches);
   }
 
   // ---------- Expand all / collapse all ----------
@@ -2866,7 +3236,7 @@
       return `
         <div class="holding-line-row">
           <span class="holding-line-sym">${sym}</span>
-          <span class="holding-line-detail ${dir}">${p.shares} @ ${p.buyPrice.toFixed(2)} → ${sign}Rs${p.pl.toFixed(2)} (${sign}${p.plPct.toFixed(1)}%)</span>
+          <span class="holding-line-detail ${dir}">${p.shares} @ ${p.buyPrice.toFixed(2)} = ${p.invested.toFixed(2)} → ${p.currentValue.toFixed(2)}  P/L ${sign}${p.pl.toFixed(2)} (${sign}${p.plPct.toFixed(1)}%)</span>
           ${holdingsEditMode ? `
             <button class="holding-line-edit" data-holding-edit="${sym}">Edit</button>
             <button class="holding-line-remove" data-holding-remove="${sym}">✕</button>
@@ -3171,6 +3541,18 @@
     return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Karachi" }); // YYYY-MM-DD
   }
 
+  // Steps back from a date to the most recent weekday before it (skipping
+  // Sat/Sun), so we know which saved daily record to look for.
+  function previousTradingDayKey(fromDateStr) {
+    let d = new Date(fromDateStr + "T12:00:00");
+    for (let i = 0; i < 10; i++) {
+      d.setDate(d.getDate() - 1);
+      const weekday = d.toLocaleString("en-US", { weekday: "short" });
+      if (weekday !== "Sat" && weekday !== "Sun") return d.toLocaleDateString("en-CA");
+    }
+    return null;
+  }
+
   function buildCsv(dateStr) {
     const header = "Date,Symbol,Open,Close,Low,High,TotalVolume,MinVolume,MaxVolume,Change,PctChange\n";
     const rows = getAllSymbols().map(sym => {
@@ -3309,7 +3691,8 @@
         <div class="stock-head">
           <div class="sym-block">
             <div class="sym">${rec.Symbol}</div>
-            <div class="range">${rec.Low} - ${rec.High}</div>
+            <div class="range">LH: ${rec.Low} - ${rec.High}</div>
+            <div class="range">OC: ${rec.Open} - ${rec.Close}</div>
             ${rec.TotalVolume ? `<div class="company-name">Total V: ${Number(rec.TotalVolume).toLocaleString("en-US")}</div>` : ""}
           </div>
           <div class="price-block">
@@ -3346,9 +3729,9 @@
   }
 
   function shiftHistoryDate(deltaDays) {
-    const d = new Date(historyDate + "T00:00:00");
+    const d = new Date(historyDate + "T12:00:00");
     d.setDate(d.getDate() + deltaDays);
-    loadHistoryDate(d.toISOString().slice(0, 10));
+    loadHistoryDate(d.toLocaleDateString("en-CA"));
   }
 
   function shareRecord(dateStr) {
@@ -3583,7 +3966,10 @@
     }
     el.innerHTML = customSymbols.map(sym => `
       <div class="pinned-row">
-        <div class="pinned-sym">${sym}</div>
+        <div>
+          <div class="pinned-sym">${sym}</div>
+          ${customSymbolNames[sym] ? `<div style="font-size:12px; color:var(--dim);">${customSymbolNames[sym]}</div>` : ""}
+        </div>
         <div class="pinned-actions">
           <button class="toolbar-btn" data-remove-symbol="${sym}">✕ Remove</button>
         </div>
@@ -3607,6 +3993,130 @@
   }
 
   function wireCustomSymbols() {
+    document.getElementById("filterMenuBtn").addEventListener("click", () => {
+      const activeKeys = activeStockFilters.map(f => f.category + ":" + f.value);
+      document.querySelectorAll(".research-filter-btn").forEach(b => {
+        b.classList.toggle("active", activeKeys.includes(b.getAttribute("data-research-filter")));
+      });
+      document.querySelectorAll(".filter-desc").forEach(d => d.style.display = "none");
+      document.getElementById("filterLangMenu").style.display = "none";
+      renderFilterCategoryDescriptions();
+      document.getElementById("researchOverlay").classList.add("open");
+      updateLiveFilterCount();
+    });
+    document.getElementById("closeResearchBtn").addEventListener("click", () => {
+      document.getElementById("researchOverlay").classList.remove("open");
+    });
+    document.querySelector("#researchOverlay > .settings-card").addEventListener("click", (e) => {
+      const infoIcon = e.target.closest("[data-filter-info]");
+      if (infoIcon) {
+        const desc = document.getElementById("filterDesc-" + infoIcon.getAttribute("data-filter-info"));
+        desc.style.display = desc.style.display === "none" ? "block" : "none";
+        return;
+      }
+      const filterBtn = e.target.closest("[data-research-filter]");
+      if (!filterBtn) return;
+      const [category] = filterBtn.getAttribute("data-research-filter").split(":");
+      const wasActive = filterBtn.classList.contains("active");
+      // Single-select per category: clear any other pick in the same
+      // category first, then toggle this one (tapping an already-selected
+      // option again clears it, matching a radio button's behaviour).
+      document.querySelectorAll(`[data-research-filter^="${category}:"]`).forEach(b => b.classList.remove("active"));
+      if (!wasActive) filterBtn.classList.add("active");
+      updateLiveFilterCount();
+    });
+    document.getElementById("filterLangBtn").addEventListener("click", () => {
+      const menu = document.getElementById("filterLangMenu");
+      menu.style.display = menu.style.display === "none" ? "block" : "none";
+    });
+    document.getElementById("filterLangMenu").addEventListener("click", (e) => {
+      const row = e.target.closest("[data-filter-lang]");
+      if (!row) return;
+      glossaryLang = row.getAttribute("data-filter-lang");
+      document.getElementById("filterLangMenu").style.display = "none";
+      renderFilterCategoryDescriptions();
+    });
+    document.getElementById("applyResearchFiltersBtn").addEventListener("click", runResearchFilters);
+    document.getElementById("ltNoticeToggle").addEventListener("click", (e) => {
+      const full = document.getElementById("ltNoticeFull");
+      const isHidden = full.style.display === "none";
+      full.style.display = isHidden ? "inline" : "none";
+      e.target.textContent = isHidden ? "Show less" : "Show more";
+    });
+    document.getElementById("clearFilterBtn").addEventListener("click", clearStockFilter);
+    document.getElementById("openAddSymbolBtn").addEventListener("click", () => {
+      document.getElementById("customSymbolInput").value = "";
+      document.getElementById("customSymbolNameInput").value = "";
+      document.getElementById("customSymbolNameStatus").textContent = "";
+      document.getElementById("addSymbolSuggestions").style.display = "none";
+      renderCustomSymbolsList();
+      document.getElementById("addSymbolOverlay").classList.add("open");
+    });
+    document.getElementById("closeAddSymbolBtn").addEventListener("click", () => {
+      document.getElementById("addSymbolOverlay").classList.remove("open");
+    });
+    // Live company-name lookup: as soon as the person moves out of the
+    // symbol field (tab, tap elsewhere, or hits Enter/space), look the name
+    // up right away instead of waiting until they tap "Add".
+    async function previewCompanyName() {
+      const input = document.getElementById("customSymbolInput");
+      const nameInput = document.getElementById("customSymbolNameInput");
+      const status = document.getElementById("customSymbolNameStatus");
+      const sym = input.value.trim().toUpperCase();
+      if (!sym || nameInput.dataset.userEdited === "true") return;
+      if (getAllSymbols().includes(sym)) {
+        status.textContent = sym + " is already in your list.";
+        return;
+      }
+      status.textContent = "Looking up company name…";
+      const name = await lookupCompanyName(sym);
+      if (input.value.trim().toUpperCase() !== sym) return; // symbol changed meanwhile
+      if (name) {
+        nameInput.value = name;
+        status.innerHTML = `<span class="add-symbol-status-ok">✓ Detected: ${name}</span>`;
+      } else {
+        status.textContent = "Couldn't auto-detect — please type the company name.";
+      }
+    }
+    document.getElementById("customSymbolInput").addEventListener("blur", previewCompanyName);
+    document.getElementById("customSymbolInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); previewCompanyName(); }
+    });
+
+    // Live suggestions from the full PSX symbol list, searchable by either
+    // the symbol code or the company name — from either input field.
+    const suggestBox = document.getElementById("addSymbolSuggestions");
+    async function updateAddSuggestions(query) {
+      if (!query.trim()) { suggestBox.style.display = "none"; suggestBox.innerHTML = ""; return; }
+      const list = await getAllPsxSymbols();
+      const matches = rankPsxMatches(query, list);
+      if (matches.length === 0) { suggestBox.style.display = "none"; suggestBox.innerHTML = ""; return; }
+      suggestBox.innerHTML = matches.map(m => `
+        <div class="holding-suggestion-row" data-pick-add-symbol="${m.symbol}" data-pick-add-name="${m.name.replace(/"/g, "&quot;")}">
+          <span class="sym-part">${m.symbol}</span><span class="name-part">${m.name}</span>
+        </div>`).join("");
+      suggestBox.style.display = "block";
+    }
+    document.getElementById("customSymbolInput").addEventListener("input", (e) => {
+      updateAddSuggestions(e.target.value);
+    });
+    document.getElementById("customSymbolNameInput").addEventListener("input", (e) => {
+      e.target.dataset.userEdited = "true";
+      updateAddSuggestions(e.target.value);
+    });
+    suggestBox.addEventListener("click", (e) => {
+      const row = e.target.closest("[data-pick-add-symbol]");
+      if (!row) return;
+      const sym = row.getAttribute("data-pick-add-symbol");
+      const name = row.getAttribute("data-pick-add-name");
+      document.getElementById("customSymbolInput").value = sym;
+      const nameInput = document.getElementById("customSymbolNameInput");
+      nameInput.value = name;
+      nameInput.dataset.userEdited = "true";
+      suggestBox.style.display = "none";
+      suggestBox.innerHTML = "";
+      document.getElementById("customSymbolNameStatus").innerHTML = name ? `<span class="add-symbol-status-ok">✓ Detected: ${name}</span>` : "";
+    });
     document.getElementById("addCustomSymbolBtn").addEventListener("click", async () => {
       const input = document.getElementById("customSymbolInput");
       const nameInput = document.getElementById("customSymbolNameInput");
@@ -3631,6 +4141,9 @@
       }
       input.value = "";
       nameInput.value = "";
+      nameInput.dataset.userEdited = "false";
+      document.getElementById("customSymbolNameStatus").textContent = "";
+      document.getElementById("addSymbolSuggestions").style.display = "none";
       addBtn.textContent = "Add";
       renderCustomSymbolsList();
       addSymbolCardToList(sym);
@@ -3803,7 +4316,7 @@
         card.style.width = cardWidth + "px";
         card.style.zIndex = "999";
         card.style.pointerEvents = "none";
-      }, 1500);
+      }, 1000);
     }
 
     function onTouchMove(e) {
@@ -3906,7 +4419,7 @@
     setInterval(heartbeat, 3000);
     setInterval(updateLiveClock, 1000);
     if (settings.autoUpdateCheck) checkForUpdate(false);
-    loadRemoteGlossary();
+    loadBundledGlossary();
   }
 
   // In a real APK, Cordova fires "deviceready" once native plugins are ready.
